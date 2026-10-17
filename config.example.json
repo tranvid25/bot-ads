@@ -1,0 +1,67 @@
+{
+  "timezone": "Asia/Ho_Chi_Minh",
+  "cooldownDays": 7,
+  "maxPostsPerRun": 5,
+  "maxPostsPerDay": 10,
+  "maxConsecutiveFailures": 3,
+  "maxJoinsPerRun": 3,
+  "maxRunMinutes": 45,
+  "minDelaySeconds": 60,
+  "maxDelaySeconds": 120,
+  "maxScrolls": 30,
+  "requireApprovedGroups": true,
+  "searchKeywords": [
+    "tự học tiếng anh",
+    "luyện thi ielts speaking",
+    "học phát âm tiếng anh",
+    "tiếng anh giao tiếp"
+  ],
+  "excludedKeywords": [
+    "nhà đất",
+    "bất động sản",
+    "tuyển dụng"
+  ],
+  "automation": {
+    "search": true,
+    "join": true,
+    "sync": true,
+    "generateAI": true
+  },
+  "schedule": {
+    "time": "09:00",
+    "weekdays": [
+      1,
+      2,
+      3,
+      4,
+      5
+    ]
+  },
+  "websiteUrl": "https://app.pronunreview.com",
+  "groups": [],
+  "discoveredGroups": [],
+  "images": [],
+  "attachImage": false,
+  "commentLinkUnderPost": true,
+  "commentContent": "Link trải nghiệm PronunReview ở đây nhé: https://pronunreview.com",
+  "headless": false,
+  "haltOnUnknown": false,
+  "groupSelection": {
+    "enabled": true,
+    "maxGroupsPerRun": 10,
+    "recheckDays": 7,
+    "topicKeywords": [
+      "tiếng anh",
+      "english",
+      "ielts",
+      "speaking",
+      "phát âm",
+      "pronunciation",
+      "toeic"
+    ],
+    "mode": "exclude-prohibited"
+  },
+  "discoveryIntervalHours": 24,
+  "commentWebsiteUrl": "https://pronunreview.com",
+  "haltOnConsecutiveFailures": false
+}

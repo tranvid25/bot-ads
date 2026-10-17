@@ -1,0 +1,14 @@
+node_modules/
+user_data/
+auth.json
+config.json
+.env
+history.json
+automation_state.json
+schedule_state.json
+botads.lock
+STOP
+report.json
+report.csv
+ai_posts_pool.json
+*.tmp

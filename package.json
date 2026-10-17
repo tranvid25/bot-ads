@@ -1,0 +1,41 @@
+{
+  "name": "botads",
+  "version": "1.0.0",
+  "description": "Facebook Group Auto Post Bot for app.pronunreview.com",
+  "main": "index.js",
+  "scripts": {
+    "test": "node --test regression.test.js automation.test.js",
+    "start": "node index.js",
+    "login": "node login.js",
+    "search-groups": "node search_groups.js",
+    "select-groups": "node select_groups.js",
+    "reconcile": "node reconcile_posts.js",
+    "join-groups": "node join_groups.js",
+    "get-groups": "node get_groups.js",
+    "post": "node post.js",
+    "preview": "node preview.js",
+    "history": "node view_history.js",
+    "generate-ai": "node create_ai_batch.js",
+    "auto": "node automation.js",
+    "plan": "node automation.js --dry-run",
+    "doctor": "node doctor.js",
+    "manage": "node manage.js",
+    "report": "node manage.js report",
+    "schedule": "node scheduler.js",
+    "schedule:install": "powershell -NoProfile -ExecutionPolicy Bypass -File ./install-schedule.ps1",
+    "schedule:remove": "powershell -NoProfile -ExecutionPolicy Bypass -File ./install-schedule.ps1 -Remove",
+    "stop": "node control.js stop",
+    "resume": "node control.js resume"
+  },
+  "keywords": [
+    "facebook",
+    "auto-post",
+    "playwright",
+    "pronunreview"
+  ],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "playwright": "^1.58.2"
+  }
+}
