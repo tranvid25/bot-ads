@@ -1,0 +1,89 @@
+<!doctype html>
+<html lang="vi">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="default-src 'self'; script-src 'self'; style-src 'self'; object-src 'none'"
+    />
+    <title>BotAds · Kết nối máy tính</title>
+    <link rel="stylesheet" href="desktop.css" />
+  </head>
+  <body>
+    <header>
+      <div class="brand"><span>✳</span> botads.</div>
+          <span class="tag">ỨNG DỤNG MÁY TÍNH</span>
+    </header>
+    <main>
+      <div class="heading">
+        <div>
+          <h1>Máy tính của bạn, đã sẵn sàng.</h1>
+          <p>Kết nối với website và để BotAds thực hiện lịch bạn chọn.</p>
+        </div>
+        <span id="status" class="pill">Chưa liên kết</span>
+      </div>
+      <div id="error" role="alert" hidden></div>
+      <section id="pairing">
+        <h2>01 · Liên kết với website</h2>
+        <p>Đăng nhập website → Thiết bị → Tạo mã liên kết.</p>
+        <form id="pair-form">
+          <label
+            >Địa chỉ website<input
+              id="server"
+              type="url"
+              placeholder="https://botads.website-cua-ban.com"
+              required /></label
+          ><label
+            >Mã liên kết<input
+              id="code"
+              placeholder="xxxx-xxxx-xxxx-xxxx"
+              required
+              maxlength="25" /></label
+          ><button class="primary" type="submit">Liên kết máy tính</button>
+        </form>
+      </section>
+      <section id="connected" hidden>
+        <div class="section-head">
+          <div>
+            <h2>Website đã liên kết</h2>
+            <p id="server-name"></p>
+          </div>
+          <button id="website">Mở website ↗</button>
+        </div>
+        <div class="facebook">
+          <div>
+            <h3>Facebook</h3>
+            <p id="facebook-status">Chưa kết nối</p>
+          </div>
+          <button id="login" class="primary">Kết nối Facebook</button>
+        </div>
+        <div class="controls">
+          <button id="resume" class="primary">Nhận việc từ website</button
+          ><button id="stop">Dừng / tạm nghỉ</button
+          ><button id="disconnect" class="danger">Xóa liên kết trên máy</button>
+        </div>
+        <label class="checkbox"
+          ><input id="startup" type="checkbox" />Khởi động cùng máy tính</label
+        >
+        <p class="note">
+          Đóng cửa sổ sẽ thu nhỏ xuống khay hệ thống. Máy cần bật và có mạng.
+          Đăng nhập Facebook trực tiếp trong cửa sổ trình duyệt, không gửi mật
+          khẩu cho website.
+        </p>
+      </section>
+      <section class="log-section">
+        <div class="section-head">
+          <h2>Hoạt động gần đây</h2>
+          <span id="job" class="muted">Chưa có lượt chạy</span>
+        </div>
+        <pre id="logs">Sẵn sàng kết nối…</pre>
+      </section>
+      <footer>
+        Phiên Facebook được mã hóa trên máy tính này. Bạn có thể dừng bất cứ lúc
+        nào.
+      </footer>
+    </main>
+    <script src="renderer.js"></script>
+  </body>
+</html>

@@ -4,28 +4,39 @@
   "description": "Facebook Group Auto Post Bot for app.pronunreview.com",
   "main": "index.js",
   "scripts": {
-    "test": "node --test regression.test.js automation.test.js",
-    "start": "node index.js",
-    "login": "node login.js",
-    "search-groups": "node search_groups.js",
-    "select-groups": "node select_groups.js",
-    "reconcile": "node reconcile_posts.js",
-    "join-groups": "node join_groups.js",
-    "get-groups": "node get_groups.js",
-    "post": "node post.js",
-    "preview": "node preview.js",
-    "history": "node view_history.js",
-    "generate-ai": "node create_ai_batch.js",
-    "auto": "node automation.js",
-    "plan": "node automation.js --dry-run",
-    "doctor": "node doctor.js",
-    "manage": "node manage.js",
-    "report": "node manage.js report",
-    "schedule": "node scheduler.js",
-    "schedule:install": "powershell -NoProfile -ExecutionPolicy Bypass -File ./install-schedule.ps1",
-    "schedule:remove": "powershell -NoProfile -ExecutionPolicy Bypass -File ./install-schedule.ps1 -Remove",
-    "stop": "node control.js stop",
-    "resume": "node control.js resume"
+    "web:dev": "vite --config apps/web/vite.config.mjs",
+    "web:build": "vite build --config apps/web/vite.config.mjs",
+    "cloud:setup": "node scripts/setup-local.cjs",
+    "cloud:dev": "wrangler dev --config wrangler.jsonc",
+    "cloud:build": "npm run web:build && wrangler deploy --dry-run --outdir .worker-build",
+    "cloud:build:production": "npm run web:build && wrangler deploy --dry-run --env production --outdir .worker-build",
+    "cloud:deploy": "npm run web:build && wrangler deploy --env production",
+    "desktop": "electron apps/companion/main.cjs",
+    "desktop:build": "node scripts/build-desktop.cjs",
+    "desktop:build:mac": "node scripts/build-desktop-mac.cjs",
+    "test:saas": "node --test tests/*.test.mjs tests/*.test.cjs",
+    "test": "node --test tests/regression.test.js tests/automation.test.js",
+    "start": "node packages/automation/index.js",
+    "login": "node packages/automation/login.js",
+    "search-groups": "node packages/automation/search_groups.js",
+    "select-groups": "node packages/automation/select_groups.js",
+    "reconcile": "node packages/automation/reconcile_posts.js",
+    "join-groups": "node packages/automation/join_groups.js",
+    "get-groups": "node packages/automation/get_groups.js",
+    "post": "node packages/automation/post.js",
+    "preview": "node packages/automation/preview.js",
+    "history": "node packages/automation/view_history.js",
+    "generate-ai": "node packages/automation/create_ai_batch.js",
+    "auto": "node packages/automation/automation.js",
+    "plan": "node packages/automation/automation.js --dry-run",
+    "doctor": "node packages/automation/doctor.js",
+    "manage": "node packages/automation/manage.js",
+    "report": "node packages/automation/manage.js report",
+    "schedule": "node packages/automation/scheduler.js",
+    "schedule:install": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/install-schedule.ps1",
+    "schedule:remove": "powershell -NoProfile -ExecutionPolicy Bypass -File ./scripts/install-schedule.ps1 -Remove",
+    "stop": "node packages/automation/control.js stop",
+    "resume": "node packages/automation/control.js resume"
   },
   "keywords": [
     "facebook",
@@ -33,9 +44,29 @@
     "playwright",
     "pronunreview"
   ],
-  "author": "",
+  "author": "BotAds",
   "license": "ISC",
   "dependencies": {
     "playwright": "^1.58.2"
+  },
+  "overrides": {
+    "miniflare": {
+      "undici": "^7.29.1",
+      "sharp": "^0.35.5"
+    },
+    "app-builder-lib": {
+      "@electron/get": "^5.1.0"
+    }
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^6.1.2",
+    "electron": "^44.9.0",
+    "electron-builder": "^26.15.3",
+    "miniflare": "^4.20260730.0",
+    "prettier": "^3.9.10",
+    "react": "^19.2.0",
+    "react-dom": "^19.2.0",
+    "vite": "^8.3.4",
+    "wrangler": "^4.151.1"
   }
 }

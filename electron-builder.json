@@ -1,0 +1,41 @@
+{
+  "appId": "com.botads.desktop",
+  "productName": "BotAds",
+  "directories": { "output": "release" },
+  "extraMetadata": { "main": "apps/companion/main.cjs" },
+  "files": [
+    "apps/companion/**",
+    "packages/automation/*.js",
+    "packages/desktop-state.cjs",
+    "package.json"
+  ],
+  "extraResources": [
+    {
+      "from": ".browser-dist",
+      "to": "browsers",
+      "filter": ["**/*", "!.links/**"]
+    }
+  ],
+  "asar": true,
+  "win": {
+    "target": [{ "target": "nsis", "arch": ["x64"] }],
+    "signAndEditExecutable": false,
+    "artifactName": "BotAds-Setup-${version}.${ext}"
+  },
+  "mac": {
+    "target": [
+      { "target": "dmg", "arch": ["arm64", "x64"] }
+    ],
+    "category": "public.app-category.social-networking",
+    "artifactName": "BotAds-${version}-${arch}.${ext}",
+    "identity": null
+  },
+  "nsis": {
+    "oneClick": false,
+    "perMachine": false,
+    "allowToChangeInstallationDirectory": true,
+    "createDesktopShortcut": true,
+    "runAfterFinish": false
+  },
+  "publish": null
+}

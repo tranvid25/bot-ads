@@ -1,4 +1,6 @@
-﻿# BotAds — tự động đăng bài nhóm Facebook
+# BotAds — tự động đăng bài nhóm Facebook
+
+**Web React + API MVC + ứng dụng Windows:** đọc [hướng dẫn sử dụng bản mới](docs/HUONG_DAN_SU_DUNG.md). Kế hoạch sản phẩm ở [SAAS_PLAN.md](SAAS_PLAN.md). Phần hướng dẫn bên dưới dành cho bot CLI trong `packages/automation`; cấu hình và lịch sử CLI hiện nằm trong thư mục đó.
 
 Bot chạy bằng Node.js + Playwright. Quy trình gồm kiểm tra bài cũ → tìm và đồng bộ nhóm → tự đánh giá nhóm → xin tham gia → bổ sung kho AI khi cần → đăng bài và bình luận vào đúng bài đã xác nhận. Bot dừng khi gặp đăng nhập, xác minh, hạn chế thao tác hoặc hết giới hạn lượt chạy. Lỗi riêng từng nhóm và kết quả gửi chưa rõ được bỏ qua để tiếp tục nhóm khác theo mặc định.
 
@@ -28,7 +30,7 @@ npm run manage -- allow "https://www.facebook.com/groups/TEN_NHOM" --note "Nhóm
 npm run manage -- block "https://www.facebook.com/groups/TEN_NHOM" --note "Không cho quảng cáo"
 ```
 
-Nhóm mới được tự đánh giá, lưu lý do và đoạn văn bản làm căn cứ. Kết quả tự đánh giá được kiểm tra lại sau 7 ngày, tối đa 10 nhóm mỗi lượt, ưu tiên nhóm đã tham gia. Thay đổi mode sẽ tự đánh giá lại các kết quả cũ. Danh sách đã cào được dùng lại trong 24 giờ (`discoveryIntervalHours`), không cào toàn bộ mỗi lần chạy. Lệnh `block` thủ công luôn được giữ nguyên. `allow` cũng đưa nhóm vào danh sách để xin tham gia; bước đồng bộ và kiểm tra thành viên trên trang xác nhận lại trước khi đăng. Nhóm có câu hỏi tham gia được đánh dấu `manual_required` và bỏ qua để tiếp tục nhóm khác. Bot không tự đoán thông tin cá nhân, vượt xác minh tài khoản hoặc tự điền một câu trả lời chung cho mọi câu hỏi.
+Nhóm mới được tự đánh giá, lưu lý do và đoạn văn bản làm căn cứ. Kết quả tự đánh giá được kiểm tra lại sau 7 ngày, tối đa 30 nhóm mỗi lượt, ưu tiên nhóm đã tham gia. Thay đổi mode sẽ tự đánh giá lại các kết quả cũ. Danh sách đã cào được dùng lại trong 24 giờ (`discoveryIntervalHours`), không cào toàn bộ mỗi lần chạy. Lệnh `block` thủ công luôn được giữ nguyên. `allow` cũng đưa nhóm vào danh sách để xin tham gia; bước đồng bộ và kiểm tra thành viên trên trang xác nhận lại trước khi đăng. Nhóm có câu hỏi tham gia được đánh dấu `manual_required` và bỏ qua để tiếp tục nhóm khác. Bot không tự đoán thông tin cá nhân, vượt xác minh tài khoản hoặc tự điền một câu trả lời chung cho mọi câu hỏi.
 
 Xem kế hoạch rồi chạy:
 
@@ -44,11 +46,11 @@ npm run auto
 | Cấu hình | Mặc định | Ý nghĩa |
 |---|---:|---|
 | `cooldownDays` | 7 | Khoảng nghỉ đủ 7 × 24 giờ từ lần đăng thành công |
-| `maxPostsPerRun` | 5 | Số nhóm được thử đăng trong một lượt |
-| `maxPostsPerDay` | 10 | Giới hạn bài gửi trong ngày theo múi giờ cấu hình |
+| `maxPostsPerRun` | 30 | Số nhóm được thử đăng trong một lượt |
+| `maxPostsPerDay` | 30 | Giới hạn bài gửi trong ngày theo múi giờ cấu hình |
 | `maxConsecutiveFailures` | 3 | Ngưỡng cảnh báo lỗi liên tiếp; chỉ dừng nếu bật `haltOnConsecutiveFailures` |
 | `haltOnConsecutiveFailures` | false | Mặc định tiếp tục nhóm khác dù nhiều nhóm lỗi |
-| `maxRunMinutes` | 45 | Thời gian tối đa của quy trình; kiểm tra giữa các thao tác |
+| `maxRunMinutes` | 110 | Thời gian tối đa của quy trình; kiểm tra giữa các thao tác |
 | `maxJoinsPerRun` | 3 | Số nhóm được thử xin tham gia trong một lượt |
 | `minDelaySeconds` / `maxDelaySeconds` | 60 / 120 | Khoảng nghỉ giữa các nhóm |
 | `requireApprovedGroups` | true | Chỉ đăng vào nhóm được tự đánh giá đạt hoặc đã dùng `allow` |
@@ -143,3 +145,53 @@ npm test
 Bộ kiểm tra dùng dữ liệu tạm, tiến trình con và Chromium với trang HTML được chặn và cấp nội dung tại máy. Không đăng nhập, tham gia nhóm, gọi Gemini hoặc đăng bài thật. Bao gồm luồng soạn/gửi bài, xác nhận kết quả, phạm vi bình luận, khoảng nghỉ xuyên ngày, chuyển đổi lịch sử, giới hạn ngày, khóa tiến trình, lịch chạy và phục hồi kho AI.
 
 Facebook có thể thay đổi giao diện, giới hạn tài khoản, yêu cầu xác minh hoặc duyệt bài. Khi không xác định chắc, bot dừng hoặc bỏ qua. Xác nhận thực tế lần đầu trên một nhóm bạn quản lý hoặc được phép đăng trước khi bật lịch dài hạn. Đây là tự động đăng bài nhóm; không phải quản lý chiến dịch trả phí trong Meta Ads Manager.
+
+## Nền tảng SaaS (Cloudflare Workers + React + Windows Companion)
+
+Kiến trúc SaaS tách biệt giao diện quản lý trên Cloudflare và ứng dụng chạy cục bộ trên máy Windows của khách hàng theo [SAAS_PLAN.md](SAAS_PLAN.md):
+
+- **Web Dashboard (`apps/web/`)**: React + Vite quản lý tài khoản, chiến dịch, ảnh R2, lịch đăng, kết quả bài viết và thiết bị.
+- **Backend API (`apps/api/`)**: Cloudflare Workers + D1 database + R2 object storage + Cron triggers.
+- **Windows Companion App (`apps/companion/`)**: Electron tray app, bảo vệ thông tin bằng Windows SafeStorage, điều khiển Chromium Playwright cục bộ.
+- **Automation Core (`packages/automation/`)**: Lõi tự động hóa Playwright, tương tác nhóm, kiểm tra nội quy, xác minh bài và bình luận.
+- **Contracts (`packages/contracts/`)**: Schema xác thực dữ liệu chiến dịch và tính toán lịch chạy theo múi giờ.
+
+### Cấu trúc mã nguồn Monorepo
+
+```text
+apps/
+  web/                  Giao diện quản lý React + Vite (Dashboard, Chiến dịch, Thiết bị, Kết quả)
+  api/                  Cloudflare Workers API (D1 database, R2 assets, Cron scheduler, Gemini)
+  companion/            Ứng dụng Windows Electron (Tray, DPAPI safeStorage, IPC, Playwright runner)
+packages/
+  automation/           Toàn bộ module Playwright, lọc nhóm, gửi bài, đối soát, lưu trữ dữ liệu
+  contracts/            Schema kiểm thực dữ liệu chiến dịch & múi giờ
+scripts/                Script đóng gói (build-desktop, setup-local, smoke-ui, install-schedule)
+tests/                  Toàn bộ test suites (SaaS API tests, Contracts tests, Browser regression tests)
+```
+
+### Lệnh chạy và kiểm thử SaaS
+
+```powershell
+# Chạy toàn bộ kiểm thử SaaS (D1, Auth, Pairing, Rate limits, Quota, Cron, Contracts)
+npm run test:saas
+
+# Cài đặt môi trường D1 local và khởi tạo biến môi trường .dev.vars
+npm run cloud:setup
+
+# Chạy server Cloudflare Workers dev (port 8899)
+npm run cloud:dev
+
+# Chạy dashboard web React dev
+npm run web:dev
+
+# Build web tĩnh và kiểm tra bundle Cloudflare Workers
+npm run cloud:build
+
+# Mở ứng dụng Windows Companion
+npm run desktop
+
+# Đóng gói bộ cài đặt Windows (NSIS installer)
+npm run desktop:build
+```
+

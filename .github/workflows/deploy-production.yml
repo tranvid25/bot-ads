@@ -1,0 +1,72 @@
+name: Deploy production
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: botads-production
+  cancel-in-progress: false
+
+jobs:
+  verify:
+    name: Verify and build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run test:saas
+      - run: npm run cloud:build:production
+
+  deploy:
+    name: Deploy Cloudflare production
+    needs: verify
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run web:build
+
+      # First deploy creates the named Worker. This step is safe to repeat.
+      - name: Apply production D1 migrations and bootstrap Worker
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          environment: production
+          preCommands: npx wrangler d1 migrations apply bot-ads --remote --env production
+          command: deploy --env production
+
+      # Upload AUTH_SECRET before deploying the final version. The secret is never stored in Git.
+      - name: Set Worker secret and deploy
+        id: deploy
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          environment: production
+          secrets: AUTH_SECRET
+          command: deploy --env production
+        env:
+          AUTH_SECRET: ${{ secrets.AUTH_SECRET }}
+
+      - name: Check deployed API
+        env:
+          PRODUCTION_URL: ${{ steps.deploy.outputs.deployment-url }}
+        run: |
+          test -n "$PRODUCTION_URL"
+          node -e 'fetch(`${process.env.PRODUCTION_URL}/api/meta`).then(async response => { if (!response.ok) throw new Error(`HTTP ${response.status}`); const data = await response.json(); if (data.name !== "BotAds") throw new Error("Unexpected API response"); console.log(`Production API healthy: ${process.env.PRODUCTION_URL}`); }).catch(error => { console.error(error); process.exit(1); })'

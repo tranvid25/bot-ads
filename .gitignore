@@ -12,3 +12,10 @@ report.json
 report.csv
 ai_posts_pool.json
 *.tmp
+.dev.vars
+.wrangler/
+.worker-build/
+.browser-dist/
+release/
+apps/web/dist/
+test-results/

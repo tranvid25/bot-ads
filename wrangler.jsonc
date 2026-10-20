@@ -1,0 +1,59 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "botads",
+  "main": "apps/api/worker.mjs",
+  "compatibility_date": "2026-10-01",
+  "dev": { "ip": "127.0.0.1", "port": 8899 },
+  "assets": {
+    "directory": "apps/web/dist",
+    "binding": "ASSETS",
+    "not_found_handling": "single-page-application",
+    "run_worker_first": ["/api/*"],
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "botads",
+      "database_id": "00000000-0000-0000-0000-000000000000",
+      "migrations_dir": "apps/api/migrations",
+    },
+  ],
+  "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "botads-media" }],
+  "triggers": { "crons": ["*/5 * * * *"] },
+  "vars": {
+    "MAX_DAILY_POSTS": "100",
+    "ALLOW_REGISTRATION": "true",
+    "MAX_ASSET_MB": "5",
+    "AI_DAILY_REQUESTS": "10",
+    "DOWNLOAD_URL": "",
+  },
+  "env": {
+    "production": {
+      "name": "bot-ads-production",
+      "workers_dev": true,
+      "assets": {
+        "directory": "apps/web/dist",
+        "binding": "ASSETS",
+        "not_found_handling": "single-page-application",
+        "run_worker_first": ["/api/*"],
+      },
+      "d1_databases": [
+        {
+          "binding": "DB",
+          "database_name": "bot-ads",
+          "database_id": "39067fa0-2177-4a3d-893f-c521cfbee823",
+          "migrations_dir": "apps/api/migrations",
+        },
+      ],
+      "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "bot-ads" }],
+      "triggers": { "crons": ["*/5 * * * *"] },
+      "vars": {
+        "MAX_DAILY_POSTS": "100",
+        "ALLOW_REGISTRATION": "true",
+        "MAX_ASSET_MB": "5",
+        "AI_DAILY_REQUESTS": "10",
+        "DOWNLOAD_URL": "",
+      },
+    },
+  },
+}
