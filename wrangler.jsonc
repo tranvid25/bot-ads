@@ -52,7 +52,7 @@
         "ALLOW_REGISTRATION": "true",
         "MAX_ASSET_MB": "5",
         "AI_DAILY_REQUESTS": "10",
-        "DOWNLOAD_URL": "",
+        "DOWNLOAD_URL": "https://github.com/tranvid25/bot-ads/releases/download/v1.0.0/BotAds-Setup-1.0.0.exe",
       },
     },
   },

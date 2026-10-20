@@ -83,7 +83,7 @@ Repo đã có workflow `.github/workflows/deploy-production.yml`: khi push lên 
 
 Token Cloudflare từng được dán vào chat, vì vậy phải thu hồi token đó và tạo token mới trước khi thêm secret. Trong GitHub repo vào **Settings → Secrets and variables → Actions**, thêm secrets `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` và `AUTH_SECRET`. Token mới chỉ cần quyền sửa Workers Scripts, D1 và R2 trong đúng Cloudflare account. `AUTH_SECRET` tạo bằng `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`; chỉ lưu trong GitHub Secrets. Mã account ID cần copy lại từ Cloudflare Dashboard vì giá trị đã gửi có vẻ thiếu ký tự.
 
-Trước lần chạy đầu, xác nhận database D1 có ID đúng và chưa có schema khác cần giữ lại; migration đầu tạo các bảng BotAds. Đảm bảo bucket R2 `bot-ads` đã tồn tại. Nếu thiếu tài nguyên hoặc token quyền chưa đủ, workflow dừng trước khi deploy thành công. Có thể thêm `GEMINI_API_KEY` thành Worker secret riêng sau deploy nếu muốn bật tạo nội dung Gemini. `DOWNLOAD_URL` đang để trống nên nút tải ứng dụng vẫn chưa hoạt động; cần tải bộ cài lên nơi công khai rồi cấu hình URL trước khi bật phân phối.
+Trước lần chạy đầu, xác nhận database D1 có ID đúng và chưa có schema khác cần giữ lại; migration đầu tạo các bảng BotAds. Đảm bảo bucket R2 `bot-ads` đã tồn tại. Nếu thiếu tài nguyên hoặc token quyền chưa đủ, workflow dừng trước khi deploy thành công. Có thể thêm `GEMINI_API_KEY` thành Worker secret riêng sau deploy nếu muốn bật tạo nội dung Gemini. Link tải Windows trỏ tới GitHub Release `v1.0.0`; mỗi lần phát hành bản mới, cập nhật `DOWNLOAD_URL` sang asset mới rồi deploy lại. Link Mac chưa được thêm vào giao diện tải.
 
 Production hiện là bản pilot: đăng ký mở, chưa có xác minh email/thanh toán; cần thử với tài khoản và nhóm được phép trước khi mời khách dùng rộng rãi. Không đưa token, `AUTH_SECRET`, `GEMINI_API_KEY` hoặc `.dev.vars` vào commit.
 
@@ -98,7 +98,7 @@ npm run desktop:build:mac
 
 Lệnh này tạo bản theo kiến trúc của máy đang build: Apple Silicon (M1/M2/M3/M4) hoặc Intel. File `.dmg` cùng mã SHA-256 nằm trong thư mục `release`. Không tạo bản macOS trên Windows; hãy chạy lệnh trên máy Mac. Bản hiện tại chưa ký Developer ID hoặc notarize, nên macOS có thể cảnh báo khi mở. Để khách tải và cài thuận tiện, cần tài khoản Apple Developer trả phí để ký và notarize ứng dụng trước khi phát hành rộng.
 
-Domain riêng chưa cấu hình; sau deploy có thể dùng URL `workers.dev` trước. Binding D1/R2 production đã khai báo trong `wrangler.jsonc` nhưng cần xác nhận tài nguyên tồn tại và đúng tài khoản. Secrets được đưa vào GitHub Actions trước deploy. Nút tải trên web chưa được bật khi `DOWNLOAD_URL` còn trống; cần upload bộ cài Windows (và Mac nếu phát hành) lên nơi tải công khai rồi cấu hình URL.
+Domain riêng chưa cấu hình; sau deploy có thể dùng URL `workers.dev` trước. Binding D1/R2 production đã khai báo trong `wrangler.jsonc` nhưng cần xác nhận tài nguyên tồn tại và đúng tài khoản. Secrets được đưa vào GitHub Actions trước deploy. Nút tải Windows sẽ bật sau khi cấu hình production này được deploy.
 
 Bộ cài hiện chưa ký số. Đã kiểm thử luồng đăng ký, tạo bài thủ công, cấu hình 50/ngày và ghép ứng dụng; chưa thực hiện đăng Facebook thật trong các bài kiểm tra này. Cần chạy thử có kiểm soát với nhóm được phép trước khi phát hành rộng cho khách hàng.
 
