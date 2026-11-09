@@ -21,7 +21,7 @@ export async function route(request, env) {
   const url = new URL(request.url);
   const path = url.pathname;
   const method = request.method;
-  if (!path.startsWith("/api/")) return env.ASSETS.fetch(request);
+  if (!path.startsWith("/api/")) throw error(404, "Đây là máy chủ API BotAds.");
   if (path === "/api/meta") return metadata(request, env, path, method);
   if (path === "/api/download") return download(request, env, path, method);
   if (path === "/api/device/pair" && method === "POST")

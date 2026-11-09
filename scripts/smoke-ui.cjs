@@ -12,7 +12,7 @@ const assert = require("assert/strict");
     });
     const errors = [];
     page.on("pageerror", (e) => errors.push(e.message));
-    await page.goto("http://127.0.0.1:8899");
+    await page.goto("http://127.0.0.1:5173");
     await page.getByRole("button", { name: "Đăng ký", exact: true }).click();
     await page.getByLabel("Tên của bạn").fill("Khách kiểm thử");
     await page

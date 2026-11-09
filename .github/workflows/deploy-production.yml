@@ -26,10 +26,12 @@ jobs:
       - run: npx playwright install --with-deps chromium
       - run: npm test
       - run: npm run test:saas
+      - run: npm run web:build
+      - run: npm run web:check
       - run: npm run cloud:build:production
 
   deploy:
-    name: Deploy Cloudflare production
+    name: Deploy backend Worker
     needs: verify
     runs-on: ubuntu-latest
     environment: production
@@ -40,7 +42,6 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: npm run web:build
 
       - name: Validate deployment secrets
         env:
@@ -81,3 +82,46 @@ jobs:
         run: |
           test -n "$PRODUCTION_URL"
           node -e 'fetch(`${process.env.PRODUCTION_URL}/api/meta`).then(async response => { if (!response.ok) throw new Error(`HTTP ${response.status}`); const data = await response.json(); if (data.name !== "BotAds") throw new Error("Unexpected API response"); console.log(`Production API healthy: ${process.env.PRODUCTION_URL}`); }).catch(error => { console.error(error); process.exit(1); })'
+
+  deploy-web:
+    name: Deploy frontend Pages
+    needs: deploy
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run web:build
+
+      - name: Ensure Pages project exists
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+        run: node scripts/ensure-pages-project.mjs
+
+      - name: Deploy Pages with API service binding
+        uses: cloudflare/wrangler-action@v4
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: apps/web
+          command: pages deploy --project-name botads-web --branch main
+
+      - name: Check frontend and API connection
+        run: |
+          node --input-type=module <<'NODE'
+          const base = 'https://botads-web.pages.dev';
+          const web = await fetch(base);
+          if (!web.ok || !(await web.text()).includes('<div id="root">')) {
+            throw new Error('Frontend Pages is not serving the React app');
+          }
+          const response = await fetch(`${base}/api/meta`);
+          if (!response.ok || (await response.json()).name !== 'BotAds') {
+            throw new Error('Pages cannot reach the backend Worker');
+          }
+          console.log(`Frontend and API connection healthy: ${base}`);
+          NODE

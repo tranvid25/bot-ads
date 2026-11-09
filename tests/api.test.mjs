@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
 import { Miniflare } from "miniflare";
 import { scheduled } from "../apps/api/services/jobs.service.mjs";
+import { onRequest as pagesApi } from "../apps/web/functions/api/[[path]].js";
 let mf, db, a, b, device, deviceId, job, campaignId, attemptId;
 const base = "http://localhost";
 async function request(
@@ -98,6 +99,48 @@ before(async () => {
 });
 after(async () => {
   await mf?.dispose();
+});
+test("Pages forwards browser sessions and CSRF checks to the separate API Worker", async () => {
+  const origin = "https://botads-web.pages.dev";
+  const env = {
+    BACKEND: {
+      fetch: (request) => mf.dispatchFetch(request.url, request),
+    },
+  };
+  const login = await pagesApi({
+    env,
+    request: new Request(`${origin}/api/auth/login`, {
+      method: "POST",
+      headers: { Origin: origin, "Content-Type": "application/json" },
+      body: JSON.stringify({ email: "a@example.com", password: "correct horse battery staple" }),
+    }),
+  });
+  assert.equal(login.status, 200);
+  const session = login.headers.get("set-cookie");
+  assert.match(session, /HttpOnly/);
+  assert.match(session, /SameSite=Strict/);
+  assert.match(session, /Secure/);
+  const cookie = session.split(";")[0];
+  const dashboard = await pagesApi({
+    env,
+    request: new Request(`${origin}/api/dashboard`, { headers: { Cookie: cookie } }),
+  });
+  assert.equal(dashboard.status, 200);
+  for (const [requestOrigin, expected] of [[origin, 200], ["https://attacker.example", 403]]) {
+    const response = await pagesApi({
+      env,
+      request: new Request(`${origin}/api/settings`, {
+        method: "PUT",
+        headers: { Origin: requestOrigin, Cookie: cookie, "Content-Type": "application/json" },
+        body: JSON.stringify({ dailyLimit: 30 }),
+      }),
+    });
+    assert.equal(response.status, expected);
+  }
+  const missing = await pagesApi({ request: new Request(`${origin}/api/meta`), env: {} });
+  assert.equal(missing.status, 503);
+  const backendRoot = await mf.dispatchFetch(base + "/");
+  assert.equal(backendRoot.status, 404);
 });
 test("register, login and logout use private HttpOnly sessions", async () => {
   assert.equal(a.status, 200);
@@ -455,4 +498,3 @@ test("scheduled cron triggers due campaigns, prevents duplicate slots, and expir
     .first();
   assert.equal(stale.status, "needs_review");
 });
-

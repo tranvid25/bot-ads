@@ -150,7 +150,7 @@ Facebook có thể thay đổi giao diện, giới hạn tài khoản, yêu cầ
 
 Kiến trúc SaaS tách biệt giao diện quản lý trên Cloudflare và ứng dụng chạy cục bộ trên máy Windows của khách hàng theo [SAAS_PLAN.md](SAAS_PLAN.md):
 
-- **Web Dashboard (`apps/web/`)**: React + Vite quản lý tài khoản, chiến dịch, ảnh R2, lịch đăng, kết quả bài viết và thiết bị.
+- **Web Dashboard (`apps/web/`)**: React + Vite, deploy riêng lên Cloudflare Pages (`botads-web`), quản lý tài khoản, chiến dịch, ảnh R2, lịch đăng, kết quả bài viết và thiết bị. Pages chuyển tiếp `/api/*` tới Worker qua service binding `BACKEND`.
 - **Backend API (`apps/api/`)**: Cloudflare Workers + D1 database + R2 object storage + Cron triggers.
 - **Windows Companion App (`apps/companion/`)**: Electron tray app, bảo vệ thông tin bằng Windows SafeStorage, điều khiển Chromium Playwright cục bộ.
 - **Automation Core (`packages/automation/`)**: Lõi tự động hóa Playwright, tương tác nhóm, kiểm tra nội quy, xác minh bài và bình luận.
@@ -182,10 +182,14 @@ npm run cloud:setup
 # Chạy server Cloudflare Workers dev (port 8899)
 npm run cloud:dev
 
-# Chạy dashboard web React dev
+# Chạy dashboard React ở cổng 5173 trong terminal khác; /api được proxy sang 8899
 npm run web:dev
 
-# Build web tĩnh và kiểm tra bundle Cloudflare Workers
+# Build riêng frontend Pages và kiểm tra Pages Function
+npm run web:build
+npm run web:check
+
+# Kiểm tra bundle API Worker (không đóng gói frontend)
 npm run cloud:build
 
 # Mở ứng dụng Windows Companion

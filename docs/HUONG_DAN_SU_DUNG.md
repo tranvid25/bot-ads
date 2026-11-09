@@ -10,7 +10,7 @@
 - `tests`: kiểm tra tự động. `scripts`: khởi tạo, đóng gói, kiểm tra giao diện và cài lịch CLI.
 - `release`: bộ cài Windows và bản ứng dụng đã đóng gói.
 
-Đây là bản thử phát triển trên máy. Website chưa được deploy lên Internet. Tài khoản đăng ký ở bản local và dữ liệu local chưa tự chuyển sang Cloudflare production.
+Frontend và backend có hai đích deploy riêng: React ở Cloudflare Pages (`botads-web`), API ở Worker (`bot-ads-production`). Pages chuyển tiếp `/api/*` tới Worker qua service binding `BACKEND`. Tài khoản và dữ liệu local không tự chuyển sang production.
 
 ## Mở website local
 
@@ -20,15 +20,14 @@ Mở PowerShell tại thư mục dự án. Chạy từng lệnh theo thứ tự:
 cd D:\botAds
 npm install
 npm run cloud:setup
-npm run web:build
 npm run cloud:dev
 ```
 
-`cloud:setup` tạo secret local nếu chưa có và áp dụng database migrations local. `cloud:dev` chạy API, database/ảnh giả lập Cloudflare và phục vụ bản React đã build. Giữ cửa sổ này mở.
+`cloud:setup` tạo secret local nếu chưa có và áp dụng database migrations local. `cloud:dev` chỉ chạy API và database/ảnh giả lập Cloudflare ở cổng 8899. Giữ cửa sổ này mở. Trong terminal thứ hai, chạy `npm run web:dev` để mở React ở cổng 5173; Vite chuyển tiếp `/api` sang API local.
 
-Mở **http://127.0.0.1:8899** trong trình duyệt. Nếu website đã mở được và server đang chạy thì không cần chạy thêm một server nữa.
+Mở **http://127.0.0.1:5173** trong trình duyệt.
 
-Lần sau chỉ cần `npm run cloud:dev`; chạy lại `npm run web:build` nếu đã sửa frontend. Khi phát triển giao diện với cập nhật nhanh, có thể mở thêm terminal chạy `npm run web:dev`; giao diện dev ở cổng 5173 và API vẫn cần cổng 8899.
+Lần sau chạy `npm run cloud:dev` và `npm run web:dev` trong hai terminal. Frontend cập nhật ngay khi sửa mã nguồn.
 
 ## Đăng ký và ghép ứng dụng
 
@@ -79,7 +78,11 @@ Giữ nguyên `AUTH_SECRET` đã tạo. Không đưa API key vào frontend, comm
 
 ### Deploy production qua GitHub Actions
 
-Repo đã có workflow `.github/workflows/deploy-production.yml`: khi push lên `main`, GitHub chạy kiểm tra, build giao diện, áp dụng migration D1 và deploy Worker production. Có thể chạy thủ công ở tab **Actions → Deploy production → Run workflow**. Workflow deploy lên URL `workers.dev`; domain riêng chưa được cấu hình. D1 dùng database `bot-ads`, R2 dùng bucket `bot-ads`.
+Workflow `.github/workflows/deploy-production.yml` chạy khi push lên `main` hoặc chọn **Actions → Deploy production → Run workflow**. Sau kiểm tra, job backend áp dụng migration D1 và deploy Worker `bot-ads-production` chỉ chứa API. Job frontend tạo Pages project `botads-web` nếu chưa có, build React và deploy Pages riêng với service binding `BACKEND` trỏ tới Worker. Workflow kiểm tra cả API trực tiếp lẫn `/api/meta` qua Pages.
+
+Website production: **https://botads-web.pages.dev**. API trực tiếp nằm ở URL `workers.dev` do job backend in ra. Mở website Pages để đăng nhập và tạo mã ghép; trong ứng dụng Windows cũng nhập URL Pages này. `/api/*` đi qua Pages Function sang Worker, giữ cookie trên domain website nên không cần CORS hoặc cookie bên thứ ba. React, ảnh, tải bộ cài và thiết bị tiếp tục dùng đường dẫn `/api` hiện có. URL Worker cũ sẽ chỉ phục vụ API, không còn giao diện; cần cập nhật bookmark và ghép lại thiết bị với địa chỉ Pages. Domain riêng, nếu dùng, gắn vào Pages.
+
+Token deploy cần thêm quyền **Cloudflare Pages: Edit**, cùng quyền Workers Scripts, D1 và R2 đang có. Workflow dùng cùng ba secrets `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID`, `AUTH_SECRET`; `AUTH_SECRET` chỉ được đưa vào Worker backend. Project Pages dùng nhánh production `main`. `npm run cloud:deploy` chỉ deploy API; `npm run web:deploy` build và deploy frontend sau khi Pages project đã tồn tại.
 
 Token Cloudflare từng được dán vào chat, vì vậy phải thu hồi token đó và tạo token mới trước khi thêm secret. Trong GitHub repo vào **Settings → Secrets and variables → Actions**, thêm secrets `CLOUDFLARE_API_TOKEN`, `CLOUDFLARE_ACCOUNT_ID` và `AUTH_SECRET`. Token mới chỉ cần quyền sửa Workers Scripts, D1 và R2 trong đúng Cloudflare account. `AUTH_SECRET` tạo bằng `node -e "console.log(require('crypto').randomBytes(32).toString('hex'))"`; chỉ lưu trong GitHub Secrets. Mã account ID cần copy lại từ Cloudflare Dashboard vì giá trị đã gửi có vẻ thiếu ký tự.
 
@@ -98,7 +101,7 @@ npm run desktop:build:mac
 
 Lệnh này tạo bản theo kiến trúc của máy đang build: Apple Silicon (M1/M2/M3/M4) hoặc Intel. File `.dmg` cùng mã SHA-256 nằm trong thư mục `release`. Không tạo bản macOS trên Windows; hãy chạy lệnh trên máy Mac. Bản hiện tại chưa ký Developer ID hoặc notarize, nên macOS có thể cảnh báo khi mở. Để khách tải và cài thuận tiện, cần tài khoản Apple Developer trả phí để ký và notarize ứng dụng trước khi phát hành rộng.
 
-Domain riêng chưa cấu hình; sau deploy có thể dùng URL `workers.dev` trước. Binding D1/R2 production đã khai báo trong `wrangler.jsonc` nhưng cần xác nhận tài nguyên tồn tại và đúng tài khoản. Secrets được đưa vào GitHub Actions trước deploy. Nút tải Windows sẽ bật sau khi cấu hình production này được deploy.
+Binding D1/R2 production giữ trong `wrangler.jsonc`; service binding Pages nằm trong `apps/web/wrangler.jsonc`. Secrets được đưa vào GitHub Actions trước deploy. Nút tải Windows nhận cấu hình từ API backend qua Pages.
 
 Bộ cài hiện chưa ký số. Đã kiểm thử luồng đăng ký, tạo bài thủ công, cấu hình 50/ngày và ghép ứng dụng; chưa thực hiện đăng Facebook thật trong các bài kiểm tra này. Cần chạy thử có kiểm soát với nhóm được phép trước khi phát hành rộng cho khách hàng.
 

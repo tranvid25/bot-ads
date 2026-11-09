@@ -15,6 +15,7 @@ ai_posts_pool.json
 .dev.vars
 .wrangler/
 .worker-build/
+.pages-build/
 .browser-dist/
 release/
 apps/web/dist/
