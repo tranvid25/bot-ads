@@ -5,18 +5,28 @@ import Auth from "./pages/Auth";
 import Editor from "./components/CampaignEditor";
 import MarketingWorkspace from "./components/MarketingWorkspace";
 import LegalLinks from "./components/LegalLinks";
+import { ChannelMark } from "./components/PublishingViews";
+import GoogleAccount from "./components/GoogleAccount";
+import { googleAuthErrors } from "../../../packages/contracts/google-auth.mjs";
 export default function App() {
   const [meta, setMeta] = useState({ maxDaily: 100, registrationOpen: true }),
     [data, setData] = useState(null),
     [loading, setLoading] = useState(true),
-    [page, setPage] = useState("marketing"),
+    [page, setPage] = useState(() =>
+      new URLSearchParams(window.location.search).get("google_auth") ===
+      "linked"
+        ? "settings"
+        : "marketing",
+    ),
     [editor, setEditor] = useState(null),
     [notice, setNotice] = useState(""),
     [error, setError] = useState(""),
     [pair, setPair] = useState(""),
     [events, setEvents] = useState(null),
     [busy, setBusy] = useState(false),
-    [limit, setLimit] = useState(30);
+    [limit, setLimit] = useState(30),
+    [marketingData, setMarketingData] = useState(null),
+    [marketingNavigation, setMarketingNavigation] = useState(null);
   const refresh = async () => {
     try {
       const d = await api("/dashboard");
@@ -38,6 +48,27 @@ export default function App() {
   }, []);
   useEffect(() => {
     if (!data) return;
+    const url = new URL(window.location.href),
+      result = url.searchParams.get("google_auth");
+    if (result) {
+      if (result === "linked") {
+        setPage("settings");
+        setNotice("Đã liên kết tài khoản Google.");
+      } else if (result !== "success") {
+        setPage("settings");
+        setError(
+          Object.hasOwn(googleAuthErrors, result)
+            ? googleAuthErrors[result]
+            : googleAuthErrors.failed,
+        );
+      }
+      url.searchParams.delete("google_auth");
+      window.history.replaceState(
+        null,
+        "",
+        url.pathname + url.search + url.hash,
+      );
+    }
     const timer = setInterval(() => {
       if (document.visibilityState === "visible") refresh();
     }, 15000);
@@ -152,7 +183,7 @@ export default function App() {
     </div>
   );
   return (
-    <div className="app-shell">
+    <div className="app-shell publishing-shell">
       <aside className="sidebar">
         <Brand />
         <div className="workspace">
@@ -164,7 +195,19 @@ export default function App() {
             <small>Tài khoản cá nhân</small>
           </div>
         </div>
-        <span className="nav-label">QUẢN LÝ</span>
+        <button
+          className="primary sidebar-new"
+          onClick={() => {
+            setPage("marketing");
+            setMarketingNavigation({
+              tab: marketingData?.brands.length ? "content" : "channels",
+              compose: !!marketingData?.brands.length,
+            });
+          }}
+        >
+          <Icon name="plus" size={17} /> Tạo mới
+        </button>
+        <span className="nav-label">KHÔNG GIAN LÀM VIỆC</span>
         <nav>
           {nav.map(([key, icon, label]) => (
             <button
@@ -184,6 +227,63 @@ export default function App() {
             </button>
           ))}
         </nav>
+        <div className="sidebar-channels">
+          <div className="sidebar-channel-heading">
+            <span>
+              Kênh kết nối ·{" "}
+              {marketingData?.channels.filter((c) => c.status === "connected")
+                .length || 0}
+            </span>
+            <button
+              aria-label="Kết nối thêm kênh"
+              onClick={() => {
+                setPage("marketing");
+                setMarketingNavigation({ tab: "channels" });
+              }}
+            >
+              <Icon name="plus" size={16} />
+            </button>
+          </div>
+          {marketingData?.channels
+            .filter((c) => c.status !== "disconnected")
+            .map((c) => (
+              <button
+                key={c.id}
+                className={`sidebar-channel ${marketingNavigation?.channelId === c.id ? "selected" : ""}`}
+                onClick={() => {
+                  setPage("marketing");
+                  setMarketingNavigation({
+                    tab: "publications",
+                    brandId: c.brand_id,
+                    channelId: c.id,
+                  });
+                }}
+              >
+                <ChannelMark provider={c.provider} />
+                <span>{c.name}</span>
+                <small>
+                  {
+                    marketingData.publications.filter(
+                      (p) =>
+                        p.channel_id === c.id &&
+                        ["scheduled", "publishing", "retry_wait"].includes(
+                          p.status,
+                        ),
+                    ).length
+                  }
+                </small>
+              </button>
+            ))}
+          <button
+            className="sidebar-connect"
+            onClick={() => {
+              setPage("marketing");
+              setMarketingNavigation({ tab: "channels" });
+            }}
+          >
+            <Icon name="plus" size={15} /> Kết nối kênh
+          </button>
+        </div>
         <div className="sidebar-bottom">
           <div className="device-mini">
             <span className={`dot ${online ? "online" : ""}`} />
@@ -246,7 +346,9 @@ export default function App() {
           )}
         </header>
         <div className="page">
-          <div className="page-heading">
+          <div
+            className={`page-heading ${page === "marketing" ? "marketing-page-heading" : ""}`}
+          >
             <div>
               <span className="eyebrow">
                 {new Date().toLocaleDateString("vi-VN", {
@@ -294,7 +396,12 @@ export default function App() {
             </div>
           )}
           {page === "marketing" && (
-            <MarketingWorkspace assets={data.assets} onUpload={upload} />
+            <MarketingWorkspace
+              assets={data.assets}
+              onUpload={upload}
+              navigation={marketingNavigation}
+              onSnapshot={setMarketingData}
+            />
           )}
           {page === "overview" && (
             <>
@@ -656,6 +763,7 @@ export default function App() {
               </section>
             </>
           )}
+          {page === "settings" && <GoogleAccount />}
           {page === "settings" && (
             <section className="panel settings-panel">
               <h2>Giới hạn tài khoản</h2>

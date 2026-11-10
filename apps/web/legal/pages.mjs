@@ -24,6 +24,11 @@ const privacy = sections([
     "We store your BotAds name, email and hashed password; your brand and website details; and the posts, approved versions, images, schedules and limits you supply. We retain post identifiers, links, delivery states, errors and operational records. Manually entered visits and leads are supplied by you and are not represented as platform-verified analytics.",
   ],
   [
+    "Đăng nhập Google / Google sign-in",
+    "Nếu bạn chọn đăng nhập Google, BotAds yêu cầu quyền openid, email và profile để xác minh danh tính. Chúng tôi lưu định danh Google và email đã xác minh để liên kết với tài khoản BotAds; không lưu mật khẩu Google hoặc access/refresh token Google cho đăng nhập. Bạn có thể ngắt liên kết trong Cài đặt nếu tài khoản đã có phương thức đăng nhập bằng mật khẩu. Tài khoản chỉ dùng Google cần giữ phương thức đăng nhập này hoặc gửi yêu cầu xóa dữ liệu.",
+    "If you choose Google sign-in, BotAds requests openid, email and profile to verify your identity. We store your Google identifier and verified email to associate your BotAds account. We do not store your Google password or retain Google access/refresh tokens for sign-in. You may unlink Google in Settings when password sign-in is available. Google-only accounts must retain this sign-in method or request account deletion.",
+  ],
+  [
     "3. Tài khoản kênh được kết nối / Connected accounts",
     "Khi bạn kết nối LinkedIn, chúng tôi nhận định danh và tên tài khoản từ API, quyền đã cấp, thời hạn và access token để gửi bài theo ủy quyền. Với DEV, chúng tôi nhận API key do bạn nhập và xác định tài khoản qua API. Token/API key được mã hóa trên backend và không trả lại qua dashboard. BotAds không yêu cầu mật khẩu LinkedIn hoặc DEV. Việc ghi tên tài khoản Medium, Reddit hoặc Indie Hackers trong luồng thủ công không cấp quyền truy cập vào tài khoản đó.",
     "When you connect LinkedIn, we receive an account identifier and name, granted permissions, token expiry and an access token for authorized publishing. For DEV, we validate the API key you supply and identify the account through its API. Credentials are encrypted on the backend and are not returned through the dashboard. BotAds does not request your LinkedIn or DEV password. Naming a manual Medium, Reddit or Indie Hackers account does not grant access to that account.",

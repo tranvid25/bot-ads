@@ -16,8 +16,20 @@ import { cancelJob } from "../controllers/jobs.controller.mjs";
 import { jobEvents } from "../controllers/jobs.controller.mjs";
 import { uploadAsset } from "../controllers/assets.controller.mjs";
 import { getAsset } from "../controllers/assets.controller.mjs";
-import { marketingRoute, linkedinCallback, marketingMedia } from "../controllers/marketing.controller.mjs";
-import { supportRequest, ownSupportRequests } from "../controllers/support.controller.mjs";
+import {
+  marketingRoute,
+  linkedinCallback,
+  marketingMedia,
+} from "../controllers/marketing.controller.mjs";
+import {
+  supportRequest,
+  ownSupportRequests,
+} from "../controllers/support.controller.mjs";
+import {
+  googleStart,
+  googleCallback,
+  googleAccount,
+} from "../controllers/google-auth.controller.mjs";
 
 export async function route(request, env, execution) {
   const url = new URL(request.url);
@@ -26,20 +38,31 @@ export async function route(request, env, execution) {
   if (!path.startsWith("/api/")) throw error(404, "Đây là máy chủ API BotAds.");
   if (path === "/api/meta") return metadata(request, env, path, method);
   if (path === "/api/download") return download(request, env, path, method);
-  if (path === "/api/marketing/linkedin/callback" && method === "GET") return linkedinCallback(request, env);
-  if (/^\/api\/marketing\/media\/[\w-]+$/.test(path)) return marketingMedia(request, env);
+  if (path === "/api/auth/google/callback" && method === "GET")
+    return googleCallback(request, env);
+  if (path === "/api/marketing/linkedin/callback" && method === "GET")
+    return linkedinCallback(request, env);
+  if (/^\/api\/marketing\/media\/[\w-]+$/.test(path))
+    return marketingMedia(request, env);
   if (path === "/api/device/pair" && method === "POST")
     return pairDevice(request, env, path, method);
   checkOrigin(request);
-  if (path === "/api/support/requests" && method === "POST") return supportRequest(request, env);
+  if (path === "/api/auth/google/start" && method === "POST")
+    return googleStart(request, env);
+  if (path === "/api/support/requests" && method === "POST")
+    return supportRequest(request, env);
   if (path === "/api/auth/register" && method === "POST")
     return authenticate(request, env, "register");
   if (path === "/api/auth/login" && method === "POST")
     return authenticate(request, env, "login");
   if (path.startsWith("/api/device/")) return deviceRoute(request, env, path);
   const context = await identity(request, env);
-  if (path === "/api/support/requests" && method === "GET") return ownSupportRequests(request, env, context);
-  if (path === "/api/marketing" || path.startsWith("/api/marketing/")) return marketingRoute(request, env, context, execution);
+  if (path === "/api/auth/google/account" && ["GET", "DELETE"].includes(method))
+    return googleAccount(request, env, context);
+  if (path === "/api/support/requests" && method === "GET")
+    return ownSupportRequests(request, env, context);
+  if (path === "/api/marketing" || path.startsWith("/api/marketing/"))
+    return marketingRoute(request, env, context, execution);
   if (path === "/api/auth/logout" && method === "POST")
     return logout(request, env, path, method, context);
   if (path === "/api/dashboard" && method === "GET")

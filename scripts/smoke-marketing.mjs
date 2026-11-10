@@ -1,15 +1,18 @@
+import { testWorker } from "./test-worker.mjs";
 import { createServer } from "node:http";
 import { readFile, mkdir } from "node:fs/promises";
 import path from "node:path";
 import assert from "node:assert/strict";
 import { Miniflare, Response } from "miniflare";
 import { chromium } from "playwright";
+import { generateKeyPair, exportJWK, SignJWT } from "jose";
 import { LEGAL_PATHS } from "../apps/web/legal/pages.mjs";
 
 // Isolated D1/R2 and provider fixture: no real accounts, tokens or public posts.
 let mf,
   browser,
   submissions = 0;
+let googleNonce = "";
 const dist = path.resolve("apps/web/dist");
 const server = createServer(async (req, res) => {
   try {
@@ -19,6 +22,7 @@ const server = createServer(async (req, res) => {
       for await (const chunk of req) chunks.push(chunk);
       const response = await mf.dispatchFetch(origin + req.url, {
         method: req.method,
+        redirect: "manual",
         headers: req.headers,
         body: ["GET", "HEAD"].includes(req.method)
           ? undefined
@@ -67,9 +71,15 @@ const server = createServer(async (req, res) => {
 try {
   await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
   const origin = `http://127.0.0.1:${server.address().port}`;
+  const googleKeys = await generateKeyPair("RS256");
+  const googleJwk = {
+    ...(await exportJWK(googleKeys.publicKey)),
+    kid: "browser-google",
+    alg: "RS256",
+    use: "sig",
+  };
   mf = new Miniflare({
-    modules: true,
-    scriptPath: "apps/api/worker.mjs",
+    ...(await testWorker()),
     modulesRules: [{ type: "ESModule", include: ["**/*.mjs"] }],
     compatibilityDate: "2025-09-01",
     d1Databases: ["DB"],
@@ -81,6 +91,8 @@ try {
       ALLOW_REGISTRATION: "true",
       LINKEDIN_CLIENT_ID: "browser-fixture-client",
       LINKEDIN_CLIENT_SECRET: "browser-fixture-secret",
+      GOOGLE_CLIENT_ID: "browser-google.apps.googleusercontent.com",
+      GOOGLE_CLIENT_SECRET: "browser-google-secret",
     },
     serviceBindings: {
       PROVIDER_HTTP: async (request) => {
@@ -107,12 +119,35 @@ try {
         throw new Error("Unexpected provider call in browser test");
       },
     },
+    outboundService: async (request) => {
+      const url = new URL(request.url);
+      if (url.href === "https://www.googleapis.com/oauth2/v3/certs")
+        return Response.json({ keys: [googleJwk] });
+      if (url.href === "https://oauth2.googleapis.com/token") {
+        const idToken = await new SignJWT({
+          sub: "browser-google-user",
+          email: "google-browser@gmail.com",
+          email_verified: true,
+          name: "Google Browser",
+          nonce: googleNonce,
+        })
+          .setProtectedHeader({ alg: "RS256", kid: "browser-google" })
+          .setIssuer("https://accounts.google.com")
+          .setAudience("browser-google.apps.googleusercontent.com")
+          .setIssuedAt()
+          .setExpirationTime("5m")
+          .sign(googleKeys.privateKey);
+        return Response.json({ id_token: idToken });
+      }
+      throw new Error("Unexpected real external request in browser fixture");
+    },
   });
   const db = await mf.getD1Database("DB");
   for (const name of [
     "0001_init.sql",
     "0002_marketing.sql",
     "0003_support.sql",
+    "0004_google_auth.sql",
   ]) {
     const sql = await readFile(`apps/api/migrations/${name}`, "utf8");
     await db.batch(
@@ -164,6 +199,38 @@ try {
     [...(await favicon.body()).subarray(0, 4)],
     [137, 80, 78, 71],
   );
+  await page.route("https://accounts.google.com/**", async (route) => {
+    const url = new URL(route.request().url());
+    googleNonce = url.searchParams.get("nonce");
+    await route.fulfill({
+      status: 302,
+      headers: {
+        Location: `${origin}/api/auth/google/callback?state=${url.searchParams.get("state")}&code=browser-fixture`,
+      },
+      body: "",
+    });
+  });
+  await mkdir("test-results", { recursive: true });
+  await page.screenshot({ path: "test-results/google-auth-desktop.png" });
+  await page
+    .getByRole("button", { name: "Tiếp tục với Google", exact: true })
+    .click();
+  await page
+    .getByRole("heading", { name: "Tất cả các kênh", exact: true })
+    .waitFor();
+  assert.equal(
+    (
+      await db
+        .prepare(
+          "SELECT count(*) AS n FROM auth_identities WHERE provider='google'",
+        )
+        .first()
+    ).n,
+    1,
+  );
+  await page.locator(".profile").click();
+  await page.getByRole("button", { name: "Đăng ký", exact: true }).waitFor();
+  await page.unroute("https://accounts.google.com/**");
   await page.getByRole("button", { name: "Đăng ký", exact: true }).click();
   await page.getByLabel("Tên của bạn").fill("Marketing Pilot");
   await page
@@ -176,7 +243,7 @@ try {
     .getByRole("button", { name: "Tạo tài khoản", exact: true })
     .click();
   await page
-    .getByRole("heading", { name: "Từ một ý tưởng, đến đúng người đọc." })
+    .getByRole("heading", { name: "Tất cả các kênh", exact: true })
     .waitFor();
   await page.getByRole("tab", { name: "Kết nối kênh" }).click();
   const picker = page.getByRole("region", { name: "Các nền tảng đăng bài" });
@@ -248,13 +315,21 @@ try {
   await page
     .getByRole("button", { name: "Thêm tài khoản", exact: true })
     .click();
-  await page.getByText("Pilot Medium", { exact: true }).waitFor();
+  await page.getByText("Pilot Medium", { exact: true }).first().waitFor();
   await page.getByLabel(/^Nền tảng/).selectOption("dev");
   await page.getByLabel("API key DEV").fill("fixture-api-key");
   await page
     .getByRole("button", { name: "Thêm tài khoản", exact: true })
     .click();
-  await page.getByText("DEV browser fixture", { exact: true }).waitFor();
+  await page
+    .getByText("DEV browser fixture", { exact: true })
+    .first()
+    .waitFor();
+  await mkdir("docs/research/buffer", { recursive: true });
+  await page.screenshot({
+    path: "docs/research/buffer/local-channels-desktop.png",
+    fullPage: true,
+  });
   async function createPost(provider, title, content) {
     await page
       .getByRole("button", { name: "Tạo bài tự soạn", exact: true })
@@ -269,6 +344,14 @@ try {
       .check();
     await d.getByRole("checkbox", { name: "LinkedIn", exact: true }).uncheck();
     await d.getByLabel(/^Nội dung/).fill(content);
+    await d
+      .getByRole("complementary", { name: "Xem trước bài đăng" })
+      .getByText(content, { exact: true })
+      .waitFor();
+    if (provider === "dev")
+      await page.screenshot({
+        path: "docs/research/buffer/local-composer-desktop.png",
+      });
     if (provider === "dev")
       await d.getByLabel(/^Tags DEV/).fill("webdev,javascript");
     await d.getByRole("button", { name: "Xem trước nội dung" }).click();
@@ -368,9 +451,58 @@ try {
   await page.setViewportSize({ width: 1440, height: 1000 });
   await page.goto(origin);
   await page
-    .getByRole("heading", { name: "Từ một ý tưởng, đến đúng người đọc." })
+    .getByRole("heading", { name: "Tất cả các kênh", exact: true })
     .waitFor();
   await page.getByRole("tab", { name: "Lịch & kết quả" }).click();
+  await page.getByRole("button", { name: "Lịch", exact: true }).click();
+  const calendar = page.getByRole("region", { name: "Lịch xuất bản" });
+  await calendar.getByRole("button").filter({ hasText: "API pilot" }).click();
+  await page
+    .getByRole("dialog")
+    .getByText("Original DEV content\nSecond line", { exact: true })
+    .waitFor();
+  await page.screenshot({
+    path: "docs/research/buffer/local-details-desktop.png",
+  });
+  await page.keyboard.press("Escape");
+  await page.getByRole("dialog").waitFor({ state: "hidden" });
+  await page.screenshot({
+    path: "docs/research/buffer/local-calendar-desktop.png",
+    fullPage: true,
+  });
+  await calendar.getByRole("button", { name: "Kỳ sau", exact: true }).click();
+  assert.equal(await calendar.locator(".calendar-post").count(), 0);
+  await calendar.getByRole("button", { name: "Hôm nay", exact: true }).click();
+  assert.equal(await calendar.locator(".calendar-post").count(), 2);
+  await calendar.getByLabel("Khoảng lịch").selectOption("month");
+  assert.equal(await calendar.locator(".calendar-day").count(), 42);
+  await calendar.getByLabel("Khoảng lịch").selectOption("week");
+  await page.setViewportSize({ width: 390, height: 844 });
+  assert.equal(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth > innerWidth,
+    ),
+    false,
+    "Calendar must fit mobile viewport",
+  );
+  await page.screenshot({
+    path: "docs/research/buffer/local-calendar-mobile.png",
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.getByRole("button", { name: "Danh sách", exact: true }).click();
+  await page.getByLabel("Tìm bài viết").fill("API pilot");
+  assert.equal(await page.getByRole("row").count(), 1);
+  await page.getByLabel("Tìm bài viết").fill("");
+  await page
+    .locator(".sidebar-channel")
+    .filter({ hasText: "DEV browser fixture" })
+    .click();
+  await page
+    .getByRole("heading", { name: "DEV browser fixture", exact: true })
+    .waitFor();
+  assert.equal(await page.getByRole("row").count(), 1);
+  await page.getByLabel("Lọc theo kênh").selectOption("");
   await mkdir("test-results", { recursive: true });
   await page.screenshot({
     path: "test-results/marketing-desktop.png",
@@ -389,7 +521,32 @@ try {
     path: "test-results/marketing-mobile.png",
     fullPage: true,
   });
+  await page
+    .getByRole("button", { name: "Tạo bài tự soạn", exact: true })
+    .click();
+  await page
+    .getByRole("dialog")
+    .getByLabel("Tên nội dung", { exact: true })
+    .fill("Mobile composer");
+  await page
+    .getByRole("dialog")
+    .getByLabel(/^Nội dung/)
+    .fill("Mobile preview content");
+  assert.equal(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth > innerWidth,
+    ),
+    false,
+    "Composer must fit mobile viewport",
+  );
+  await page.screenshot({
+    path: "docs/research/buffer/local-composer-mobile.png",
+  });
+  await page.keyboard.press("Escape");
   assert.deepEqual(errors, []);
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await page.getByRole("button", { name: "Cài đặt", exact: true }).click();
+  await page.getByRole("button", { name: "Liên kết tài khoản Google", exact: true }).waitFor();
   console.log(
     "PASS: signup, brand, manual/DEV connections, exact content, tags, preview, approval, schedule, manual confirmation, metrics, cloud publish fixture, desktop/mobile. No real external posts.",
   );

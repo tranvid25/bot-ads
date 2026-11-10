@@ -1,3 +1,4 @@
+import { testWorker } from "../scripts/test-worker.mjs";
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
@@ -59,8 +60,7 @@ const input = {
 };
 before(async () => {
   mf = new Miniflare({
-    modules: true,
-    scriptPath: "apps/api/worker.mjs",
+    ...(await testWorker()),
     modulesRules: [{ type: "ESModule", include: ["**/*.mjs"] }],
     compatibilityDate: "2025-09-01",
     d1Databases: ["DB"],
@@ -112,7 +112,10 @@ test("Pages forwards browser sessions and CSRF checks to the separate API Worker
     request: new Request(`${origin}/api/auth/login`, {
       method: "POST",
       headers: { Origin: origin, "Content-Type": "application/json" },
-      body: JSON.stringify({ email: "a@example.com", password: "correct horse battery staple" }),
+      body: JSON.stringify({
+        email: "a@example.com",
+        password: "correct horse battery staple",
+      }),
     }),
   });
   assert.equal(login.status, 200);
@@ -123,21 +126,33 @@ test("Pages forwards browser sessions and CSRF checks to the separate API Worker
   const cookie = session.split(";")[0];
   const dashboard = await pagesApi({
     env,
-    request: new Request(`${origin}/api/dashboard`, { headers: { Cookie: cookie } }),
+    request: new Request(`${origin}/api/dashboard`, {
+      headers: { Cookie: cookie },
+    }),
   });
   assert.equal(dashboard.status, 200);
-  for (const [requestOrigin, expected] of [[origin, 200], ["https://attacker.example", 403]]) {
+  for (const [requestOrigin, expected] of [
+    [origin, 200],
+    ["https://attacker.example", 403],
+  ]) {
     const response = await pagesApi({
       env,
       request: new Request(`${origin}/api/settings`, {
         method: "PUT",
-        headers: { Origin: requestOrigin, Cookie: cookie, "Content-Type": "application/json" },
+        headers: {
+          Origin: requestOrigin,
+          Cookie: cookie,
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ dailyLimit: 30 }),
       }),
     });
     assert.equal(response.status, expected);
   }
-  const missing = await pagesApi({ request: new Request(`${origin}/api/meta`), env: {} });
+  const missing = await pagesApi({
+    request: new Request(`${origin}/api/meta`),
+    env: {},
+  });
   assert.equal(missing.status, 503);
   const backendRoot = await mf.dispatchFetch(base + "/");
   assert.equal(backendRoot.status, 404);

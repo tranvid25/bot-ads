@@ -24,6 +24,14 @@ async function call(method, body) {
   return result.result;
 }
 const existing = await call("GET");
+const googleConfigured = ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"].map(
+  (name) =>
+    Boolean(process.env[name]?.trim() || existing.some((s) => s.name === name)),
+);
+if (googleConfigured[0] !== googleConfigured[1])
+  throw new Error(
+    "Configure both GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET; no credential values are printed.",
+  );
 const hasLinkedInId = Boolean(
   process.env.LINKEDIN_CLIENT_ID ||
   existing.some((s) => s.name === "LINKEDIN_CLIENT_ID"),
@@ -56,6 +64,14 @@ if (!existing.some((s) => s.name === "TOKEN_ENCRYPTION_KEY")) {
     "Initialized marketing encryption key; future deployments preserve it.",
   );
 } else console.log("Preserved existing marketing encryption key.");
+// Google can be configured later; preserve already-uploaded Worker secrets.
+for (const name of ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"]) {
+  const value = process.env[name]?.trim();
+  if (value) {
+    await call("PUT", { name, text: value, type: "secret_text" });
+    console.log(`Configured ${name}.`);
+  }
+}
 for (const name of ["LINKEDIN_CLIENT_ID", "LINKEDIN_CLIENT_SECRET"]) {
   if (process.env[name]) {
     await call("PUT", { name, text: process.env[name], type: "secret_text" });

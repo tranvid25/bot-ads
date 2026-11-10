@@ -13,6 +13,7 @@ report.csv
 ai_posts_pool.json
 *.tmp
 .dev.vars
+debug.log
 .wrangler/
 .worker-build/
 .pages-build/

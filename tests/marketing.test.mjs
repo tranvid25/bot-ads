@@ -1,3 +1,4 @@
+import { testWorker } from "../scripts/test-worker.mjs";
 import { test, before, after } from "node:test";
 import assert from "node:assert/strict";
 import { readFile } from "node:fs/promises";
@@ -221,8 +222,7 @@ async function pump(id) {
 }
 before(async () => {
   mf = new Miniflare({
-    modules: true,
-    scriptPath: "apps/api/worker.mjs",
+    ...(await testWorker()),
     modulesRules: [{ type: "ESModule", include: ["**/*.mjs"] }],
     compatibilityDate: "2025-09-01",
     d1Databases: ["DB"],

@@ -1,4 +1,6 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { Icon } from "./ui";
+import { ChannelMark, PublishingCalendar } from "./PublishingViews";
 import { api } from "../lib/api";
 import { utmUrl } from "../../../../packages/contracts/marketing.mjs";
 import { linkedinErrors } from "../../../../packages/contracts/linkedin-errors.mjs";
@@ -55,6 +57,55 @@ function Status({ value }) {
   );
 }
 function Dialog({ title, children, onClose, error }) {
+  const dialogRef = useRef(null);
+  const closeRef = useRef(onClose);
+  closeRef.current = onClose;
+  useEffect(() => {
+    const previous = document.activeElement;
+    const bodyOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const dialog = dialogRef.current;
+    dialog?.focus();
+    const keydown = (e) => {
+      if (e.key === "Escape") {
+        e.preventDefault();
+        closeRef.current();
+      }
+      if (e.key === "Tab") {
+        const nodes = [
+          ...dialog.querySelectorAll(
+            'button:not(:disabled), input:not(:disabled), select:not(:disabled), textarea:not(:disabled), a[href], [tabindex="0"]',
+          ),
+        ].filter((n) => n.getClientRects().length);
+        const first = nodes[0],
+          last = nodes.at(-1);
+        if (!first) {
+          e.preventDefault();
+          return;
+        }
+        if (
+          e.shiftKey &&
+          (document.activeElement === first ||
+            document.activeElement === dialog)
+        ) {
+          e.preventDefault();
+          last.focus();
+        } else if (
+          !e.shiftKey &&
+          (document.activeElement === last || document.activeElement === dialog)
+        ) {
+          e.preventDefault();
+          first.focus();
+        }
+      }
+    };
+    dialog?.addEventListener("keydown", keydown);
+    return () => {
+      dialog?.removeEventListener("keydown", keydown);
+      document.body.style.overflow = bodyOverflow;
+      previous?.focus();
+    };
+  }, []);
   return (
     <div
       className="mk-overlay"
@@ -64,6 +115,8 @@ function Dialog({ title, children, onClose, error }) {
     >
       <section
         className="mk-dialog"
+        ref={dialogRef}
+        tabIndex={-1}
         role="dialog"
         aria-modal="true"
         aria-label={title}
@@ -100,8 +153,7 @@ function PostEditor({
   );
   const [active, setActive] = useState(post.variants[0].provider),
     [error, setError] = useState(""),
-    [busy, setBusy] = useState(false),
-    [preview, setPreview] = useState(false);
+    [busy, setBusy] = useState(false);
   const selected = post.variants.find((v) => v.provider === active);
   const patch = (fields) => setPost((p) => ({ ...p, ...fields }));
   const patchVariant = (fields) =>
@@ -152,263 +204,314 @@ function PostEditor({
       title={value ? "Chỉnh bài tự soạn" : "Tạo bài tự soạn"}
       onClose={onClose}
     >
-      <form onSubmit={save} className="mk-form">
-        {error && (
-          <div className="alert error" role="alert">
-            {error}
-          </div>
-        )}
-        {value && (
-          <p className="notice">
-            Lưu thay đổi tạo phiên bản cần duyệt lại. Những lượt đã lên lịch vẫn
-            giữ nội dung đã duyệt trước đó; hủy chúng nếu muốn thay thế.
-          </p>
-        )}
-        <div className="mk-grid">
-          <label>
-            Thương hiệu
-            <select
-              value={post.brandId}
-              disabled={!!value}
-              onChange={(e) => patch({ brandId: e.target.value })}
-            >
-              {brands.map((b) => (
-                <option key={b.id} value={b.id}>
-                  {b.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Tên nội dung
-            <input
-              required
-              maxLength={200}
-              value={post.title}
-              onChange={(e) => patch({ title: e.target.value })}
-            />
-          </label>
-        </div>
-        <label>
-          URL bài gốc trên website (nếu đã có)
-          <input
-            type="url"
-            placeholder="https://website.com/resources/bai-viet"
-            value={post.sourceUrl}
-            onChange={(e) => patch({ sourceUrl: e.target.value })}
-          />
-        </label>
-        <fieldset className="mk-fieldset">
-          <legend>Bản nội dung theo kênh</legend>
-          <div className="mk-checks">
-            {Object.entries(providers).map(([key, label]) => (
-              <label key={key} className="mk-check">
-                <input
-                  type="checkbox"
-                  checked={post.variants.some((v) => v.provider === key)}
-                  onChange={(e) => {
-                    if (e.target.checked) {
-                      patch({ variants: [...post.variants, variant(key)] });
-                      setActive(key);
-                    } else if (post.variants.length > 1) {
-                      const next = post.variants.filter(
-                        (v) => v.provider !== key,
-                      );
-                      patch({ variants: next });
-                      if (active === key) setActive(next[0].provider);
-                    }
-                  }}
-                />
-                {label}
-              </label>
-            ))}
-          </div>
-        </fieldset>
-        <div className="mk-tabs">
-          {post.variants.map((v) => (
-            <button
-              key={v.provider}
-              type="button"
-              className={active === v.provider ? "primary small" : "secondary"}
-              onClick={() => {
-                setActive(v.provider);
-                setPreview(false);
-              }}
-            >
-              {providers[v.provider]}
-            </button>
-          ))}
-        </div>
-        <label>
-          Tiêu đề cho {providers[active]}
-          <input
-            maxLength={200}
-            value={selected.title}
-            placeholder={post.title || "Dùng tên nội dung nếu để trống"}
-            onChange={(e) => patchVariant({ title: e.target.value })}
-          />
-        </label>
-        <label>
-          Nội dung{" "}
-          {active === "dev" || active === "medium"
-            ? "(có thể dùng Markdown)"
-            : ""}
-          <textarea
-            required
-            rows={12}
-            maxLength={active === "linkedin" ? 3000 : 50000}
-            value={selected.content}
-            onChange={(e) => patchVariant({ content: e.target.value })}
-          />
-          <small>
-            {selected.content.length}/{active === "linkedin" ? "3000" : "50000"}{" "}
-            ký tự. Bài tự soạn được giữ nguyên khi gửi.
-          </small>
-        </label>
-        {active === "dev" && (
-          <div className="mk-grid">
+      <div className="composer-layout">
+        <form
+          onSubmit={save}
+          className="mk-form composer-form"
+          id="post-composer"
+        >
+          {error && (
+            <div className="alert error" role="alert">
+              {error}
+            </div>
+          )}
+          {value && (
+            <p className="notice">
+              Lưu thay đổi tạo phiên bản cần duyệt lại. Những lượt đã lên lịch
+              vẫn giữ nội dung đã duyệt trước đó; hủy chúng nếu muốn thay thế.
+            </p>
+          )}
+          <div className="mk-grid composer-metadata">
             <label>
-              Tags DEV (tối đa 4, cách nhau bằng dấu phẩy)
-              <input
-                value={
-                  Array.isArray(selected.tags)
-                    ? selected.tags.join(",")
-                    : selected.tags
-                }
-                onChange={(e) => patchVariant({ tags: e.target.value })}
-                placeholder="webdev,javascript,ai"
-              />
+              Thương hiệu
+              <select
+                value={post.brandId}
+                disabled={!!value}
+                onChange={(e) => patch({ brandId: e.target.value })}
+              >
+                {brands.map((b) => (
+                  <option key={b.id} value={b.id}>
+                    {b.name}
+                  </option>
+                ))}
+              </select>
             </label>
             <label>
-              Canonical về bài gốc (chỉ khi đăng lại nội dung tương tự)
+              Tên nội dung
+              <input
+                required
+                maxLength={200}
+                value={post.title}
+                onChange={(e) => patch({ title: e.target.value })}
+              />
+            </label>
+          </div>
+          <details className="composer-options" open={!!post.sourceUrl}>
+            <summary>Liên kết bài gốc (tùy chọn)</summary>
+            <label>
+              URL bài gốc trên website (nếu đã có)
               <input
                 type="url"
-                value={selected.canonicalUrl}
-                placeholder={post.sourceUrl}
-                onChange={(e) => patchVariant({ canonicalUrl: e.target.value })}
+                placeholder="https://website.com/resources/bai-viet"
+                value={post.sourceUrl}
+                onChange={(e) => patch({ sourceUrl: e.target.value })}
+              />
+            </label>
+          </details>
+          <fieldset className="mk-fieldset">
+            <legend>Bản nội dung theo kênh</legend>
+            <div className="mk-checks">
+              {Object.entries(providers).map(([key, label]) => (
+                <label key={key} className="mk-check">
+                  <input
+                    type="checkbox"
+                    checked={post.variants.some((v) => v.provider === key)}
+                    onChange={(e) => {
+                      if (e.target.checked) {
+                        patch({ variants: [...post.variants, variant(key)] });
+                        setActive(key);
+                      } else if (post.variants.length > 1) {
+                        const next = post.variants.filter(
+                          (v) => v.provider !== key,
+                        );
+                        patch({ variants: next });
+                        if (active === key) setActive(next[0].provider);
+                      }
+                    }}
+                  />
+                  {label}
+                </label>
+              ))}
+            </div>
+          </fieldset>
+          <div className="mk-tabs">
+            {post.variants.map((v) => (
+              <button
+                key={v.provider}
+                type="button"
+                className={
+                  active === v.provider ? "primary small" : "secondary"
+                }
+                onClick={() => {
+                  setActive(v.provider);
+                }}
+              >
+                {providers[v.provider]}
+              </button>
+            ))}
+          </div>
+          <label>
+            Tiêu đề cho {providers[active]}
+            <input
+              maxLength={200}
+              value={selected.title}
+              placeholder={post.title || "Dùng tên nội dung nếu để trống"}
+              onChange={(e) => patchVariant({ title: e.target.value })}
+            />
+          </label>
+          <label>
+            Nội dung{" "}
+            {active === "dev" || active === "medium"
+              ? "(có thể dùng Markdown)"
+              : ""}
+            <textarea
+              required
+              rows={9}
+              placeholder="Bạn muốn chia sẻ điều gì? Viết nội dung riêng cho kênh đang chọn…"
+              maxLength={active === "linkedin" ? 3000 : 50000}
+              value={selected.content}
+              onChange={(e) => patchVariant({ content: e.target.value })}
+            />
+            <small>
+              {selected.content.length}/
+              {active === "linkedin" ? "3000" : "50000"} ký tự. Bài tự soạn được
+              giữ nguyên khi gửi.
+            </small>
+          </label>
+          {active === "dev" && (
+            <div className="mk-grid">
+              <label>
+                Tags DEV (tối đa 4, cách nhau bằng dấu phẩy)
+                <input
+                  value={
+                    Array.isArray(selected.tags)
+                      ? selected.tags.join(",")
+                      : selected.tags
+                  }
+                  onChange={(e) => patchVariant({ tags: e.target.value })}
+                  placeholder="webdev,javascript,ai"
+                />
+              </label>
+              <label>
+                Canonical về bài gốc (chỉ khi đăng lại nội dung tương tự)
+                <input
+                  type="url"
+                  value={selected.canonicalUrl}
+                  placeholder={post.sourceUrl}
+                  onChange={(e) =>
+                    patchVariant({ canonicalUrl: e.target.value })
+                  }
+                />
+              </label>
+            </div>
+          )}
+          <div className="mk-grid">
+            <label>
+              Ảnh đính kèm
+              <select
+                value={selected.assetId}
+                onChange={(e) =>
+                  patchVariant({
+                    assetId: e.target.value,
+                    publicImageConsent: false,
+                  })
+                }
+              >
+                <option value="">Không có ảnh</option>
+                {assets.map((a) => (
+                  <option key={a.id} value={a.id}>
+                    {a.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+            <label>
+              Tải ảnh mới
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                disabled={busy}
+                onChange={async (e) => {
+                  const file = e.target.files?.[0];
+                  if (!file) return;
+                  setBusy(true);
+                  setError("");
+                  try {
+                    const result = await onUpload(file);
+                    patchVariant({
+                      assetId: result.id,
+                      publicImageConsent: false,
+                    });
+                  } catch (e) {
+                    setError(e.message);
+                  } finally {
+                    setBusy(false);
+                  }
+                }}
               />
             </label>
           </div>
-        )}
-        <div className="mk-grid">
-          <label>
-            Ảnh đính kèm
-            <select
-              value={selected.assetId}
-              onChange={(e) =>
-                patchVariant({
-                  assetId: e.target.value,
-                  publicImageConsent: false,
-                })
-              }
-            >
-              <option value="">Không có ảnh</option>
-              {assets.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Tải ảnh mới
-            <input
-              type="file"
-              accept="image/jpeg,image/png,image/webp"
-              disabled={busy}
-              onChange={async (e) => {
-                const file = e.target.files?.[0];
-                if (!file) return;
-                setBusy(true);
-                setError("");
-                try {
-                  const result = await onUpload(file);
-                  patchVariant({
-                    assetId: result.id,
-                    publicImageConsent: false,
-                  });
-                } catch (e) {
-                  setError(e.message);
-                } finally {
-                  setBusy(false);
-                }
-              }}
-            />
-          </label>
-        </div>
-        {!!selected.assetId && (
-          <>
-            <img
-              className="mk-image"
-              alt="Ảnh đã chọn"
-              src={`/api/assets/${selected.assetId}`}
-            />
-            {!manual.includes(active) && (
-              <label className="mk-check">
-                <input
-                  type="checkbox"
-                  required
-                  checked={selected.publicImageConsent}
-                  onChange={(e) =>
-                    patchVariant({ publicImageConsent: e.target.checked })
-                  }
-                />
-                Tôi cho phép chia sẻ công khai ảnh này khi bài được gửi lên nền
-                tảng.
-              </label>
-            )}
-          </>
-        )}
-        {manual.includes(active) && (
-          <p className="notice">
-            Kênh này hỗ trợ chuẩn bị nội dung và nhắc lịch. Bạn tự thực hiện
-            đăng bài, chọn ảnh và khai báo canonical nếu nền tảng có hỗ trợ.
-          </p>
-        )}
-        <div className="mk-tracking">
-          <strong>Link CTA có UTM</strong>
-          <small>
-            Gợi ý để bạn chèn vào bài khi phù hợp; hệ thống không tự thêm vào
-            nội dung hay canonical.
-          </small>
-          <input readOnly aria-label="Link CTA có UTM" value={tracking} />
-        </div>
-        <button
-          type="button"
-          className="link"
-          onClick={() => setPreview(!preview)}
-        >
-          {preview ? "Ẩn bản xem trước" : "Xem trước nội dung"}
-        </button>
-        {preview && (
-          <article className="mk-preview">
-            <h3>{selected.title || post.title}</h3>
-            <pre>{selected.content}</pre>
+          {!!selected.assetId && (
+            <>
+              <img
+                className="mk-image"
+                alt="Ảnh đã chọn"
+                src={`/api/assets/${selected.assetId}`}
+              />
+              {!manual.includes(active) && (
+                <label className="mk-check">
+                  <input
+                    type="checkbox"
+                    required
+                    checked={selected.publicImageConsent}
+                    onChange={(e) =>
+                      patchVariant({ publicImageConsent: e.target.checked })
+                    }
+                  />
+                  Tôi cho phép chia sẻ công khai ảnh này khi bài được gửi lên
+                  nền tảng.
+                </label>
+              )}
+            </>
+          )}
+          {manual.includes(active) && (
+            <p className="notice">
+              Kênh này hỗ trợ chuẩn bị nội dung và nhắc lịch. Bạn tự thực hiện
+              đăng bài, chọn ảnh và khai báo canonical nếu nền tảng có hỗ trợ.
+            </p>
+          )}
+          <div className="mk-tracking">
+            <strong>Link CTA có UTM</strong>
+            <small>
+              Gợi ý để bạn chèn vào bài khi phù hợp; hệ thống không tự thêm vào
+              nội dung hay canonical.
+            </small>
+            <input readOnly aria-label="Link CTA có UTM" value={tracking} />
+          </div>
+          <button
+            type="button"
+            className="link"
+            onClick={() =>
+              document
+                .querySelector(".composer-live")
+                ?.scrollIntoView({ block: "start" })
+            }
+          >
+            Xem trước nội dung
+          </button>
+          <div className="mk-actions">
+            <button className="primary" disabled={busy}>
+              {busy ? "Đang lưu…" : "Lưu bản nháp"}
+            </button>
+            <button type="button" className="secondary" onClick={onClose}>
+              Hủy
+            </button>
+          </div>
+        </form>
+        <aside className="composer-live" aria-label="Xem trước bài đăng">
+          <div className="composer-preview-title">
+            <Icon name="device" size={17} />
+            <strong>Xem trước · {providers[active]}</strong>
+          </div>
+          <article className="social-preview">
+            <header>
+              <ChannelMark provider={active} />
+              <div>
+                <strong>{brand?.name || "Thương hiệu của bạn"}</strong>
+                <small>{providers[active]} · Bản xem trước</small>
+              </div>
+              <span>•••</span>
+            </header>
+            <h3>{selected.title || post.title || "Tiêu đề bài viết"}</h3>
+            <p className={!selected.content ? "preview-placeholder" : ""}>
+              {selected.content ||
+                "Nội dung bạn viết sẽ xuất hiện ở đây. Kiểm tra cách xuống dòng và lời kêu gọi hành động trước khi lưu."}
+            </p>
             {selected.assetId && (
               <img
-                alt="Ảnh bản xem trước"
+                alt="Ảnh xem trước trực tiếp"
                 src={`/api/assets/${selected.assetId}`}
               />
             )}
+            <footer>
+              <span>♡ Thích</span>
+              <span>▢ Bình luận</span>
+              <span>↗ Chia sẻ</span>
+            </footer>
           </article>
-        )}
-        <div className="mk-actions">
-          <button className="primary" disabled={busy}>
-            {busy ? "Đang lưu…" : "Lưu bản nháp"}
-          </button>
-          <button type="button" className="secondary" onClick={onClose}>
-            Hủy
-          </button>
-        </div>
-      </form>
+          <p className="hint">
+            Bản mô phỏng để kiểm tra nội dung. Nền tảng có thể hiển thị khác.
+            Lưu nháp → duyệt → chọn tài khoản và lên lịch.
+          </p>
+        </aside>
+      </div>
     </Dialog>
   );
 }
 
-export default function MarketingWorkspace({ assets, onUpload }) {
+export default function MarketingWorkspace({
+  assets,
+  onUpload,
+  navigation,
+  onSnapshot,
+}) {
   const [data, setData] = useState(null),
     [brandId, setBrandId] = useState(""),
-    [tab, setTab] = useState("content");
+    [tab, setTab] = useState("publications");
+  const [channelFilter, setChannelFilter] = useState("");
+  const [publicationView, setPublicationView] = useState("list");
+  const [statusFilter, setStatusFilter] = useState("all");
+  const [search, setSearch] = useState("");
   const [error, setError] = useState(""),
     [notice, setNotice] = useState(""),
     [busy, setBusy] = useState(false),
@@ -430,8 +533,18 @@ export default function MarketingWorkspace({ assets, onUpload }) {
   async function load() {
     const next = await api("/marketing");
     setData(next);
+    onSnapshot?.(next);
     setBrandId((current) => current || next.brands[0]?.id || "");
   }
+  useEffect(() => {
+    if (!navigation) return;
+    if (navigation.tab) setTab(navigation.tab);
+    if (navigation.brandId) setBrandId(navigation.brandId);
+    setChannelFilter(navigation.channelId || "");
+    setStatusFilter("all");
+    setSearch("");
+    if (navigation.compose) setEditor("new");
+  }, [navigation]);
   useEffect(() => {
     let alive = true;
     const refresh = () => {
@@ -507,8 +620,24 @@ export default function MarketingWorkspace({ assets, onUpload }) {
   const brands = data.brands,
     channels = data.channels.filter((c) => c.brand_id === brandId),
     posts = data.posts.filter((p) => p.brand_id === brandId);
-  const publications = data.publications.filter((p) =>
+  const allPublications = data.publications.filter((p) =>
     channels.some((c) => c.id === p.channel_id),
+  );
+  const publications = allPublications.filter(
+    (p) =>
+      (!channelFilter || p.channel_id === channelFilter) &&
+      (statusFilter === "all" ||
+        (statusFilter === "pending"
+          ? ["scheduled", "publishing", "retry_wait"].includes(p.status)
+          : statusFilter === "attention"
+            ? ["failed", "unknown", "needs_reauth", "awaiting_manual"].includes(
+                p.status,
+              )
+            : ["published", "user_reported_published"].includes(p.status))) &&
+      (!search ||
+        `${p.snapshot.postTitle} ${p.snapshot.content}`
+          .toLocaleLowerCase()
+          .includes(search.toLocaleLowerCase())),
   );
   const channelFor = (p) => data.channels.find((c) => c.id === p.channel_id);
   const actionable = publications.filter(
@@ -530,14 +659,18 @@ export default function MarketingWorkspace({ assets, onUpload }) {
       )}
       <section className="mk-intro">
         <div>
-          <span className="eyebrow">
-            NỘI DUNG CỦA BẠN · PHÂN PHỐI CÓ CHỦ ĐÍCH
-          </span>
-          <h2>Từ một ý tưởng, đến đúng người đọc.</h2>
+          <h2>
+            {tab === "channels"
+              ? "Kết nối kênh"
+              : channelFilter
+                ? channels.find((c) => c.id === channelFilter)?.name ||
+                  "Kênh của bạn"
+                : "Tất cả các kênh"}
+          </h2>
           <p>
-            Soạn bài theo từng kênh, duyệt trước khi đăng và theo dõi kết quả.
-            LinkedIn và DEV chạy trên cloud; các kênh còn lại có hướng dẫn đăng
-            thủ công.
+            {tab === "channels"
+              ? "Kết nối tài khoản và quản lý nơi bạn xuất bản."
+              : "Một không gian cho ý tưởng, nội dung và lịch xuất bản của bạn."}
           </p>
         </div>
         <div className="mk-intro-actions">
@@ -552,7 +685,7 @@ export default function MarketingWorkspace({ assets, onUpload }) {
             disabled={!brandId}
             onClick={() => setEditor("new")}
           >
-            Tạo bài tự soạn
+            <Icon name="plus" size={17} /> Tạo bài tự soạn
           </button>
         </div>
       </section>
@@ -562,7 +695,10 @@ export default function MarketingWorkspace({ assets, onUpload }) {
             Thương hiệu
             <select
               value={brandId}
-              onChange={(e) => setBrandId(e.target.value)}
+              onChange={(e) => {
+                setBrandId(e.target.value);
+                setChannelFilter("");
+              }}
             >
               {brands.map((b) => (
                 <option key={b.id} value={b.id}>
@@ -635,6 +771,51 @@ export default function MarketingWorkspace({ assets, onUpload }) {
           Lịch & kết quả
         </button>
       </div>
+      {brands.length > 0 && tab !== "channels" && (
+        <div className="publishing-filters">
+          <div className="mk-actions">
+            <label className="search-field">
+              <Icon name="search" size={17} />
+              <input
+                aria-label="Tìm bài viết"
+                placeholder="Tìm nội dung…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+            </label>
+            <select
+              aria-label="Lọc theo kênh"
+              value={channelFilter}
+              onChange={(e) => setChannelFilter(e.target.value)}
+            >
+              <option value="">Tất cả các kênh</option>
+              {channels.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {providers[c.provider]} · {c.name}
+                </option>
+              ))}
+            </select>
+          </div>
+          {tab === "publications" && (
+            <div className="segmented-control" aria-label="Kiểu hiển thị lịch">
+              <button
+                aria-pressed={publicationView === "list"}
+                onClick={() => setPublicationView("list")}
+              >
+                <Icon name="list" size={16} />
+                Danh sách
+              </button>
+              <button
+                aria-pressed={publicationView === "calendar"}
+                onClick={() => setPublicationView("calendar")}
+              >
+                <Icon name="calendar" size={16} />
+                Lịch
+              </button>
+            </div>
+          )}
+        </div>
+      )}
       {tab === "channels" && (
         <section
           className="mk-channel-picker"
@@ -656,6 +837,7 @@ export default function MarketingWorkspace({ assets, onUpload }) {
           <div className="mk-channel-cards">
             {Object.entries(providers).map(([key, label]) => (
               <article className="panel mk-channel-card" key={key}>
+                <ChannelMark provider={key} size="large" />
                 <span className="badge">
                   {manual.includes(key)
                     ? "Đăng thủ công"
@@ -727,75 +909,104 @@ export default function MarketingWorkspace({ assets, onUpload }) {
                   </button>
                 </div>
               ) : (
-                posts.map((post) => (
-                  <article className="panel mk-post" key={post.id}>
-                    <div className="section-title">
-                      <div>
-                        <h3>{post.title}</h3>
+                posts
+                  .filter(
+                    (post) =>
+                      (!search ||
+                        `${post.title} ${post.variants.map((v) => v.content).join(" ")}`
+                          .toLocaleLowerCase()
+                          .includes(search.toLocaleLowerCase())) &&
+                      (!channelFilter ||
+                        post.variants.some(
+                          (v) =>
+                            v.provider ===
+                            channels.find((c) => c.id === channelFilter)
+                              ?.provider,
+                        )),
+                  )
+                  .map((post) => (
+                    <article className="panel mk-post" key={post.id}>
+                      <div className="post-channel-heading">
+                        <div className="post-channel-stack">
+                          {post.variants.map((v) => (
+                            <ChannelMark
+                              provider={v.provider}
+                              key={v.provider}
+                            />
+                          ))}
+                        </div>
                         <small>
-                          Phiên bản {post.revision} · {date(post.updated_at)}
+                          {brands.find((b) => b.id === post.brand_id)?.name} ·
+                          Bài tự soạn
                         </small>
                       </div>
-                      <Status value={post.status} />
-                    </div>
-                    <p className="mk-excerpt">{post.variants[0].content}</p>
-                    <div className="mk-provider-tags">
-                      {post.variants.map((v) => (
-                        <span className="badge" key={v.provider}>
-                          {providers[v.provider]}
-                        </span>
-                      ))}
-                    </div>
-                    {post.source_url && (
-                      <a
-                        className="link"
-                        href={post.source_url}
-                        target="_blank"
-                        rel="noreferrer"
-                      >
-                        Bài gốc ↗
-                      </a>
-                    )}
-                    <div className="mk-actions">
-                      <button
-                        className="secondary"
-                        onClick={() => setEditor(post)}
-                      >
-                        Mở & chỉnh sửa
-                      </button>
-                      {post.status !== "approved" ? (
-                        <button
-                          className="primary small"
-                          disabled={busy}
-                          onClick={() =>
-                            action(
-                              () =>
-                                api(
-                                  `/marketing/posts/${post.id}/approve`,
-                                  "POST",
-                                  { revision: post.revision },
-                                ),
-                              "Đã duyệt phiên bản hiện tại. Bạn có thể lên lịch.",
-                            )
-                          }
+                      <div className="section-title">
+                        <div>
+                          <h3>{post.title}</h3>
+                          <small>
+                            Phiên bản {post.revision} · {date(post.updated_at)}
+                          </small>
+                        </div>
+                        <Status value={post.status} />
+                      </div>
+                      <p className="mk-excerpt">{post.variants[0].content}</p>
+                      <div className="mk-provider-tags">
+                        {post.variants.map((v) => (
+                          <span className="badge" key={v.provider}>
+                            {providers[v.provider]}
+                          </span>
+                        ))}
+                      </div>
+                      {post.source_url && (
+                        <a
+                          className="link"
+                          href={post.source_url}
+                          target="_blank"
+                          rel="noreferrer"
                         >
-                          Duyệt nội dung
-                        </button>
-                      ) : (
-                        <button
-                          className="primary small"
-                          onClick={() => {
-                            setSchedule(post);
-                            setSelectedChannels([]);
-                            setScheduledAt("");
-                          }}
-                        >
-                          Lên lịch đăng
-                        </button>
+                          Bài gốc ↗
+                        </a>
                       )}
-                    </div>
-                  </article>
-                ))
+                      <div className="mk-actions">
+                        <button
+                          className="secondary"
+                          onClick={() => setEditor(post)}
+                        >
+                          Mở & chỉnh sửa
+                        </button>
+                        {post.status !== "approved" ? (
+                          <button
+                            className="primary small"
+                            disabled={busy}
+                            onClick={() =>
+                              action(
+                                () =>
+                                  api(
+                                    `/marketing/posts/${post.id}/approve`,
+                                    "POST",
+                                    { revision: post.revision },
+                                  ),
+                                "Đã duyệt phiên bản hiện tại. Bạn có thể lên lịch.",
+                              )
+                            }
+                          >
+                            Duyệt nội dung
+                          </button>
+                        ) : (
+                          <button
+                            className="primary small"
+                            onClick={() => {
+                              setSchedule(post);
+                              setSelectedChannels([]);
+                              setScheduledAt("");
+                            }}
+                          >
+                            Lên lịch đăng
+                          </button>
+                        )}
+                      </div>
+                    </article>
+                  ))
               )}
             </section>
           )}
@@ -940,6 +1151,7 @@ export default function MarketingWorkspace({ assets, onUpload }) {
                 )}
                 {channels.map((c) => (
                   <div className="mk-channel" key={c.id}>
+                    <ChannelMark provider={c.provider} />
                     <div>
                       <strong>{c.name}</strong>
                       <small>
@@ -977,7 +1189,50 @@ export default function MarketingWorkspace({ assets, onUpload }) {
           {tab === "publications" && (
             <section className="panel mk-form">
               <div className="section-title">
-                <h2>Từng lượt đăng</h2>
+                <div
+                  className="publication-status-tabs"
+                  aria-label="Lọc trạng thái"
+                >
+                  {[
+                    ["all", "Tất cả"],
+                    ["pending", "Hàng chờ"],
+                    ["sent", "Đã đăng"],
+                    ["attention", "Cần xử lý"],
+                  ].map(([key, label]) => (
+                    <button
+                      key={key}
+                      aria-pressed={statusFilter === key}
+                      onClick={() => setStatusFilter(key)}
+                    >
+                      {label}
+                      <span>
+                        {
+                          allPublications.filter(
+                            (p) =>
+                              key === "all" ||
+                              (key === "pending"
+                                ? [
+                                    "scheduled",
+                                    "publishing",
+                                    "retry_wait",
+                                  ].includes(p.status)
+                                : key === "sent"
+                                  ? [
+                                      "published",
+                                      "user_reported_published",
+                                    ].includes(p.status)
+                                  : [
+                                      "failed",
+                                      "unknown",
+                                      "needs_reauth",
+                                      "awaiting_manual",
+                                    ].includes(p.status)),
+                          ).length
+                        }
+                      </span>
+                    </button>
+                  ))}
+                </div>
                 <button
                   className="secondary"
                   disabled={busy}
@@ -995,7 +1250,14 @@ export default function MarketingWorkspace({ assets, onUpload }) {
                 Lịch API được kiểm tra mỗi 5 phút. Bài chờ thủ công cần bạn gửi
                 trên nền tảng. Hiển thị tối đa 200 lượt gần nhất.
               </p>
-              {!publications.length ? (
+              {publicationView === "calendar" ? (
+                <PublishingCalendar
+                  publications={publications}
+                  channelFor={channelFor}
+                  onOpen={setShowPublication}
+                  onCreate={() => setEditor("new")}
+                />
+              ) : !publications.length ? (
                 <p>
                   Chưa có lịch đăng. Duyệt một bài trong kho nội dung để bắt
                   đầu.
@@ -1017,7 +1279,15 @@ export default function MarketingWorkspace({ assets, onUpload }) {
                         return (
                           <tr key={p.id}>
                             <td>
+                              <div className="post-channel-heading">
+                                <ChannelMark provider={channel?.provider} />
+                                <strong>{channel?.name}</strong>
+                                <small>{providers[channel?.provider]}</small>
+                              </div>
                               <strong>{p.snapshot.postTitle}</strong>
+                              <p className="mk-excerpt publication-excerpt">
+                                {p.snapshot.content}
+                              </p>
                               <small className="block">
                                 {providers[channel?.provider]} · {channel?.name}{" "}
                                 · v{p.revision}
@@ -1111,7 +1381,7 @@ export default function MarketingWorkspace({ assets, onUpload }) {
                                       })
                                     }
                                   >
-                                    ?? ki?m tra: ch?a ??ng
+                                    Đã kiểm tra: chưa đăng
                                   </button>
                                 )}
                                 {["failed", "needs_reauth"].includes(
@@ -1494,7 +1764,7 @@ export default function MarketingWorkspace({ assets, onUpload }) {
       )}
       {notPosted && (
         <Dialog
-          title="X?c nh?n b?i ch?a ???c ??ng"
+          title="Xác nhận bài chưa được đăng"
           error={error}
           onClose={() => setNotPosted(null)}
         >
@@ -1509,18 +1779,18 @@ export default function MarketingWorkspace({ assets, onUpload }) {
                     "POST",
                     notPosted,
                   ),
-                "?? ghi nh?n ki?m tra c?a b?n. B?n c? th? ch? ??ng th? l?i trong danh s?ch.",
+                "Đã ghi nhận kiểm tra của bạn. Bạn có thể chủ động thử lại trong danh sách.",
               );
               if (ok) setNotPosted(null);
             }}
           >
             <p>
-              Ch? d?ng sau khi b?n ki?m tra tr?c ti?p ??ng t?i kho?n tr?n n?n
-              t?ng. N?u b?i ?? ???c nh?n ho?c ch?a ch?c ch?n, gi? tr?ng th?i
-              ch?a r? ?? tr?nh g?i tr?ng.
+              Chỉ dùng sau khi bạn kiểm tra trực tiếp đúng tài khoản trên nền
+              tảng. Nếu bài đã được nhận hoặc chưa chắc chắn, giữ trạng thái
+              chưa rõ để tránh gửi trùng.
             </p>
             <label>
-              B?n ?? ki?m tra nh?ng g??
+              Bạn đã kiểm tra những gì?
               <textarea
                 required
                 minLength={10}
@@ -1541,10 +1811,10 @@ export default function MarketingWorkspace({ assets, onUpload }) {
                   setNotPosted({ ...notPosted, checked: e.target.checked })
                 }
               />
-              T?i ?? ki?m tra tr?c ti?p v? x?c nh?n b?i ch?a ???c ??ng.
+              Tôi đã kiểm tra trực tiếp và xác nhận bài chưa được đăng.
             </label>
             <button className="primary" disabled={busy || !notPosted.checked}>
-              L?u x?c nh?n, ch?a g?i l?i
+              Lưu xác nhận, chưa gửi lại
             </button>
           </form>
         </Dialog>
@@ -1554,8 +1824,35 @@ export default function MarketingWorkspace({ assets, onUpload }) {
           title="Nội dung đã duyệt & nhật ký"
           onClose={() => setShowPublication(null)}
         >
+          <div className="publication-detail-summary">
+            <div className="post-channel-heading">
+              <ChannelMark provider={channelFor(showPublication)?.provider} />
+              <strong>{channelFor(showPublication)?.name}</strong>
+              <Status value={showPublication.status} />
+            </div>
+            <small>
+              Lịch đăng: {date(showPublication.scheduled_at)} · Phiên bản{" "}
+              {showPublication.revision}
+            </small>
+            {showPublication.permalink && (
+              <a
+                className="primary"
+                target="_blank"
+                rel="noreferrer"
+                href={showPublication.permalink}
+              >
+                Mở bài đã đăng ↗
+              </a>
+            )}
+            {showPublication.error && (
+              <p className="danger">{showPublication.error}</p>
+            )}
+          </div>
           <article className="mk-preview">
-            <h3>{showPublication.snapshot.title}</h3>
+            <h3>
+              {showPublication.snapshot.title ||
+                showPublication.snapshot.postTitle}
+            </h3>
             <pre>{showPublication.snapshot.content}</pre>
             {showPublication.snapshot.assetId && (
               <a

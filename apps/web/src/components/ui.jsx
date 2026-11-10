@@ -31,6 +31,9 @@ export function Icon({ name, size = 20 }) {
       "M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8 M12 2v3 M12 19v3 M2 12h3 M19 12h3 M5 5l2 2 M17 17l2 2 M5 19l2-2 M17 7l2-2",
     arrow: "M7 17 17 7 M7 7h10v10",
     plus: "M12 5v14 M5 12h14",
+    calendar: "M3 5h18v16H3z M3 10h18 M7 3v4 M17 3v4 M7 14h2 M13 14h2 M7 18h2",
+    search: "M10 3a7 7 0 1 0 0 14 7 7 0 0 0 0-14 M15 15l6 6",
+    list: "M8 6h13 M8 12h13 M8 18h13 M3 6h1 M3 12h1 M3 18h1",
     check: "m5 12 4 4L19 6",
     download: "M12 3v12 M7 10l5 5 5-5 M4 17v4h16v-4",
     spark: "m12 3 2.7 6.3L21 12l-6.3 2.7L12 21l-2.7-6.3L3 12l6.3-2.7Z",
@@ -56,7 +59,15 @@ export function Icon({ name, size = 20 }) {
 export function Brand() {
   return (
     <div className="brand" aria-label="BotAds">
-      <img className="brand-mark" src="/brand/logo-64.png" srcSet="/brand/logo-128.png 2x" width="34" height="34" alt="" aria-hidden="true" />
+      <img
+        className="brand-mark"
+        src="/brand/logo-64.png"
+        srcSet="/brand/logo-128.png 2x"
+        width="34"
+        height="34"
+        alt=""
+        aria-hidden="true"
+      />
       botads<span className="brand-dot">.</span>
     </div>
   );

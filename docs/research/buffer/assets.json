@@ -1,0 +1,11 @@
+{
+  "reference": "https://buffer.com/publish",
+  "requestedAuthenticatedReference": "https://publish.buffer.com/",
+  "referenceAccess": "public demo inspected; authenticated app redirects to login/security verification",
+  "assets": [
+    { "kind": "brand", "source": "existing BotAds branding", "local": "apps/web/public/brand/logo-64.png", "usage": "sidebar; existing favicon and legal assets preserved" },
+    { "kind": "icons", "source": "editable application SVG paths and text platform marks", "local": "apps/web/src/components/PublishingViews.jsx", "usage": "provider identification without copying Buffer customer assets" },
+    { "kind": "font", "source": "observed Stolzl in reference", "local": null, "usage": "system font substitution documented; no proprietary font file copied" },
+    { "kind": "customer-media", "source": "existing authenticated R2 asset API", "local": null, "usage": "private image previews; public consent flow retained" }
+  ]
+}
