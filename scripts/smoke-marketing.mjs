@@ -79,6 +79,8 @@ try {
       TOKEN_ENCRYPTION_KEY: Buffer.alloc(32, 3).toString("base64"),
       PUBLIC_APP_URL: origin,
       ALLOW_REGISTRATION: "true",
+      LINKEDIN_CLIENT_ID: "browser-fixture-client",
+      LINKEDIN_CLIENT_SECRET: "browser-fixture-secret",
     },
     serviceBindings: {
       PROVIDER_HTTP: async (request) => {
@@ -215,6 +217,32 @@ try {
     "Creating a brand must preserve the selected channel and active tab",
   );
   await page.getByRole("tab", { name: "Kết nối kênh" }).click();
+  await page.getByLabel(/^Nền tảng/).selectOption("linkedin");
+  const startRoute = "**/api/marketing/linkedin/start";
+  await page.route(startRoute, (route) =>
+    route.fulfill({ status: 502, body: "" }),
+  );
+  await page
+    .getByRole("button", { name: "Kết nối qua LinkedIn", exact: true })
+    .click();
+  await page
+    .getByRole("alert")
+    .filter({ hasText: "phản hồi rỗng (HTTP 502)" })
+    .waitFor();
+  assert.deepEqual(errors, ["API 502: /api/marketing/linkedin/start"]);
+  errors.length = 0; // The intentionally injected outage was handled in the UI.
+  await page.unroute(startRoute);
+  await page.goto(origin + "/?linkedin=failed&linkedin_reason=client");
+  await page
+    .getByRole("alert")
+    .filter({ hasText: "LinkedIn từ chối Client ID/Client Secret" })
+    .waitFor();
+  assert.equal(
+    await page
+      .getByRole("tab", { name: "Kết nối kênh" })
+      .getAttribute("aria-selected"),
+    "true",
+  );
   await page.getByLabel(/^Nền tảng/).selectOption("medium");
   await page.getByLabel("Tên tài khoản để dễ nhận biết").fill("Pilot Medium");
   await page

@@ -1,4 +1,20 @@
 import { error } from "../middleware/security.mjs";
+import { linkedinReason } from "../../../packages/contracts/linkedin-errors.mjs";
+
+function oauthError(reason) {
+  return Object.assign(error(400, "Không hoàn tất được kết nối LinkedIn."), {
+    oauthReason: reason,
+  });
+}
+async function oauthJson(response) {
+  try {
+    const value = await response.json();
+    if (!value || typeof value !== "object" || Array.isArray(value)) throw 0;
+    return value;
+  } catch {
+    throw oauthError("provider_response");
+  }
+}
 export class PublishError extends Error {
   constructor(message, state = "failed", retryAfter = 0) {
     super(message);
@@ -88,41 +104,38 @@ export async function exchangeLinkedIn(env, code, redirectUri) {
           grant_type: "authorization_code",
           code,
           redirect_uri: redirectUri,
-          client_id: env.LINKEDIN_CLIENT_ID,
-          client_secret: env.LINKEDIN_CLIENT_SECRET,
+          client_id: env.LINKEDIN_CLIENT_ID.trim(),
+          client_secret: env.LINKEDIN_CLIENT_SECRET.trim(),
         }).toString(),
       },
     );
   } catch {
-    throw error(502, "Không trao đổi được mã LinkedIn. Hãy kết nối lại.");
+    throw oauthError("network");
   }
-  if (!response.ok)
-    throw error(
-      400,
-      "LinkedIn từ chối kết nối. Kiểm tra callback và quyền của ứng dụng.",
-    );
-  const token = await response.json();
+  const token = await oauthJson(response);
+  if (!response.ok) throw oauthError(linkedinReason(token.error));
   if (
     !token.access_token ||
     !Number.isFinite(Number(token.expires_in)) ||
     Number(token.expires_in) <= 0
   )
-    throw error(502, "LinkedIn không trả token hợp lệ.");
+    throw oauthError("provider_response");
   if (token.scope && !token.scope.split(/[ ,]+/).includes("w_member_social"))
-    throw error(403, "Ứng dụng LinkedIn chưa có quyền w_member_social.");
-  const identity = await providerFetch(
-    env,
-    "https://api.linkedin.com/v2/userinfo",
-    { headers: { Authorization: `Bearer ${token.access_token}` } },
-  );
-  if (!identity.ok)
-    throw error(
-      400,
-      "Bật Sign In with LinkedIn using OpenID Connect để xác định tài khoản đăng bài.",
+    throw oauthError("scope");
+  let identity;
+  try {
+    identity = await providerFetch(
+      env,
+      "https://api.linkedin.com/v2/userinfo",
+      { headers: { Authorization: `Bearer ${token.access_token}` } },
     );
-  const user = await identity.json();
+  } catch {
+    throw oauthError("network");
+  }
+  if (!identity.ok) throw oauthError("identity");
+  const user = await oauthJson(identity);
   if (typeof user.sub !== "string" || !/^[\w-]+$/.test(user.sub))
-    throw error(502, "Không xác định được tài khoản LinkedIn.");
+    throw oauthError("identity");
   return {
     actorId: `urn:li:person:${user.sub}`,
     name: String(user.name || "LinkedIn").slice(0, 100),

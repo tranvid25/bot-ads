@@ -18,6 +18,10 @@ import {
   exchangeLinkedIn,
 } from "../services/marketing-providers.mjs";
 import { dispatchMarketing } from "../services/marketing-publisher.mjs";
+import {
+  linkedinErrors,
+  linkedinReason,
+} from "../../../packages/contracts/linkedin-errors.mjs";
 
 export function appOrigin(env) {
   try {
@@ -274,7 +278,7 @@ export async function marketingRoute(request, env, context, execution) {
     const url = new URL("https://www.linkedin.com/oauth/v2/authorization");
     for (const [k, v] of Object.entries({
       response_type: "code",
-      client_id: env.LINKEDIN_CLIENT_ID,
+      client_id: env.LINKEDIN_CLIENT_ID.trim(),
       redirect_uri: redirectUri,
       state,
       scope: "openid profile w_member_social",
@@ -665,11 +669,15 @@ export async function linkedinCallback(request, env) {
   if (!pending || new URL(pending.redirect_uri).origin !== appOrigin(env))
     throw error(403, "Yêu cầu kết nối đã hết hạn hoặc đã được sử dụng.");
   let result = "connected";
+  let reason = "failed";
+  let stage = "exchange";
   try {
-    if (url.searchParams.has("error")) throw 0;
+    if (url.searchParams.has("error"))
+      throw { oauthReason: linkedinReason(url.searchParams.get("error")) };
     const code = url.searchParams.get("code");
     if (!code || code.length > 4000) throw 0;
     const identity = await exchangeLinkedIn(env, code, pending.redirect_uri);
+    stage = "storage";
     await saveChannel(
       env,
       pending.workspace_id,
@@ -677,13 +685,20 @@ export async function linkedinCallback(request, env) {
       "linkedin",
       identity,
     );
-  } catch {
+  } catch (e) {
     result = "failed";
+    reason =
+      e?.oauthReason && Object.hasOwn(linkedinErrors, e.oauthReason)
+        ? e.oauthReason
+        : stage === "storage"
+          ? "storage"
+          : "failed";
+    console.warn("LinkedIn OAuth failed:", reason);
   }
   return new Response(null, {
     status: 303,
     headers: {
-      Location: `${appOrigin(env)}/?linkedin=${result}`,
+      Location: `${appOrigin(env)}/?linkedin=${result}${result === "failed" ? `&linkedin_reason=${reason}` : ""}`,
       "Cache-Control": "no-store",
       "Referrer-Policy": "no-referrer",
       "Set-Cookie": `botads_oauth=; HttpOnly; SameSite=Lax; Path=/api/marketing/linkedin; Max-Age=0${url.protocol === "https:" ? "; Secure" : ""}`,

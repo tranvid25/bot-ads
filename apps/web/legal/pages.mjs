@@ -40,8 +40,8 @@ const privacy = sections([
   ],
   [
     "6. Cookie và nhật ký / Cookies and logs",
-    "BotAds sử dụng cookie HttpOnly cho phiên đăng nhập, mặc định có thời hạn tối đa 7 ngày; cookie OAuth ngắn hạn tối đa 10 phút để bảo vệ kết nối LinkedIn. Địa chỉ IP và thông tin lỗi có thể được xử lý để giới hạn yêu cầu, bảo mật và chẩn đoán. Nhà cung cấp hạ tầng có thể sử dụng cơ chế bảo mật riêng. Bản hiện tại không tích hợp cookie quảng cáo hoặc Google Analytics trong dashboard.",
-    "BotAds uses an HttpOnly login session cookie, normally lasting up to seven days, and a short-lived OAuth cookie lasting up to ten minutes to protect LinkedIn connections. IP addresses and error information may be processed for request limits, security and diagnostics. Infrastructure providers may apply their own security mechanisms. The current dashboard does not integrate advertising cookies or Google Analytics.",
+    "BotAds sử dụng cookie HttpOnly cho phiên đăng nhập, mặc định có thời hạn tối đa 7 ngày; cookie OAuth ngắn hạn tối đa 10 phút để bảo vệ kết nối LinkedIn. Địa chỉ IP và thông tin lỗi có thể được xử lý để giới hạn yêu cầu, bảo mật và chẩn đoán. Nhà cung cấp hạ tầng có thể sử dụng cơ chế bảo mật riêng. Khi bật trên hạ tầng, Cloudflare Web Analytics có thể thu thập số liệu truy cập và hiệu năng website. Bản hiện tại không tích hợp cookie quảng cáo hoặc Google Analytics trong dashboard.",
+    "BotAds uses an HttpOnly login session cookie, normally lasting up to seven days, and a short-lived OAuth cookie lasting up to ten minutes to protect LinkedIn connections. IP addresses and error information may be processed for request limits, security and diagnostics. Infrastructure providers may apply their own security mechanisms. When enabled in the infrastructure, Cloudflare Web Analytics may collect website traffic and performance measurements. The current dashboard does not integrate advertising cookies or Google Analytics.",
   ],
   [
     "7. Ảnh và nội dung đã công khai / Public content",

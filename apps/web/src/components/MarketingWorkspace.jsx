@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { api } from "../lib/api";
 import { utmUrl } from "../../../../packages/contracts/marketing.mjs";
+import { linkedinErrors } from "../../../../packages/contracts/linkedin-errors.mjs";
 import "../marketing.css";
 
 const providers = {
@@ -445,12 +446,16 @@ export default function MarketingWorkspace({ assets, onUpload }) {
     }, 15000);
     const params = new URLSearchParams(window.location.search);
     if (params.has("linkedin")) {
+      setTab("channels");
       params.get("linkedin") === "connected"
         ? setNotice("Đã kết nối LinkedIn. Bạn có thể duyệt bài và lên lịch.")
         : setError(
-            "Kết nối LinkedIn chưa thành công. Kiểm tra quyền app, callback và thử lại.",
+            Object.hasOwn(linkedinErrors, params.get("linkedin_reason"))
+              ? linkedinErrors[params.get("linkedin_reason")]
+              : linkedinErrors.failed,
           );
       params.delete("linkedin");
+      params.delete("linkedin_reason");
       window.history.replaceState(
         null,
         "",

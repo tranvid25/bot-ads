@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { api } from "./lib/api";
+import { api, readApiResponse } from "./lib/api";
 import { Icon, Brand, Badge, Empty, date } from "./components/ui";
 import Auth from "./pages/Auth";
 import Editor from "./components/CampaignEditor";
@@ -67,8 +67,7 @@ export default function App() {
       },
       body: file,
     });
-    const result = await r.json();
-    if (!r.ok) throw new Error(result.error);
+    const result = await readApiResponse(r);
     await refresh();
     return result;
   }

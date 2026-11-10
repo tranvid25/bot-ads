@@ -44,6 +44,13 @@ async function provider(request) {
       name: "DEV tester",
     });
   }
+  if (url.pathname === "/oauth/v2/accessToken" && mode === "oauth-empty")
+    return new Response(null, { status: 502 });
+  if (url.pathname === "/oauth/v2/accessToken" && mode === "oauth-client")
+    return Response.json(
+      { error: "invalid_client", error_description: "secret-must-not-leak" },
+      { status: 401 },
+    );
   if (url.pathname === "/oauth/v2/accessToken")
     return Response.json({
       access_token: "linkedin-access-token",
@@ -589,6 +596,47 @@ test("OAuth state is browser-bound, single-use and works without the Strict sess
   assert.equal(sent[0].body.author, "urn:li:person:member123");
   assert.equal(sent[0].headers["linkedin-version"], "202610");
 });
+test("OAuth failures expose fixed diagnostics without provider secrets or granting a channel", async () => {
+  const a = await customer();
+  for (const [scenario, suffix, reason] of [
+    [
+      "success",
+      "&error=unauthorized_scope_error&error_description=secret-must-not-leak",
+      "scope",
+    ],
+    ["oauth-empty", "&code=test-code", "provider_response"],
+    ["oauth-client", "&code=test-code", "client"],
+    ["success", "&error=access_denied", "access_denied"],
+  ]) {
+    mode = scenario;
+    const start = await req("/marketing/linkedin/start", {
+      cookie: a.cookie,
+      method: "POST",
+      data: { brandId: a.brandId },
+    });
+    const state = new URL(start.data.url).searchParams.get("state");
+    const callback = await req(
+      `/marketing/linkedin/callback?state=${state}${suffix}`,
+      {
+        cookie: start.headers.get("set-cookie").split(";")[0],
+      },
+    );
+    assert.equal(callback.status, 303);
+    assert.equal(
+      callback.headers.get("location"),
+      `${base}/?linkedin=failed&linkedin_reason=${reason}`,
+    );
+    assert.ok(
+      !callback.headers.get("location").includes("secret-must-not-leak"),
+    );
+  }
+  assert.equal(
+    (await req("/marketing", { cookie: a.cookie })).data.channels.length,
+    0,
+  );
+  mode = "success";
+});
+
 test("approved image is copied to public media without exposing the private asset URL", async () => {
   const a = await customer(),
     ch = await channel(a);
