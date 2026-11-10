@@ -15,6 +15,10 @@
   "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "botads-media" }],
   "triggers": { "crons": ["*/5 * * * *"] },
   "vars": {
+    "PUBLIC_APP_URL": "http://127.0.0.1:5173",
+    "TOKEN_KEY_VERSION": "v1",
+    "LINKEDIN_API_VERSION": "202610",
+    "MARKETING_ACCOUNT_DAILY_LIMIT": "100",
     "MAX_DAILY_POSTS": "100",
     "ALLOW_REGISTRATION": "true",
     "MAX_ASSET_MB": "5",
@@ -36,6 +40,10 @@
       "r2_buckets": [{ "binding": "MEDIA", "bucket_name": "bot-ads" }],
       "triggers": { "crons": ["*/5 * * * *"] },
       "vars": {
+        "PUBLIC_APP_URL": "https://bot.salesora.space",
+        "TOKEN_KEY_VERSION": "v1",
+        "LINKEDIN_API_VERSION": "202610",
+        "MARKETING_ACCOUNT_DAILY_LIMIT": "100",
         "MAX_DAILY_POSTS": "100",
         "ALLOW_REGISTRATION": "true",
         "MAX_ASSET_MB": "5",

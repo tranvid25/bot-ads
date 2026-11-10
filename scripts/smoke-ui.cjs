@@ -24,6 +24,7 @@ const assert = require("assert/strict");
     await page
       .getByRole("button", { name: "Tạo tài khoản", exact: true })
       .click();
+    await page.getByRole("button", { name: "Tổng quan", exact: true }).click();
     await page.getByRole("heading", { name: /Chào/ }).waitFor();
     await page
       .getByRole("button", { name: "Tạo chiến dịch", exact: true })

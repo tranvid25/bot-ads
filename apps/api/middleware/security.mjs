@@ -72,7 +72,9 @@ export async function body(request, max = 900000) {
     offset += chunk.length;
   }
   try {
-    return JSON.parse(new TextDecoder().decode(bytes));
+    const input = JSON.parse(new TextDecoder().decode(bytes));
+    if (!input || typeof input !== "object" || Array.isArray(input)) throw new Error("object required");
+    return input;
   } catch {
     throw error(400, "JSON không hợp lệ.");
   }

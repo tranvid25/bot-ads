@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { api } from "../lib/api";
 import { Brand, Icon } from "../components/ui";
+import LegalLinks from "../components/LegalLinks";
 export default function Auth({ onLogin, meta }) {
   const [register, setRegister] = useState(false),
     [busy, setBusy] = useState(false),
@@ -34,17 +35,17 @@ export default function Auth({ onLogin, meta }) {
             Lịch trình của bạn.
           </h1>
           <p>
-            Một nơi để chuẩn bị bài viết, kết nối máy tính và theo dõi từng
-            chiến dịch Facebook.
+            Một nơi để chuẩn bị bài tự soạn, kết nối tài khoản kênh và theo dõi
+            từng lượt đăng marketing.
           </p>
           <div className="story-flow">
             <span>01 · Chọn nội dung</span>
-            <span>02 · Kết nối máy</span>
+            <span>02 · Kết nối kênh</span>
             <span>03 · Bật lịch chạy</span>
           </div>
         </div>
         <small>
-          Trình duyệt chạy trên máy của bạn. Bạn luôn có quyền dừng.
+          LinkedIn/DEV chạy qua API. Facebook dùng ứng dụng trên máy tính.
         </small>
       </section>
       <section className="auth-form">
@@ -108,9 +109,11 @@ export default function Auth({ onLogin, meta }) {
             </button>
           </p>
           <small>
-            Đây là tài khoản BotAds. Bạn sẽ kết nối Facebook trực tiếp trong ứng
-            dụng trên máy tính.
+            Khi đăng ký, bạn đồng ý với <a href="/terms">Điều khoản sử dụng</a>.
+            Xem <a href="/privacy">Chính sách quyền riêng tư</a> để hiểu cách dữ
+            liệu được xử lý.
           </small>
+          <LegalLinks />
         </div>
       </section>
     </div>

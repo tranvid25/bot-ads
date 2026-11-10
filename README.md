@@ -1,5 +1,7 @@
 # BotAds — tự động đăng bài nhóm Facebook
 
+**Marketing đa kênh:** đã có module bài tự soạn, duyệt phiên bản, lịch chạy cloud, DEV API, LinkedIn OAuth và kênh thủ công. Đọc [hướng dẫn cấu hình và nghiệm thu marketing](docs/MARKETING_SETUP.md). Frontend production dùng `https://bot.salesora.space`; LinkedIn cần Developer App được cấp quyền trước khi dùng thật. Phần Facebook bên dưới tiếp tục dùng ứng dụng Windows.
+
 **Web React + API MVC + ứng dụng Windows:** đọc [hướng dẫn sử dụng bản mới](docs/HUONG_DAN_SU_DUNG.md). Kế hoạch sản phẩm ở [SAAS_PLAN.md](SAAS_PLAN.md). Phần hướng dẫn bên dưới dành cho bot CLI trong `packages/automation`; cấu hình và lịch sử CLI hiện nằm trong thư mục đó.
 
 Bot chạy bằng Node.js + Playwright. Quy trình gồm kiểm tra bài cũ → tìm và đồng bộ nhóm → tự đánh giá nhóm → xin tham gia → bổ sung kho AI khi cần → đăng bài và bình luận vào đúng bài đã xác nhận. Bot dừng khi gặp đăng nhập, xác minh, hạn chế thao tác hoặc hết giới hạn lượt chạy. Lỗi riêng từng nhóm và kết quả gửi chưa rõ được bỏ qua để tiếp tục nhóm khác theo mặc định.

@@ -1,5 +1,6 @@
 import { json, maxDaily, id, validPostUrl } from "../lib/http.mjs";
 import { one, all, run } from "../models/database.mjs";
+import { marketingCapabilities } from "./marketing.controller.mjs";
 import {
   body,
   token,
@@ -19,6 +20,7 @@ export async function metadata(request, env, path, method, context = {}) {
     aiAvailable: Boolean(env.GEMINI_API_KEY),
     downloadAvailable: Boolean(env.DOWNLOAD_URL),
     registrationOpen: env.ALLOW_REGISTRATION === "true",
+    marketing: marketingCapabilities(env),
   });
 }
 

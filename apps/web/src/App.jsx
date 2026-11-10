@@ -1,13 +1,15 @@
-import React,  { useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import { api } from "./lib/api";
 import { Icon, Brand, Badge, Empty, date } from "./components/ui";
 import Auth from "./pages/Auth";
 import Editor from "./components/CampaignEditor";
+import MarketingWorkspace from "./components/MarketingWorkspace";
+import LegalLinks from "./components/LegalLinks";
 export default function App() {
   const [meta, setMeta] = useState({ maxDaily: 100, registrationOpen: true }),
     [data, setData] = useState(null),
     [loading, setLoading] = useState(true),
-    [page, setPage] = useState("overview"),
+    [page, setPage] = useState("marketing"),
     [editor, setEditor] = useState(null),
     [notice, setNotice] = useState(""),
     [error, setError] = useState(""),
@@ -82,6 +84,7 @@ export default function App() {
     online = device && Date.now() - device.last_seen < 120000;
   const selectedCampaign = data.campaigns.find((c) => c.id === editor);
   const nav = [
+    ["marketing", "campaign", "Marketing đa kênh"],
     ["overview", "grid", "Tổng quan"],
     ["campaigns", "campaign", "Chiến dịch"],
     ["devices", "device", "Thiết bị"],
@@ -187,9 +190,17 @@ export default function App() {
             <span className={`dot ${online ? "online" : ""}`} />
             <div>
               <strong>
-                {online ? "Máy tính đang kết nối" : "Chưa có máy online"}
+                {online
+                  ? "Facebook: máy đã kết nối"
+                  : "Facebook: chưa có máy online"}
               </strong>
-              <small>{online ? device.name : "Kết nối để bắt đầu chạy"}</small>
+              <small>
+                {page === "marketing"
+                  ? "LinkedIn/DEV không cần máy online"
+                  : online
+                    ? device.name
+                    : "Kết nối để chạy Facebook"}
+              </small>
             </div>
           </div>
           <button
@@ -216,20 +227,24 @@ export default function App() {
             Không gian làm việc <span className="slash">/</span>{" "}
             <strong>{title}</strong>
           </span>
-          <button
-            className="download-link"
-            onClick={() => {
-              if (meta.downloadAvailable)
-                window.location.href = "/api/download";
-              else {
-                setPage("devices");
-                setNotice("Bộ cài chưa được chủ website phát hành.");
-              }
-            }}
-          >
-            <Icon name="download" size={17} />
-            Tải ứng dụng Windows
-          </button>
+          {page === "marketing" ? (
+            <span className="badge">Bài tự soạn · API & thủ công</span>
+          ) : (
+            <button
+              className="download-link"
+              onClick={() => {
+                if (meta.downloadAvailable)
+                  window.location.href = "/api/download";
+                else {
+                  setPage("devices");
+                  setNotice("Bộ cài chưa được chủ website phát hành.");
+                }
+              }}
+            >
+              <Icon name="download" size={17} />
+              Tải ứng dụng Windows
+            </button>
+          )}
         </header>
         <div className="page">
           <div className="page-heading">
@@ -255,7 +270,9 @@ export default function App() {
                       ? "Kết nối máy tính để thực hiện công việc từ website."
                       : page === "results"
                         ? "Theo dõi kết quả thực tế của từng lượt gửi."
-                        : "Điều chỉnh giới hạn chung cho tài khoản của bạn."}
+                        : page === "marketing"
+                          ? "Quản lý bài tự soạn, kết nối kênh và lịch phân phối nội dung."
+                          : "Điều chỉnh giới hạn chung cho tài khoản của bạn."}
               </p>
             </div>
             {["overview", "campaigns"].includes(page) && (
@@ -276,6 +293,9 @@ export default function App() {
               {notice}
               <button onClick={() => setNotice("")}>×</button>
             </div>
+          )}
+          {page === "marketing" && (
+            <MarketingWorkspace assets={data.assets} onUpload={upload} />
           )}
           {page === "overview" && (
             <>
@@ -641,7 +661,8 @@ export default function App() {
             <section className="panel settings-panel">
               <h2>Giới hạn tài khoản</h2>
               <p>
-                Tổng lượt gửi của mọi chiến dịch trên cùng tài khoản Facebook.
+                Giới hạn/ngày cho Facebook và marketing API, tính riêng từng
+                luồng. Marketing tính theo múi giờ bên dưới.
               </p>
               <form
                 onSubmit={(e) => {
@@ -682,8 +703,13 @@ export default function App() {
           )}
           <footer className="page-footer">
             BotAds · Nội dung do bạn chọn, tiến độ được ghi nhận.
-            <span>Máy tính cần online để chạy.</span>
+            <span>
+              {page === "marketing"
+                ? "Kênh API chạy trên cloud. Facebook dùng ứng dụng Windows."
+                : "Máy tính cần online để chạy Facebook."}
+            </span>
           </footer>
+          <LegalLinks />
         </div>
       </main>
       {editor && (

@@ -55,10 +55,8 @@ export function Icon({ name, size = 20 }) {
 }
 export function Brand() {
   return (
-    <div className="brand">
-      <span className="brand-mark">
-        <Icon name="spark" />
-      </span>
+    <div className="brand" aria-label="BotAds">
+      <img className="brand-mark" src="/brand/logo-64.png" srcSet="/brand/logo-128.png 2x" width="34" height="34" alt="" aria-hidden="true" />
       botads<span className="brand-dot">.</span>
     </div>
   );

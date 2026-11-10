@@ -1,12 +1,14 @@
 import { route } from "./routes/index.mjs";
 import { json } from "./lib/http.mjs";
 import { scheduled } from "./services/jobs.service.mjs";
+import { dispatchMarketing } from "./services/marketing-publisher.mjs";
+import { cleanupSupport } from "./controllers/support.controller.mjs";
 export { scheduled };
 export default {
-  async fetch(request, env) {
+  async fetch(request, env, execution) {
     let response;
     try {
-      response = await route(request, env);
+      response = await route(request, env, execution);
     } catch (e) {
       const status = e.status || 500;
       if (status === 500) console.error("API failure:", e.message);
@@ -31,6 +33,6 @@ export default {
     return new Response(response.body, { status: response.status, headers });
   },
   async scheduled(_event, env) {
-    await scheduled(env);
+    await Promise.all([scheduled(env), dispatchMarketing(env), cleanupSupport(env)]);
   },
 };

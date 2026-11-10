@@ -9,6 +9,8 @@
   --line: #e3e9e3;
   --lime: #dafa9a;
 }
+.legal-links { display: flex; flex-wrap: wrap; gap: 10px 18px; padding: 18px 0; font-size: 12px; line-height: 1.6; }
+.legal-links a { color: var(--green); text-decoration: underline; text-underline-offset: 3px; }
 * {
   box-sizing: border-box;
 }
@@ -180,13 +182,13 @@ input[type="checkbox"] {
   gap: 9px;
 }
 .brand-mark {
-  display: grid;
-  place-items: center;
+  display: block;
+  flex: 0 0 34px;
   width: 34px;
   height: 34px;
   border-radius: 10px;
-  background: var(--lime);
-  color: #163b2e;
+  object-fit: contain;
+  background: var(--dark);
 }
 .brand-dot {
   color: var(--lime);

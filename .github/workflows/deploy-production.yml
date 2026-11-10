@@ -27,6 +27,7 @@ jobs:
       - run: npm test
       - run: npm run test:saas
       - run: npm run web:build
+      - run: npm run test:marketing:ui
       - run: npm run web:check
       - run: npm run cloud:build:production
 
@@ -64,6 +65,15 @@ jobs:
           command: deploy --env production
 
       # Upload AUTH_SECRET before deploying the final version. The secret is never stored in Git.
+      - name: Initialize marketing encryption and optional LinkedIn credentials
+        env:
+          CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          TOKEN_ENCRYPTION_KEY: ${{ secrets.TOKEN_ENCRYPTION_KEY }}
+          LINKEDIN_CLIENT_ID: ${{ secrets.LINKEDIN_CLIENT_ID }}
+          LINKEDIN_CLIENT_SECRET: ${{ secrets.LINKEDIN_CLIENT_SECRET }}
+        run: node scripts/ensure-marketing-secrets.mjs
+
       - name: Set Worker secret and deploy
         id: deploy
         uses: cloudflare/wrangler-action@v4
@@ -114,7 +124,7 @@ jobs:
       - name: Check frontend and API connection
         run: |
           node --input-type=module <<'NODE'
-          const base = 'https://botads-web.pages.dev';
+          for (const base of ['https://botads-web.pages.dev', 'https://bot.salesora.space']) {
           const web = await fetch(base);
           if (!web.ok || !(await web.text()).includes('<div id="root">')) {
             throw new Error('Frontend Pages is not serving the React app');
@@ -123,5 +133,13 @@ jobs:
           if (!response.ok || (await response.json()).name !== 'BotAds') {
             throw new Error('Pages cannot reach the backend Worker');
           }
+          for (const [route, title] of Object.entries({privacy: 'Privacy Policy', terms: 'Terms of Service', support: 'Contact & Support', 'data-deletion': 'Data Deletion'})) {
+            const legal = await fetch(`${base}/${route}`);
+            const html = await legal.text();
+            if (!legal.ok || !html.includes(`<title>${title} — BotAds</title>`) || !html.includes('XayWebsite')) {
+              throw new Error(`Public page not available: ${base}/${route}`);
+            }
+          }
           console.log(`Frontend and API connection healthy: ${base}`);
+          }
           NODE

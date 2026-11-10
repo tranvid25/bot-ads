@@ -17,6 +17,7 @@
     "desktop:build": "node scripts/build-desktop.cjs",
     "desktop:build:mac": "node scripts/build-desktop-mac.cjs",
     "test:saas": "node --test tests/*.test.mjs tests/*.test.cjs",
+    "test:marketing:ui": "node scripts/smoke-marketing.mjs",
     "test": "node --test tests/regression.test.js tests/automation.test.js",
     "start": "node packages/automation/index.js",
     "login": "node packages/automation/login.js",
