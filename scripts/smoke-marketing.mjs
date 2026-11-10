@@ -176,12 +176,44 @@ try {
   await page
     .getByRole("heading", { name: "Từ một ý tưởng, đến đúng người đọc." })
     .waitFor();
-  await page.getByRole("button", { name: "Tạo thương hiệu đầu tiên" }).click();
+  await page.getByRole("tab", { name: "Kết nối kênh" }).click();
+  const picker = page.getByRole("region", { name: "Các nền tảng đăng bài" });
+  await picker
+    .getByRole("heading", { name: "LinkedIn", exact: true })
+    .waitFor();
+  assert.equal(await picker.locator("article").count(), 5);
+  await page.setViewportSize({ width: 390, height: 844 });
+  assert.equal(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth > innerWidth,
+    ),
+    false,
+    "Channel picker without a brand must fit mobile viewport",
+  );
+  await page.screenshot({
+    path: "test-results/channels-onboarding-mobile.png",
+    fullPage: true,
+  });
+  await page.setViewportSize({ width: 1440, height: 1000 });
+  await picker
+    .getByRole("button", { name: "Chọn LinkedIn", exact: true })
+    .click();
+  let onboarding = page.getByRole("dialog");
+  await onboarding.getByLabel("Tên thương hiệu").waitFor();
+  await onboarding.getByRole("button", { name: "Đóng", exact: true }).click();
+  await picker
+    .getByRole("button", { name: "Chọn DEV Community", exact: true })
+    .click();
   let dialog = page.getByRole("dialog");
   await dialog.getByLabel("Tên thương hiệu").fill("XayWebsite Pilot");
   await dialog.getByLabel("Website HTTPS").fill("https://xaywebsite.com");
   await dialog.getByRole("button", { name: "Lưu thương hiệu" }).click();
   await dialog.waitFor({ state: "hidden" });
+  assert.equal(
+    await page.getByLabel(/^Nền tảng/).inputValue(),
+    "dev",
+    "Creating a brand must preserve the selected channel and active tab",
+  );
   await page.getByRole("tab", { name: "Kết nối kênh" }).click();
   await page.getByLabel(/^Nền tảng/).selectOption("medium");
   await page.getByLabel("Tên tài khoản để dễ nhận biết").fill("Pilot Medium");
@@ -287,7 +319,10 @@ try {
     .first();
   assert.equal(tickets.n, 1);
   await page.goto(origin + "/privacy");
-  await page.screenshot({ path: "test-results/privacy-desktop.png", fullPage: false });
+  await page.screenshot({
+    path: "test-results/privacy-desktop.png",
+    fullPage: false,
+  });
   await page.setViewportSize({ width: 390, height: 844 });
   await page.goto(origin + "/privacy");
   assert.equal(

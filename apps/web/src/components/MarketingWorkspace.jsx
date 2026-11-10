@@ -630,20 +630,82 @@ export default function MarketingWorkspace({ assets, onUpload }) {
           Lịch & kết quả
         </button>
       </div>
-      {!brands.length ? (
-        <section className="panel mk-empty">
-          <h2>Bắt đầu với website của bạn</h2>
-          <p>
-            Thêm thương hiệu để quản lý bài viết, tài khoản kênh và kết quả
-            riêng.
-          </p>
-          <button
-            className="primary"
-            onClick={() => setBrandForm({ ...emptyBrand })}
-          >
-            Tạo thương hiệu đầu tiên
-          </button>
+      {tab === "channels" && (
+        <section
+          className="mk-channel-picker"
+          aria-label="Các nền tảng đăng bài"
+        >
+          <div>
+            <h2>Chọn nền tảng của bạn</h2>
+            <p>
+              LinkedIn và DEV hỗ trợ tự đăng sau khi kết nối. Medium, Reddit và
+              Indie Hackers hỗ trợ chuẩn bị bài để bạn đăng thủ công.
+            </p>
+            {!brands.length && (
+              <p className="notice">
+                Chọn một nền tảng bên dưới, rồi thêm tên thương hiệu và website
+                để lưu tài khoản kết nối đúng thương hiệu.
+              </p>
+            )}
+          </div>
+          <div className="mk-channel-cards">
+            {Object.entries(providers).map(([key, label]) => (
+              <article className="panel mk-channel-card" key={key}>
+                <span className="badge">
+                  {manual.includes(key)
+                    ? "Đăng thủ công"
+                    : "Tự động đăng qua API"}
+                </span>
+                <h3>{label}</h3>
+                <p>
+                  {key === "linkedin"
+                    ? "Đăng nhập LinkedIn và cấp quyền đăng lên tài khoản cá nhân."
+                    : key === "dev"
+                      ? "Kết nối tài khoản DEV bằng API key của bạn."
+                      : "Lưu tên tài khoản để quản lý nội dung; bạn tự đăng bài trên nền tảng."}
+                </p>
+                <button
+                  type="button"
+                  className={
+                    connection.provider === key ? "primary" : "secondary"
+                  }
+                  aria-pressed={connection.provider === key}
+                  onClick={() => {
+                    setConnection({ provider: key, name: "", apiKey: "" });
+                    if (!brands.length) setBrandForm({ ...emptyBrand });
+                    else
+                      requestAnimationFrame(() =>
+                        document
+                          .getElementById("mk-channel-form")
+                          ?.scrollIntoView({ block: "start" }),
+                      );
+                  }}
+                >
+                  {manual.includes(key)
+                    ? `Thêm kênh ${label}`
+                    : `Chọn ${label}`}
+                </button>
+              </article>
+            ))}
+          </div>
         </section>
+      )}
+      {!brands.length ? (
+        tab !== "channels" && (
+          <section className="panel mk-empty">
+            <h2>Bắt đầu với website của bạn</h2>
+            <p>
+              Thêm thương hiệu để quản lý bài viết, tài khoản kênh và kết quả
+              riêng.
+            </p>
+            <button
+              className="primary"
+              onClick={() => setBrandForm({ ...emptyBrand })}
+            >
+              Tạo thương hiệu đầu tiên
+            </button>
+          </section>
+        )
       ) : (
         <>
           {tab === "content" && (
@@ -734,7 +796,7 @@ export default function MarketingWorkspace({ assets, onUpload }) {
           )}
           {tab === "channels" && (
             <div className="mk-grid mk-align-start">
-              <section className="panel mk-form">
+              <section className="panel mk-form" id="mk-channel-form">
                 <h2>Kết nối tài khoản</h2>
                 <form
                   className="mk-form"

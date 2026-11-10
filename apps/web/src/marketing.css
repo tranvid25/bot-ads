@@ -72,6 +72,38 @@
 .mk-align-start {
   align-items: start;
 }
+.mk-channel-picker {
+  display: grid;
+  gap: 18px;
+}
+.mk-channel-picker h2 {
+  margin: 0 0 10px;
+}
+.mk-channel-picker p {
+  color: #526b60;
+}
+.mk-channel-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  gap: 16px;
+}
+.mk-channel-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+}
+.mk-channel-card h3,
+.mk-channel-card p {
+  margin: 0;
+}
+.mk-channel-card button {
+  margin-top: auto;
+}
+#mk-channel-form {
+  scroll-margin-top: 24px;
+}
 .mk-content-list {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
