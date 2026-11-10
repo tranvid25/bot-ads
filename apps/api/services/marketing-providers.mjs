@@ -23,11 +23,15 @@ export class PublishError extends Error {
   }
 }
 export async function providerFetch(env, url, init = {}) {
-  return (env.PROVIDER_HTTP || { fetch }).fetch(url, {
+  const options = {
     ...init,
     redirect: "manual",
     signal: AbortSignal.timeout(20000),
-  });
+  };
+  // Workers' global fetch requires its original receiver. Placing it on an
+  // arbitrary object throws Illegal invocation before any HTTP request is sent.
+  if (env.PROVIDER_HTTP) return env.PROVIDER_HTTP.fetch(url, options);
+  return fetch(url, options);
 }
 const devHeaders = (key) => ({
   "api-key": key,
