@@ -1064,6 +1064,7 @@ export default function App() {
         channels={marketingData?.channels || []}
         onConnectChannel={handleConnectNewChannel}
         busy={busy}
+        error={error}
       />
     </div>
   );

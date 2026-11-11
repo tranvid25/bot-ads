@@ -8,6 +8,7 @@ export default function ConnectChannelModal({
   channels = [],
   onConnectChannel,
   busy = false,
+  error = "",
 }) {
   const [selectedChannel, setSelectedChannel] = useState(null);
   const [accountInput, setAccountInput] = useState("");
@@ -29,9 +30,17 @@ export default function ConnectChannelModal({
 
   async function handleCardClick(ch) {
     if (connectedMap.has(ch.key) || busy || redirectingKey) return;
-    if (ch.authType === "oauth" || ch.key === "linkedin" || ch.key === "bluesky") {
+    if (
+      ch.authType === "oauth" ||
+      ch.key === "linkedin" ||
+      ch.key === "bluesky"
+    ) {
       setRedirectingKey(ch.key);
-      await onConnectChannel({ provider: ch.key });
+      try {
+        await onConnectChannel({ provider: ch.key });
+      } finally {
+        setRedirectingKey(null);
+      }
       return;
     }
     setSelectedChannel(ch);
@@ -62,24 +71,42 @@ export default function ConnectChannelModal({
       >
         <div className="buffer-connect-modal-header">
           <h2>Connect a New Channel</h2>
-          <button type="button" className="buffer-connect-close-btn" onClick={handleClose} aria-label="Đóng">✕</button>
+          <button
+            type="button"
+            className="buffer-connect-close-btn"
+            onClick={handleClose}
+            aria-label="Đóng"
+          >
+            ✕
+          </button>
         </div>
 
+        {error && <div className="alert error" role="alert">{error}</div>}
         {selectedChannel ? (
           selectedChannel.isMeta ? (
             <MetaConnectView
               selectedChannel={selectedChannel}
               onBack={() => setSelectedChannel(null)}
-              onConnect={async (d) => { await onConnectChannel(d); setSelectedChannel(null); }}
+              onConnect={async (d) => {
+                await onConnectChannel(d);
+                setSelectedChannel(null);
+              }}
               busy={busy}
             />
           ) : (
             <div className="buffer-connect-inline-form">
-              <button type="button" className="buffer-connect-back-btn" onClick={() => setSelectedChannel(null)}>
+              <button
+                type="button"
+                className="buffer-connect-back-btn"
+                onClick={() => setSelectedChannel(null)}
+              >
                 ← Quay lại danh sách kênh
               </button>
               <div className="inline-form-target-header">
-                <div className="target-icon-wrap" style={{ background: selectedChannel.bg }}>
+                <div
+                  className="target-icon-wrap"
+                  style={{ background: selectedChannel.bg }}
+                >
                   {selectedChannel.icon}
                 </div>
                 <div>
@@ -88,7 +115,10 @@ export default function ConnectChannelModal({
                 </div>
               </div>
 
-              <form onSubmit={handleConnectSubmit} className="connect-fields-form">
+              <form
+                onSubmit={handleConnectSubmit}
+                className="connect-fields-form"
+              >
                 {selectedChannel.key === "bluesky" ? (
                   <>
                     <label>
@@ -124,7 +154,9 @@ export default function ConnectChannelModal({
                       required
                       autoFocus
                     />
-                    <small>Lấy API Key trong Settings → Extensions trên DEV.to.</small>
+                    <small>
+                      Lấy API Key trong Settings → Extensions trên DEV.to.
+                    </small>
                   </label>
                 ) : (
                   <label>
@@ -142,7 +174,13 @@ export default function ConnectChannelModal({
                 )}
 
                 <div className="inline-form-actions">
-                  <button type="button" className="cancel-btn" onClick={() => setSelectedChannel(null)}>Hủy</button>
+                  <button
+                    type="button"
+                    className="cancel-btn"
+                    onClick={() => setSelectedChannel(null)}
+                  >
+                    Hủy
+                  </button>
                   <button type="submit" className="confirm-btn" disabled={busy}>
                     {busy ? "Đang kết nối…" : `Kết nối ${selectedChannel.name}`}
                   </button>
@@ -162,28 +200,64 @@ export default function ConnectChannelModal({
                   onClick={() => handleCardClick(ch)}
                   role="button"
                   tabIndex={0}
-                  onKeyDown={(e) => { if (e.key === "Enter") handleCardClick(ch); }}
-                  title={connected ? `Đã kết nối (${connected.name})` : isRedirecting ? `Đang chuyển hướng sang ${ch.name}…` : `Bấm để kết nối ${ch.name}`}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter") handleCardClick(ch);
+                  }}
+                  title={
+                    connected
+                      ? `Đã kết nối (${connected.name})`
+                      : isRedirecting
+                        ? `Đang chuyển hướng sang ${ch.name}…`
+                        : `Bấm để kết nối ${ch.name}`
+                  }
                 >
-                  {ch.info && <span className="channel-card-info-icon" title="Thông tin">ⓘ</span>}
+                  {ch.info && (
+                    <span className="channel-card-info-icon" title="Thông tin">
+                      ⓘ
+                    </span>
+                  )}
                   {connected && (
                     <span className="channel-card-tick-badge">
-                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      <svg
+                        width="12"
+                        height="12"
+                        viewBox="0 0 24 24"
+                        fill="none"
+                        stroke="currentColor"
+                        strokeWidth="3"
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                      >
                         <polyline points="20 6 9 17 4 12" />
                       </svg>
                       <span>Đã kết nối</span>
                     </span>
                   )}
                   {isRedirecting && (
-                    <span className="channel-card-tick-badge" style={{ background: "var(--buffer-lime)", color: "#123818" }}>
+                    <span
+                      className="channel-card-tick-badge"
+                      style={{
+                        background: "var(--buffer-lime)",
+                        color: "#123818",
+                      }}
+                    >
                       <span>Đang chuyển hướng…</span>
                     </span>
                   )}
 
-                  <div className="channel-card-icon-box" style={{ background: ch.bg }}>{ch.icon}</div>
+                  <div
+                    className="channel-card-icon-box"
+                    style={{ background: ch.bg }}
+                  >
+                    {ch.icon}
+                  </div>
                   <strong className="channel-card-title">{ch.name}</strong>
                   <span className="channel-card-desc">
-                    {connected ? `✓ ${connected.name}` : isRedirecting ? `Đang mở trang cấp quyền ${ch.name}…` : ch.desc}
+                    {connected
+                      ? `✓ ${connected.name}`
+                      : isRedirecting
+                        ? `Đang mở trang cấp quyền ${ch.name}…`
+                        : ch.desc}
                   </span>
                 </div>
               );

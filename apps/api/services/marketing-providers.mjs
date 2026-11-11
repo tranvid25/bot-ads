@@ -28,6 +28,7 @@ export async function createDPoPProof(
   htm,
   htu,
   nonce = null,
+  accessToken = null,
 ) {
   let privateKey = privateJwkOrKey;
   if (!privateKey?.type) {
@@ -53,6 +54,13 @@ export async function createDPoPProof(
     iat: Math.floor(Date.now() / 1000),
   };
   if (nonce) payload.nonce = nonce;
+  if (accessToken)
+    payload.ath = b64(
+      await crypto.subtle.digest(
+        "SHA-256",
+        new TextEncoder().encode(accessToken),
+      ),
+    );
 
   const headerB64 = strB64(JSON.stringify(header));
   const payloadB64 = strB64(JSON.stringify(payload));
@@ -75,7 +83,14 @@ export async function fetchWithDPoP(
 ) {
   const method = (options.method || "GET").toUpperCase();
   let nonce = options.nonce || null;
-  let dpop = await createDPoPProof(privateJwkOrKey, publicJwk, method, url, nonce);
+  let dpop = await createDPoPProof(
+    privateJwkOrKey,
+    publicJwk,
+    method,
+    url,
+    nonce,
+    accessToken,
+  );
   const headers = new Headers(options.headers || {});
   headers.set("DPoP", dpop);
   if (accessToken) {
@@ -86,13 +101,23 @@ export async function fetchWithDPoP(
   if (res.status === 400 || res.status === 401) {
     const serverNonce = res.headers.get("dpop-nonce");
     if (serverNonce && serverNonce !== nonce) {
-      dpop = await createDPoPProof(privateJwkOrKey, publicJwk, method, url, serverNonce);
+      dpop = await createDPoPProof(
+        privateJwkOrKey,
+        publicJwk,
+        method,
+        url,
+        serverNonce,
+        accessToken,
+      );
       const retryHeaders = new Headers(options.headers || {});
       retryHeaders.set("DPoP", dpop);
       if (accessToken) {
         retryHeaders.set("Authorization", `DPoP ${accessToken}`);
       }
-      res = await providerFetch(env, url, { ...options, headers: retryHeaders });
+      res = await providerFetch(env, url, {
+        ...options,
+        headers: retryHeaders,
+      });
     }
   }
   return res;
@@ -176,7 +201,10 @@ export async function devIdentity(env, apiKey) {
   return {
     actorId: String(user.id),
     name: String(user.name || user.username).slice(0, 100),
-    avatarUrl: typeof user.profile_image === "string" ? user.profile_image.slice(0, 500) : "",
+    avatarUrl:
+      typeof user.profile_image === "string"
+        ? user.profile_image.slice(0, 500)
+        : "",
   };
 }
 export async function blueskyIdentity(env, handle, appPassword) {
@@ -199,7 +227,10 @@ export async function blueskyIdentity(env, handle, appPassword) {
     throw error(502, "Không kết nối được Bluesky. Vui lòng kiểm tra mạng.");
   }
   if (!response.ok) {
-    throw error(400, "Tên tài khoản hoặc Mật khẩu ứng dụng Bluesky không đúng.");
+    throw error(
+      400,
+      "Tên tài khoản hoặc Mật khẩu ứng dụng Bluesky không đúng.",
+    );
   }
   const session = await response.json();
   if (!session.did || !session.handle) {
@@ -214,7 +245,8 @@ export async function blueskyIdentity(env, handle, appPassword) {
     );
     if (profRes.ok) {
       const prof = await profRes.json();
-      if (typeof prof.avatar === "string") avatarUrl = prof.avatar.slice(0, 500);
+      if (typeof prof.avatar === "string")
+        avatarUrl = prof.avatar.slice(0, 500);
     }
   } catch {}
   return {
@@ -276,7 +308,8 @@ export async function exchangeLinkedIn(env, code, redirectUri) {
   return {
     actorId: `urn:li:person:${user.sub}`,
     name: String(user.name || "LinkedIn").slice(0, 100),
-    avatarUrl: typeof user.picture === "string" ? user.picture.slice(0, 500) : "",
+    avatarUrl:
+      typeof user.picture === "string" ? user.picture.slice(0, 500) : "",
     credential: { accessToken: token.access_token },
     expiresAt: Date.now() + Number(token.expires_in) * 1000,
     scopes: token.scope || "openid profile w_member_social",
@@ -370,15 +403,22 @@ export async function publishToProvider(
         },
       };
     } else if (account.provider === "bluesky") {
-      let sessionToken = credential.accessJwt || credential.tokenData?.access_token;
+      let sessionToken =
+        credential.accessJwt || credential.tokenData?.access_token;
       let dpopProof = null;
-      if (credential.authMode === "oauth" && credential.privateJwk && credential.publicJwk) {
+      if (
+        credential.authMode === "oauth" &&
+        credential.privateJwk &&
+        credential.publicJwk
+      ) {
         sessionToken = credential.tokenData?.access_token;
         dpopProof = await createDPoPProof(
           credential.privateJwk,
           credential.publicJwk,
           "POST",
           "https://bsky.social/xrpc/com.atproto.repo.createRecord",
+          null,
+          sessionToken,
         );
       } else if (credential.handle && credential.appPassword) {
         try {
@@ -406,13 +446,19 @@ export async function publishToProvider(
           const blobHeaders = {
             "Content-Type": image.mime,
           };
-          if (credential.authMode === "oauth" && credential.privateJwk && credential.publicJwk) {
+          if (
+            credential.authMode === "oauth" &&
+            credential.privateJwk &&
+            credential.publicJwk
+          ) {
             blobHeaders["Authorization"] = `DPoP ${sessionToken}`;
             blobHeaders["DPoP"] = await createDPoPProof(
               credential.privateJwk,
               credential.publicJwk,
               "POST",
               "https://bsky.social/xrpc/com.atproto.repo.uploadBlob",
+              null,
+              sessionToken,
             );
           } else {
             blobHeaders["Authorization"] = `Bearer ${sessionToken}`;

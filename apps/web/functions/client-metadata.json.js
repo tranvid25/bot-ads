@@ -19,7 +19,6 @@ export async function onRequest({ request, env }) {
     policy_uri: "https://bot.salesora.space/privacy.html",
     redirect_uris: [
       "https://bot.salesora.space/api/marketing/bluesky/callback",
-      "http://127.0.0.1:5173/api/marketing/bluesky/callback",
     ],
     scope: "atproto transition:generic",
     grant_types: ["authorization_code", "refresh_token"],
@@ -37,4 +36,3 @@ export async function onRequest({ request, env }) {
     },
   });
 }
-

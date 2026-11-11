@@ -6,8 +6,7 @@
   "tos_uri": "https://bot.salesora.space/terms.html",
   "policy_uri": "https://bot.salesora.space/privacy.html",
   "redirect_uris": [
-    "https://bot.salesora.space/api/marketing/bluesky/callback",
-    "http://127.0.0.1:5173/api/marketing/bluesky/callback"
+    "https://bot.salesora.space/api/marketing/bluesky/callback"
   ],
   "scope": "atproto transition:generic",
   "grant_types": [

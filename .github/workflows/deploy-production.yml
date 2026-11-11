@@ -127,6 +127,11 @@ jobs:
         run: |
           node --input-type=module <<'NODE'
           for (const base of ['https://botads-web.pages.dev', 'https://bot.salesora.space']) {
+          const clientResponse = await fetch(`${base}/client-metadata.json`);
+          const client = await clientResponse.json();
+          if (!clientResponse.ok || client.client_id !== 'https://bot.salesora.space/client-metadata.json' || client.application_type !== 'web' || client.redirect_uris.length !== 1 || client.redirect_uris[0] !== 'https://bot.salesora.space/api/marketing/bluesky/callback') {
+            throw new Error(`Invalid Bluesky production client metadata: ${base}`);
+          }
           const web = await fetch(base);
           if (!web.ok || !(await web.text()).includes('<div id="root">')) {
             throw new Error('Frontend Pages is not serving the React app');

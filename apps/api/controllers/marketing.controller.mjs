@@ -54,6 +54,10 @@ export function appOrigin(env) {
     throw error(503, "Cần cấu hình PUBLIC_APP_URL là địa chỉ gốc của website.");
   }
 }
+export function blueskyOAuthClientId(origin) {
+  if (origin.startsWith("https:")) return `${origin}/client-metadata.json`;
+  return `http://localhost?${new URLSearchParams({ redirect_uri: `${origin}/api/marketing/bluesky/callback`, scope: "atproto transition:generic" })}`;
+}
 export function blueskyClientMetadata(env) {
   let origin = "https://bot.salesora.space";
   try {
@@ -67,10 +71,9 @@ export function blueskyClientMetadata(env) {
     logo_uri: `${origin}/brand/logo-512.png`,
     tos_uri: `${origin}/terms.html`,
     policy_uri: `${origin}/privacy.html`,
-    redirect_uris: [
-      `${origin}/api/marketing/bluesky/callback`,
-      "http://127.0.0.1:5173/api/marketing/bluesky/callback",
-    ],
+    // Web clients must not include loopback callbacks. Development uses the
+    // authorization server's virtual localhost client below instead.
+    redirect_uris: [`${origin}/api/marketing/bluesky/callback`],
     scope: "atproto transition:generic",
     grant_types: ["authorization_code", "refresh_token"],
     response_types: ["code"],
@@ -169,7 +172,10 @@ async function saveChannel(env, workspaceId, brandId, provider, identity) {
   } catch (err) {
     if (String(err).includes("avatar_url")) {
       try {
-        await run(env, "ALTER TABLE marketing_channels ADD COLUMN avatar_url TEXT DEFAULT ''");
+        await run(
+          env,
+          "ALTER TABLE marketing_channels ADD COLUMN avatar_url TEXT DEFAULT ''",
+        );
         await run(
           env,
           "INSERT INTO marketing_channels(id,workspace_id,brand_id,provider,actor_id,name,credential,scopes,status,expires_at,avatar_url,created_at) VALUES (?,?,?,?,?,?,?,?,'connected',?,?,?) ON CONFLICT(workspace_id,brand_id,provider,actor_id) DO UPDATE SET name=excluded.name,credential=excluded.credential,scopes=excluded.scopes,status='connected',expires_at=excluded.expires_at,avatar_url=excluded.avatar_url",
@@ -223,7 +229,10 @@ export async function marketingRoute(request, env, context, execution) {
       } catch (err) {
         if (String(err).includes("avatar_url")) {
           try {
-            await run(env, "ALTER TABLE marketing_channels ADD COLUMN avatar_url TEXT DEFAULT ''");
+            await run(
+              env,
+              "ALTER TABLE marketing_channels ADD COLUMN avatar_url TEXT DEFAULT ''",
+            );
             return await all(
               env,
               "SELECT id,brand_id,provider,actor_id,name,scopes,status,expires_at,avatar_url FROM marketing_channels WHERE workspace_id=? ORDER BY created_at DESC LIMIT 100",
@@ -396,7 +405,9 @@ export async function marketingRoute(request, env, context, execution) {
       requestOrigin !== origin &&
       !(
         ["http://127.0.0.1:5173", "http://localhost:5173"].includes(origin) &&
-        ["http://127.0.0.1:8899", "http://localhost:8899"].includes(requestOrigin)
+        ["http://127.0.0.1:8899", "http://localhost:8899"].includes(
+          requestOrigin,
+        )
       )
     )
       throw error(
@@ -434,8 +445,17 @@ export async function marketingRoute(request, env, context, execution) {
     await owned(env, "marketing_brands", workspaceId, String(input.brandId));
     await rate(env, `oauth:${workspaceId}`, 10, 600);
     const origin = appOrigin(env);
-    if (!origin)
-      throw error(400, "Hãy kết nối Bluesky từ địa chỉ website chính đã cấu hình.");
+    if (
+      new URL(request.url).origin !== origin &&
+      !(
+        origin === "http://127.0.0.1:5173" &&
+        new URL(request.url).origin === "http://127.0.0.1:8899"
+      )
+    )
+      throw error(
+        400,
+        "Hãy kết nối Bluesky từ địa chỉ website chính đã cấu hình.",
+      );
 
     const verifierBytes = crypto.getRandomValues(new Uint8Array(32));
     const codeVerifier = b64(verifierBytes);
@@ -456,20 +476,7 @@ export async function marketingRoute(request, env, context, execution) {
     const state = token(),
       browser = token();
     const redirectUri = `${origin}/api/marketing/bluesky/callback`;
-    const clientId = origin.startsWith("https:")
-      ? `${origin}/client-metadata.json`
-      : "https://bot.salesora.space/client-metadata.json";
-
-    await run(
-      env,
-      "INSERT INTO marketing_oauth_states VALUES (?,?,?,?,?,?)",
-      await hash(state),
-      await hash(browser),
-      workspaceId,
-      input.brandId,
-      redirectUri,
-      Date.now() + 600000,
-    );
+    const clientId = blueskyOAuthClientId(origin);
 
     const parUrl = "https://bsky.social/oauth/par";
     const parBody = new URLSearchParams({
@@ -482,28 +489,57 @@ export async function marketingRoute(request, env, context, execution) {
       state,
     });
 
-    const parRes = await fetchWithDPoP(
-      env,
-      parUrl,
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/x-www-form-urlencoded" },
-        body: parBody.toString(),
-      },
-      keyPair.privateKey,
-      publicJwk,
-    );
-
-    if (!parRes.ok) {
-      const errText = await parRes.text();
-      console.warn("Bluesky PAR failed:", parRes.status, errText);
+    let parRes;
+    try {
+      parRes = await fetchWithDPoP(
+        env,
+        parUrl,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/x-www-form-urlencoded" },
+          body: parBody.toString(),
+        },
+        keyPair.privateKey,
+        publicJwk,
+      );
+    } catch {
       throw error(
         502,
-        "Không kết nối được cổng ủy quyền Bluesky. Vui lòng thử lại sau.",
+        "Không gọi được dịch vụ ủy quyền Bluesky. Vui lòng thử lại sau.",
       );
     }
 
-    const parData = await parRes.json();
+    if (!parRes.ok) {
+      const details = await parRes.json().catch(() => ({}));
+      const code = [
+        "invalid_redirect_uri",
+        "invalid_client_metadata",
+        "invalid_client",
+        "invalid_scope",
+        "use_dpop_nonce",
+      ].includes(details?.error)
+        ? details.error
+        : "authorization_failed";
+      console.warn("Bluesky PAR failed:", parRes.status, code);
+      throw error(
+        502,
+        code === "invalid_redirect_uri"
+          ? "Bluesky từ chối callback: client web production chỉ được khai báo callback HTTPS, không chứa URL local. Cần deploy lại client-metadata.json đúng cấu hình."
+          : code === "invalid_client_metadata" || code === "invalid_client"
+            ? "Bluesky không chấp nhận client-metadata.json. Kiểm tra file JSON công khai, client_id và callback cùng domain."
+            : `Không kết nối được cổng ủy quyền Bluesky (HTTP ${parRes.status}, ${code}). Vui lòng thử lại sau.`,
+      );
+    }
+
+    const parData = await parRes.json().catch(() => null);
+    if (
+      typeof parData?.request_uri !== "string" ||
+      !parData.request_uri.startsWith("urn:ietf:params:oauth:request_uri:")
+    )
+      throw error(
+        502,
+        "Bluesky trả phản hồi ủy quyền không hợp lệ. Vui lòng thử lại.",
+      );
     const requestUri = parData.request_uri;
 
     const sessionPayload = {
@@ -526,6 +562,17 @@ export async function marketingRoute(request, env, context, execution) {
     const authUrl = new URL("https://bsky.social/oauth/authorize");
     authUrl.searchParams.set("client_id", clientId);
     authUrl.searchParams.set("request_uri", requestUri);
+
+    await run(
+      env,
+      "INSERT INTO marketing_oauth_states VALUES (?,?,?,?,?,?)",
+      await hash(state),
+      await hash(browser),
+      workspaceId,
+      input.brandId,
+      redirectUri,
+      Date.now() + 600000,
+    );
 
     return json({ url: authUrl.href }, 200, {
       "Set-Cookie": `botads_bsky_oauth=${browser}.${encodeURIComponent(sealedSession)}; HttpOnly; SameSite=Lax; Path=/api/marketing/bluesky; Max-Age=600${origin.startsWith("https:") ? "; Secure" : ""}`,
@@ -990,10 +1037,18 @@ export async function blueskyCallback(request, env) {
     });
   }
 
+  if (new URL(pending.redirect_uri).origin !== appOrigin(env))
+    throw error(
+      403,
+      "Địa chỉ callback đã thay đổi. Bắt đầu lại từ website chính.",
+    );
+
   let result = "connected";
   let reason = "failed";
 
   try {
+    if (url.searchParams.get("iss") !== "https://bsky.social")
+      throw new Error("Unexpected authorization issuer");
     if (url.searchParams.has("error")) {
       throw new Error(url.searchParams.get("error"));
     }
@@ -1032,13 +1087,19 @@ export async function blueskyCallback(request, env) {
     );
 
     if (!tokenRes.ok) {
-      const errText = await tokenRes.text();
-      console.warn("Bluesky token exchange failed:", tokenRes.status, errText);
+      console.warn("Bluesky token exchange failed:", tokenRes.status);
       throw new Error("Token exchange failed");
     }
 
     const tokenData = await tokenRes.json();
     const did = tokenData.sub;
+    if (
+      typeof did !== "string" ||
+      !/^did:(plc|web):/.test(did) ||
+      typeof tokenData.access_token !== "string" ||
+      tokenData.token_type?.toLowerCase() !== "dpop"
+    )
+      throw new Error("Invalid token response");
 
     const profileUrl = `https://bsky.social/xrpc/app.bsky.actor.getProfile?actor=${encodeURIComponent(did)}`;
     const profileRes = await fetchWithDPoP(
@@ -1084,7 +1145,7 @@ export async function blueskyCallback(request, env) {
       identity,
     );
   } catch (err) {
-    console.warn("Bluesky OAuth callback error:", err?.message || err);
+    console.warn("Bluesky OAuth callback failed.");
     result = "failed";
     reason = "oauth_error";
   }
