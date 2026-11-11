@@ -4,8 +4,27 @@ export const PROVIDERS = [
   "medium",
   "reddit",
   "indiehackers",
+  "instagram",
+  "threads",
+  "facebook",
+  "bluesky",
+  "substack",
+  "youtube",
+  "tiktok",
+  "mastodon",
 ];
-export const MANUAL_PROVIDERS = ["medium", "reddit", "indiehackers"];
+export const MANUAL_PROVIDERS = [
+  "medium",
+  "reddit",
+  "indiehackers",
+  "instagram",
+  "threads",
+  "facebook",
+  "substack",
+  "youtube",
+  "tiktok",
+  "mastodon",
+];
 export const fail = (message) => {
   throw Object.assign(new Error(message), { status: 400 });
 };
@@ -124,6 +143,14 @@ export function validatePermalink(provider, value) {
     medium: "medium.com",
     reddit: "reddit.com",
     indiehackers: "indiehackers.com",
+    instagram: "instagram.com",
+    threads: "threads.net",
+    facebook: "facebook.com",
+    bluesky: "bsky.app",
+    substack: "substack.com",
+    youtube: "youtube.com",
+    tiktok: "tiktok.com",
+    mastodon: "mastodon.social",
   }[provider];
   if (
     !domain ||

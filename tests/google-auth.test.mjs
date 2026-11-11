@@ -155,7 +155,11 @@ before(async () => {
     }),
   );
   db = await mf.getD1Database("DB");
-  for (const name of ["0001_init.sql", "0004_google_auth.sql"]) {
+  for (const name of [
+    "0001_init.sql",
+    "0004_google_auth.sql",
+    "0005_google_picture.sql",
+  ]) {
     const sql = await readFile(`apps/api/migrations/${name}`, "utf8");
     await db.batch(
       sql

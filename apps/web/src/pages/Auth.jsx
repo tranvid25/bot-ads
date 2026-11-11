@@ -10,6 +10,13 @@ export default function Auth({ onLogin, meta }) {
   useEffect(() => {
     const url = new URL(window.location.href);
     const result = url.searchParams.get("google_auth");
+    const avatar = url.searchParams.get("avatar");
+    if (avatar) {
+      try {
+        localStorage.setItem("user_avatar", avatar);
+      } catch {}
+      url.searchParams.delete("avatar");
+    }
     if (result) {
       if (!["success", "linked"].includes(result))
         setError(

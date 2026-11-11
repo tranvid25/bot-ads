@@ -1,6 +1,12 @@
 import { all, one, run } from "../models/database.mjs";
 import { json, id } from "../lib/http.mjs";
 import { body, error, hash, rate, token } from "../middleware/security.mjs";
+
+const b64 = (b) =>
+  btoa(String.fromCharCode(...new Uint8Array(b)))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
 import {
   MANUAL_PROVIDERS,
   validateBrand,
@@ -10,12 +16,16 @@ import {
 } from "../../../packages/contracts/marketing.mjs";
 import {
   seal,
+  unseal,
   vaultReady,
   credentialContext,
 } from "../services/marketing-vault.mjs";
 import {
+  blueskyIdentity,
   devIdentity,
   exchangeLinkedIn,
+  createDPoPProof,
+  fetchWithDPoP,
 } from "../services/marketing-providers.mjs";
 import { dispatchMarketing } from "../services/marketing-publisher.mjs";
 import {
@@ -44,6 +54,31 @@ export function appOrigin(env) {
     throw error(503, "Cần cấu hình PUBLIC_APP_URL là địa chỉ gốc của website.");
   }
 }
+export function blueskyClientMetadata(env) {
+  let origin = "https://bot.salesora.space";
+  try {
+    const detected = appOrigin(env);
+    if (detected) origin = detected;
+  } catch {}
+  return {
+    client_id: `${origin}/client-metadata.json`,
+    client_name: "BotSalesOra",
+    client_uri: origin,
+    logo_uri: `${origin}/brand/logo-512.png`,
+    tos_uri: `${origin}/terms.html`,
+    policy_uri: `${origin}/privacy.html`,
+    redirect_uris: [
+      `${origin}/api/marketing/bluesky/callback`,
+      "http://127.0.0.1:5173/api/marketing/bluesky/callback",
+    ],
+    scope: "atproto transition:generic",
+    grant_types: ["authorization_code", "refresh_token"],
+    response_types: ["code"],
+    application_type: "web",
+    token_endpoint_auth_method: "none",
+    dpop_bound_access_tokens: true,
+  };
+}
 export function marketingCapabilities(env) {
   const encryption = vaultReady(env);
   let origin = false;
@@ -53,6 +88,7 @@ export function marketingCapabilities(env) {
   return {
     encryption,
     dev: encryption && origin,
+    bluesky: Boolean(encryption),
     linkedin: Boolean(
       encryption &&
       origin &&
@@ -110,20 +146,65 @@ async function saveChannel(env, workspaceId, brandId, provider, identity) {
         identity.credential,
       )
     : null;
-  await run(
-    env,
-    "INSERT INTO marketing_channels(id,workspace_id,brand_id,provider,actor_id,name,credential,scopes,status,expires_at,created_at) VALUES (?,?,?,?,?,?,?,?,'connected',?,?) ON CONFLICT(workspace_id,brand_id,provider,actor_id) DO UPDATE SET name=excluded.name,credential=excluded.credential,scopes=excluded.scopes,status='connected',expires_at=excluded.expires_at",
-    channelId,
-    workspaceId,
-    brandId,
-    provider,
-    identity.actorId,
-    identity.name,
-    credential,
-    identity.scopes || "",
-    identity.expiresAt || null,
-    Date.now(),
-  );
+  const avatarUrl =
+    typeof identity.avatarUrl === "string"
+      ? identity.avatarUrl.slice(0, 500)
+      : existing?.avatar_url || "";
+  try {
+    await run(
+      env,
+      "INSERT INTO marketing_channels(id,workspace_id,brand_id,provider,actor_id,name,credential,scopes,status,expires_at,avatar_url,created_at) VALUES (?,?,?,?,?,?,?,?,'connected',?,?,?) ON CONFLICT(workspace_id,brand_id,provider,actor_id) DO UPDATE SET name=excluded.name,credential=excluded.credential,scopes=excluded.scopes,status='connected',expires_at=excluded.expires_at,avatar_url=excluded.avatar_url",
+      channelId,
+      workspaceId,
+      brandId,
+      provider,
+      identity.actorId,
+      identity.name,
+      credential,
+      identity.scopes || "",
+      identity.expiresAt || null,
+      avatarUrl,
+      Date.now(),
+    );
+  } catch (err) {
+    if (String(err).includes("avatar_url")) {
+      try {
+        await run(env, "ALTER TABLE marketing_channels ADD COLUMN avatar_url TEXT DEFAULT ''");
+        await run(
+          env,
+          "INSERT INTO marketing_channels(id,workspace_id,brand_id,provider,actor_id,name,credential,scopes,status,expires_at,avatar_url,created_at) VALUES (?,?,?,?,?,?,?,?,'connected',?,?,?) ON CONFLICT(workspace_id,brand_id,provider,actor_id) DO UPDATE SET name=excluded.name,credential=excluded.credential,scopes=excluded.scopes,status='connected',expires_at=excluded.expires_at,avatar_url=excluded.avatar_url",
+          channelId,
+          workspaceId,
+          brandId,
+          provider,
+          identity.actorId,
+          identity.name,
+          credential,
+          identity.scopes || "",
+          identity.expiresAt || null,
+          avatarUrl,
+          Date.now(),
+        );
+        return channelId;
+      } catch {}
+      await run(
+        env,
+        "INSERT INTO marketing_channels(id,workspace_id,brand_id,provider,actor_id,name,credential,scopes,status,expires_at,created_at) VALUES (?,?,?,?,?,?,?,?,'connected',?,?) ON CONFLICT(workspace_id,brand_id,provider,actor_id) DO UPDATE SET name=excluded.name,credential=excluded.credential,scopes=excluded.scopes,status='connected',expires_at=excluded.expires_at",
+        channelId,
+        workspaceId,
+        brandId,
+        provider,
+        identity.actorId,
+        identity.name,
+        credential,
+        identity.scopes || "",
+        identity.expiresAt || null,
+        Date.now(),
+      );
+    } else {
+      throw err;
+    }
+  }
   return channelId;
 }
 export async function marketingRoute(request, env, context, execution) {
@@ -132,6 +213,33 @@ export async function marketingRoute(request, env, context, execution) {
   const method = request.method;
   const parts = path.split("/");
   if (path === "/api/marketing" && method === "GET") {
+    const fetchChannels = async () => {
+      try {
+        return await all(
+          env,
+          "SELECT id,brand_id,provider,actor_id,name,scopes,status,expires_at,avatar_url FROM marketing_channels WHERE workspace_id=? ORDER BY created_at DESC LIMIT 100",
+          workspaceId,
+        );
+      } catch (err) {
+        if (String(err).includes("avatar_url")) {
+          try {
+            await run(env, "ALTER TABLE marketing_channels ADD COLUMN avatar_url TEXT DEFAULT ''");
+            return await all(
+              env,
+              "SELECT id,brand_id,provider,actor_id,name,scopes,status,expires_at,avatar_url FROM marketing_channels WHERE workspace_id=? ORDER BY created_at DESC LIMIT 100",
+              workspaceId,
+            );
+          } catch {}
+          const rows = await all(
+            env,
+            "SELECT id,brand_id,provider,actor_id,name,scopes,status,expires_at FROM marketing_channels WHERE workspace_id=? ORDER BY created_at DESC LIMIT 100",
+            workspaceId,
+          );
+          return rows.map((r) => ({ ...r, avatar_url: "" }));
+        }
+        throw err;
+      }
+    };
     const [brands, channels, posts, publications, attempts] = await Promise.all(
       [
         all(
@@ -139,11 +247,7 @@ export async function marketingRoute(request, env, context, execution) {
           "SELECT * FROM marketing_brands WHERE workspace_id=? ORDER BY created_at DESC LIMIT 50",
           workspaceId,
         ),
-        all(
-          env,
-          "SELECT id,brand_id,provider,actor_id,name,scopes,status,expires_at FROM marketing_channels WHERE workspace_id=? ORDER BY created_at DESC LIMIT 100",
-          workspaceId,
-        ),
+        fetchChannels(),
         all(
           env,
           "SELECT * FROM marketing_posts WHERE workspace_id=? ORDER BY updated_at DESC LIMIT 100",
@@ -230,6 +334,32 @@ export async function marketingRoute(request, env, context, execution) {
       }),
     });
   }
+  if (path === "/api/marketing/channels/bluesky" && method === "POST") {
+    await rate(env, `bluesky-connect:${workspaceId}`, 10, 3600);
+    const input = await body(request, 5000);
+    await owned(env, "marketing_brands", workspaceId, String(input.brandId));
+    if (
+      typeof input.handle !== "string" ||
+      !input.handle.trim() ||
+      typeof input.appPassword !== "string" ||
+      !input.appPassword.trim()
+    )
+      throw error(400, "Nhập đầy đủ Handle và App Password Bluesky.");
+    const identity = await blueskyIdentity(
+      env,
+      input.handle,
+      input.appPassword,
+    );
+    return json({
+      id: await saveChannel(
+        env,
+        workspaceId,
+        input.brandId,
+        "bluesky",
+        identity,
+      ),
+    });
+  }
   if (path === "/api/marketing/channels/manual" && method === "POST") {
     const input = await body(request, 5000);
     await owned(env, "marketing_brands", workspaceId, String(input.brandId));
@@ -244,6 +374,8 @@ export async function marketingRoute(request, env, context, execution) {
       id: await saveChannel(env, workspaceId, input.brandId, input.provider, {
         actorId: input.name.trim(),
         name: input.name.trim(),
+        avatarUrl:
+          typeof input.avatarUrl === "string" ? input.avatarUrl.trim() : "",
       }),
     });
   }
@@ -259,7 +391,14 @@ export async function marketingRoute(request, env, context, execution) {
     const state = token(),
       browser = token();
     const origin = appOrigin(env);
-    if (new URL(request.url).origin !== origin)
+    const requestOrigin = new URL(request.url).origin;
+    if (
+      requestOrigin !== origin &&
+      !(
+        ["http://127.0.0.1:5173", "http://localhost:5173"].includes(origin) &&
+        ["http://127.0.0.1:8899", "http://localhost:8899"].includes(requestOrigin)
+      )
+    )
       throw error(
         400,
         "Hãy kết nối LinkedIn từ địa chỉ website chính đã cấu hình.",
@@ -286,6 +425,110 @@ export async function marketingRoute(request, env, context, execution) {
       url.searchParams.set(k, v);
     return json({ url: url.href }, 200, {
       "Set-Cookie": `botads_oauth=${browser}; HttpOnly; SameSite=Lax; Path=/api/marketing/linkedin; Max-Age=600${origin.startsWith("https:") ? "; Secure" : ""}`,
+    });
+  }
+  if (path === "/api/marketing/bluesky/start" && method === "POST") {
+    if (!marketingCapabilities(env).bluesky)
+      throw error(503, "Chưa cấu hình khóa mã hóa bảo vệ kết nối.");
+    const input = await body(request, 2000);
+    await owned(env, "marketing_brands", workspaceId, String(input.brandId));
+    await rate(env, `oauth:${workspaceId}`, 10, 600);
+    const origin = appOrigin(env);
+    if (!origin)
+      throw error(400, "Hãy kết nối Bluesky từ địa chỉ website chính đã cấu hình.");
+
+    const verifierBytes = crypto.getRandomValues(new Uint8Array(32));
+    const codeVerifier = b64(verifierBytes);
+    const challengeBytes = await crypto.subtle.digest(
+      "SHA-256",
+      new TextEncoder().encode(codeVerifier),
+    );
+    const codeChallenge = b64(challengeBytes);
+
+    const keyPair = await crypto.subtle.generateKey(
+      { name: "ECDSA", namedCurve: "P-256" },
+      true,
+      ["sign", "verify"],
+    );
+    const publicJwk = await crypto.subtle.exportKey("jwk", keyPair.publicKey);
+    const privateJwk = await crypto.subtle.exportKey("jwk", keyPair.privateKey);
+
+    const state = token(),
+      browser = token();
+    const redirectUri = `${origin}/api/marketing/bluesky/callback`;
+    const clientId = origin.startsWith("https:")
+      ? `${origin}/client-metadata.json`
+      : "https://bot.salesora.space/client-metadata.json";
+
+    await run(
+      env,
+      "INSERT INTO marketing_oauth_states VALUES (?,?,?,?,?,?)",
+      await hash(state),
+      await hash(browser),
+      workspaceId,
+      input.brandId,
+      redirectUri,
+      Date.now() + 600000,
+    );
+
+    const parUrl = "https://bsky.social/oauth/par";
+    const parBody = new URLSearchParams({
+      client_id: clientId,
+      response_type: "code",
+      code_challenge: codeChallenge,
+      code_challenge_method: "S256",
+      redirect_uri: redirectUri,
+      scope: "atproto transition:generic",
+      state,
+    });
+
+    const parRes = await fetchWithDPoP(
+      env,
+      parUrl,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: parBody.toString(),
+      },
+      keyPair.privateKey,
+      publicJwk,
+    );
+
+    if (!parRes.ok) {
+      const errText = await parRes.text();
+      console.warn("Bluesky PAR failed:", parRes.status, errText);
+      throw error(
+        502,
+        "Không kết nối được cổng ủy quyền Bluesky. Vui lòng thử lại sau.",
+      );
+    }
+
+    const parData = await parRes.json();
+    const requestUri = parData.request_uri;
+
+    const sessionPayload = {
+      verifier: codeVerifier,
+      privateJwk,
+      publicJwk,
+      clientId,
+    };
+
+    const sealedSession = await seal(
+      env,
+      credentialContext({
+        workspace_id: workspaceId,
+        provider: "bluesky_oauth",
+        id: state,
+      }),
+      sessionPayload,
+    );
+
+    const authUrl = new URL("https://bsky.social/oauth/authorize");
+    authUrl.searchParams.set("client_id", clientId);
+    authUrl.searchParams.set("request_uri", requestUri);
+
+    return json({ url: authUrl.href }, 200, {
+      "Set-Cookie": `botads_bsky_oauth=${browser}.${encodeURIComponent(sealedSession)}; HttpOnly; SameSite=Lax; Path=/api/marketing/bluesky; Max-Age=600${origin.startsWith("https:") ? "; Secure" : ""}`,
     });
   }
   if (parts[3] === "channels" && parts.length === 5 && method === "DELETE") {
@@ -702,6 +945,158 @@ export async function linkedinCallback(request, env) {
       "Cache-Control": "no-store",
       "Referrer-Policy": "no-referrer",
       "Set-Cookie": `botads_oauth=; HttpOnly; SameSite=Lax; Path=/api/marketing/linkedin; Max-Age=0${url.protocol === "https:" ? "; Secure" : ""}`,
+    },
+  });
+}
+
+export async function blueskyCallback(request, env) {
+  const url = new URL(request.url);
+  const state = url.searchParams.get("state") || "";
+  const cookieHeader = request.headers.get("cookie") || "";
+  const bskyCookie =
+    cookieHeader
+      .split(";")
+      .map((v) => v.trim())
+      .find((v) => v.startsWith("botads_bsky_oauth="))
+      ?.slice("botads_bsky_oauth=".length) || "";
+
+  const [browser, sealedRaw] = bskyCookie.split(".");
+
+  if (!state || !browser || !sealedRaw) {
+    return new Response(null, {
+      status: 303,
+      headers: {
+        Location: `${appOrigin(env)}/?bluesky=failed&bluesky_reason=expired`,
+        "Cache-Control": "no-store",
+      },
+    });
+  }
+
+  const pending = await one(
+    env,
+    "DELETE FROM marketing_oauth_states WHERE state_hash=? AND browser_hash=? AND expires_at>? RETURNING *",
+    await hash(state),
+    await hash(browser),
+    Date.now(),
+  );
+
+  if (!pending) {
+    return new Response(null, {
+      status: 303,
+      headers: {
+        Location: `${appOrigin(env)}/?bluesky=failed&bluesky_reason=expired`,
+        "Cache-Control": "no-store",
+      },
+    });
+  }
+
+  let result = "connected";
+  let reason = "failed";
+
+  try {
+    if (url.searchParams.has("error")) {
+      throw new Error(url.searchParams.get("error"));
+    }
+    const code = url.searchParams.get("code");
+    if (!code) throw new Error("Missing code");
+
+    const sessionPayload = await unseal(
+      env,
+      credentialContext({
+        workspace_id: pending.workspace_id,
+        provider: "bluesky_oauth",
+        id: state,
+      }),
+      decodeURIComponent(sealedRaw),
+    );
+
+    const tokenUrl = "https://bsky.social/oauth/token";
+    const tokenBody = new URLSearchParams({
+      grant_type: "authorization_code",
+      code,
+      redirect_uri: pending.redirect_uri,
+      client_id: sessionPayload.clientId,
+      code_verifier: sessionPayload.verifier,
+    });
+
+    const tokenRes = await fetchWithDPoP(
+      env,
+      tokenUrl,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/x-www-form-urlencoded" },
+        body: tokenBody.toString(),
+      },
+      sessionPayload.privateJwk,
+      sessionPayload.publicJwk,
+    );
+
+    if (!tokenRes.ok) {
+      const errText = await tokenRes.text();
+      console.warn("Bluesky token exchange failed:", tokenRes.status, errText);
+      throw new Error("Token exchange failed");
+    }
+
+    const tokenData = await tokenRes.json();
+    const did = tokenData.sub;
+
+    const profileUrl = `https://bsky.social/xrpc/app.bsky.actor.getProfile?actor=${encodeURIComponent(did)}`;
+    const profileRes = await fetchWithDPoP(
+      env,
+      profileUrl,
+      { method: "GET" },
+      sessionPayload.privateJwk,
+      sessionPayload.publicJwk,
+      tokenData.access_token,
+    );
+
+    let handle = did;
+    let avatarUrl = "";
+    let displayName = "";
+
+    if (profileRes.ok) {
+      const pData = await profileRes.json();
+      handle = pData.handle || did;
+      avatarUrl = pData.avatar || "";
+      displayName = pData.displayName || "";
+    }
+
+    const identity = {
+      actorId: did,
+      name: displayName ? `${displayName} (@${handle})` : `@${handle}`,
+      avatarUrl,
+      credential: {
+        authMode: "oauth",
+        did,
+        handle,
+        tokenData,
+        privateJwk: sessionPayload.privateJwk,
+        publicJwk: sessionPayload.publicJwk,
+        clientId: sessionPayload.clientId,
+      },
+    };
+
+    await saveChannel(
+      env,
+      pending.workspace_id,
+      pending.brand_id,
+      "bluesky",
+      identity,
+    );
+  } catch (err) {
+    console.warn("Bluesky OAuth callback error:", err?.message || err);
+    result = "failed";
+    reason = "oauth_error";
+  }
+
+  const destUrl = `${appOrigin(env)}/?bluesky=${result}${result === "failed" ? `&bluesky_reason=${reason}` : ""}`;
+  return new Response(null, {
+    status: 303,
+    headers: {
+      Location: destUrl,
+      "Cache-Control": "no-store",
+      "Referrer-Policy": "no-referrer",
+      "Set-Cookie": `botads_bsky_oauth=; HttpOnly; SameSite=Lax; Path=/api/marketing/bluesky; Max-Age=0${url.protocol === "https:" ? "; Secure" : ""}`,
     },
   });
 }

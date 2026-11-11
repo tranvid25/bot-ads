@@ -10,6 +10,7 @@ export const publicUser = (user) => ({
   id: user.id,
   name: user.name,
   email: user.email,
+  avatar: user.picture || user.avatar || null,
 });
 
 export function validPostUrl(value) {

@@ -56,6 +56,22 @@ export function Icon({ name, size = 20 }) {
     </svg>
   );
 }
+export function BufferLayersIcon({ size = 18, className = "" }) {
+  return (
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="currentColor"
+      className={className}
+      aria-hidden="true"
+    >
+      <path d="M12 1.5L1.5 7L12 12.5L22.5 7L12 1.5Z" />
+      <path d="M1.5 12.5L12 18L22.5 12.5L20.2 11.3L12 15.6L3.8 11.3L1.5 12.5Z" />
+      <path d="M1.5 18L12 23.5L22.5 18L20.2 16.8L12 21.1L3.8 16.8L1.5 18Z" />
+    </svg>
+  );
+}
 export function Brand() {
   return (
     <div className="brand" aria-label="BotAds">

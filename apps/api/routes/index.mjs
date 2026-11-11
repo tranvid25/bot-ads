@@ -19,6 +19,8 @@ import { getAsset } from "../controllers/assets.controller.mjs";
 import {
   marketingRoute,
   linkedinCallback,
+  blueskyCallback,
+  blueskyClientMetadata,
   marketingMedia,
 } from "../controllers/marketing.controller.mjs";
 import {
@@ -35,6 +37,19 @@ export async function route(request, env, execution) {
   const url = new URL(request.url);
   const path = url.pathname;
   const method = request.method;
+  if (
+    (path === "/client-metadata.json" ||
+      path === "/.well-known/oauth-client-metadata") &&
+    method === "GET"
+  ) {
+    return Response.json(blueskyClientMetadata(env), {
+      headers: {
+        "Content-Type": "application/json; charset=utf-8",
+        "Access-Control-Allow-Origin": "*",
+        "Cache-Control": "public, max-age=3600",
+      },
+    });
+  }
   if (!path.startsWith("/api/")) throw error(404, "Đây là máy chủ API BotAds.");
   if (path === "/api/meta") return metadata(request, env, path, method);
   if (path === "/api/download") return download(request, env, path, method);
@@ -42,6 +57,8 @@ export async function route(request, env, execution) {
     return googleCallback(request, env);
   if (path === "/api/marketing/linkedin/callback" && method === "GET")
     return linkedinCallback(request, env);
+  if (path === "/api/marketing/bluesky/callback" && method === "GET")
+    return blueskyCallback(request, env);
   if (/^\/api\/marketing\/media\/[\w-]+$/.test(path))
     return marketingMedia(request, env);
   if (path === "/api/device/pair" && method === "POST")

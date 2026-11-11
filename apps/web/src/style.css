@@ -9,6 +9,59 @@
   --line: #e3e9e3;
   --lime: #dafa9a;
 }
+
+/* Custom Modern Scrollbar */
+html {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(35, 59, 53, 0.22) transparent;
+}
+
+html::-webkit-scrollbar,
+body *::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+html::-webkit-scrollbar-track,
+body *::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+html::-webkit-scrollbar-thumb,
+body *::-webkit-scrollbar-thumb {
+  background: rgba(35, 59, 53, 0.2);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  min-height: 24px;
+  transition: background 0.15s ease;
+}
+
+html::-webkit-scrollbar-thumb:hover,
+body *::-webkit-scrollbar-thumb:hover {
+  background: rgba(35, 59, 53, 0.38);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+html::-webkit-scrollbar-thumb:active,
+body *::-webkit-scrollbar-thumb:active {
+  background: var(--green, #176b50);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+html::-webkit-scrollbar-corner,
+body *::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+html::-webkit-scrollbar-button,
+body *::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
 .google-signin {
   display: flex;
   align-items: center;
@@ -732,8 +785,8 @@ input[type="checkbox"] {
   margin: 9px 0 20px;
 }
 .panel {
-  background: #fff;
-  border: 1px solid var(--line);
+  background: var(--buffer-surface, #181b20);
+  border: 1px solid var(--buffer-line, var(--line));
   border-radius: 13px;
   padding: 27px;
   margin-bottom: 22px;

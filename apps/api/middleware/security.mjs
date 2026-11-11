@@ -114,7 +114,16 @@ export async function identity(request, env, deviceOnly = false) {
     .bind(await hash(cookie), Date.now())
     .first();
   if (!row) throw error(401, "Phiên đăng nhập hết hạn.");
-  return { workspaceId: row.workspace_id, user: row };
+  let picture = null;
+  try {
+    const ident = await env.DB.prepare(
+      "SELECT picture FROM auth_identities WHERE user_id=? AND provider='google' AND picture IS NOT NULL LIMIT 1",
+    )
+      .bind(row.id)
+      .first();
+    picture = ident?.picture || null;
+  } catch {}
+  return { workspaceId: row.workspace_id, user: { ...row, picture } };
 }
 export function checkOrigin(request) {
   if (["GET", "HEAD", "OPTIONS"].includes(request.method)) return;

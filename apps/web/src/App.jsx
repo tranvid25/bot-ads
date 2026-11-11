@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { api, readApiResponse } from "./lib/api";
-import { Icon, Brand, Badge, Empty, date } from "./components/ui";
+import { Icon, Brand, Badge, Empty, date, BufferLayersIcon } from "./components/ui";
 import Auth from "./pages/Auth";
 import Editor from "./components/CampaignEditor";
 import MarketingWorkspace from "./components/MarketingWorkspace";
 import LegalLinks from "./components/LegalLinks";
 import { ChannelMark } from "./components/PublishingViews";
 import GoogleAccount from "./components/GoogleAccount";
+import UserProfileMenu from "./components/UserProfileMenu";
+import ConnectChannelModal from "./components/marketing/ConnectChannelModal";
 import { googleAuthErrors } from "../../../packages/contracts/google-auth.mjs";
 export default function App() {
   const [meta, setMeta] = useState({ maxDaily: 100, registrationOpen: true }),
@@ -25,12 +27,18 @@ export default function App() {
     [events, setEvents] = useState(null),
     [busy, setBusy] = useState(false),
     [limit, setLimit] = useState(30),
+    [showQuotaCard, setShowQuotaCard] = useState(true),
+    [showConnectChannelModal, setShowConnectChannelModal] = useState(false),
     [marketingData, setMarketingData] = useState(null),
     [marketingNavigation, setMarketingNavigation] = useState(null);
   const refresh = async () => {
     try {
-      const d = await api("/dashboard");
+      const [d, m] = await Promise.all([
+        api("/dashboard"),
+        api("/marketing").catch(() => null),
+      ]);
       setData(d);
+      if (m) setMarketingData(m);
       setLimit(d.settings.dailyLimit);
       return d;
     } catch (e) {
@@ -38,6 +46,53 @@ export default function App() {
       else setError(e.message);
     } finally {
       setLoading(false);
+    }
+  };
+  const handleConnectNewChannel = async ({ provider, name, apiKey }) => {
+    setBusy(true);
+    setError("");
+    try {
+      let brandId = marketingData?.brands?.[0]?.id;
+      if (!brandId) {
+        try {
+          const m = await api("/marketing");
+          setMarketingData(m);
+          brandId = m.brands?.[0]?.id;
+        } catch {}
+      }
+      if (!brandId) {
+        const bRes = await api("/marketing/brands", "POST", {
+          name: data?.user?.name ? `${data.user.name}'s Brand` : "My Organization",
+          website: "https://bot.salesora.space",
+          audience: "All",
+          language: "vi",
+          ctaUrl: "https://bot.salesora.space",
+        });
+        brandId = bRes.id;
+      }
+      if (provider === "linkedin" || (provider === "bluesky" && !apiKey)) {
+        const res = await api(`/marketing/${provider}/start`, "POST", { brandId });
+        window.location.assign(res.url);
+        return;
+      }
+      if (provider === "dev") {
+        await api("/marketing/channels/dev", "POST", { brandId, apiKey });
+      } else if (provider === "bluesky") {
+        await api("/marketing/channels/bluesky", "POST", {
+          brandId,
+          handle: name,
+          appPassword: apiKey,
+        });
+      } else {
+        await api("/marketing/channels/manual", "POST", { brandId, provider, name });
+      }
+      const mRes = await api("/marketing");
+      setMarketingData(mRes);
+      setNotice(`Đã kết nối kênh ${name} thành công.`);
+    } catch (err) {
+      setError(err.message || "Không thể kết nối kênh.");
+    } finally {
+      setBusy(false);
     }
   };
   useEffect(() => {
@@ -49,7 +104,14 @@ export default function App() {
   useEffect(() => {
     if (!data) return;
     const url = new URL(window.location.href),
-      result = url.searchParams.get("google_auth");
+      result = url.searchParams.get("google_auth"),
+      avatar = url.searchParams.get("avatar");
+    if (avatar) {
+      try {
+        localStorage.setItem("user_avatar", avatar);
+      } catch {}
+      url.searchParams.delete("avatar");
+    }
     if (result) {
       if (result === "linked") {
         setPage("settings");
@@ -182,153 +244,319 @@ export default function App() {
       )}
     </div>
   );
+  const handleCreateNew = async () => {
+    setPage("marketing");
+    if (!marketingData?.brands?.length) {
+      try {
+        const res = await api("/marketing/brands", "POST", {
+          name: "My organization",
+          website: "https://botads.com",
+          audience: "General audience",
+          language: "vi",
+        });
+        setMarketingNavigation({
+          tab: "content",
+          brandId: res.id,
+          compose: true,
+        });
+        return;
+      } catch (e) {
+        // fallback
+      }
+    }
+    setMarketingNavigation((curr) => ({
+      ...curr,
+      tab: curr?.tab || "content",
+      compose: true,
+    }));
+  };
+
   return (
     <div className="app-shell publishing-shell">
-      <aside className="sidebar">
-        <Brand />
-        <div className="workspace">
-          <span className="workspace-avatar">
-            {data.user.name[0].toUpperCase()}
-          </span>
-          <div>
-            <strong>Không gian của bạn</strong>
-            <small>Tài khoản cá nhân</small>
+      <aside className="sidebar buffer-authentic-sidebar">
+        <div className="buffer-sidebar-header">
+          <div className="buffer-logo-wrap">
+            <span className="buffer-brand-icon">
+              <BufferLayersIcon size={18} />
+            </span>
+            <span className="buffer-logo-text">botsalesora<span className="brand-dot">.</span></span>
           </div>
         </div>
+
         <button
-          className="primary sidebar-new"
-          onClick={() => {
-            setPage("marketing");
-            setMarketingNavigation({
-              tab: marketingData?.brands.length ? "content" : "channels",
-              compose: !!marketingData?.brands.length,
-            });
-          }}
+          type="button"
+          className="primary sidebar-new buffer-sidebar-new-btn"
+          onClick={handleCreateNew}
         >
-          <Icon name="plus" size={17} /> Tạo mới
+          <Icon name="plus" size={17} /> New
         </button>
-        <span className="nav-label">KHÔNG GIAN LÀM VIỆC</span>
-        <nav>
-          {nav.map(([key, icon, label]) => (
-            <button
-              key={key}
-              className={page === key ? "active" : ""}
-              onClick={() => {
-                setPage(key);
-                setNotice("");
-                setError("");
-              }}
-            >
-              <Icon name={icon} />
-              {label}
-              {key === "campaigns" && (
-                <span className="nav-count">{data.campaigns.length}</span>
-              )}
-            </button>
-          ))}
-        </nav>
-        <div className="sidebar-channels">
-          <div className="sidebar-channel-heading">
-            <span>
-              Kênh kết nối ·{" "}
-              {marketingData?.channels.filter((c) => c.status === "connected")
-                .length || 0}
-            </span>
-            <button
-              aria-label="Kết nối thêm kênh"
-              onClick={() => {
-                setPage("marketing");
-                setMarketingNavigation({ tab: "channels" });
-              }}
-            >
-              <Icon name="plus" size={16} />
-            </button>
-          </div>
-          {marketingData?.channels
-            .filter((c) => c.status !== "disconnected")
-            .map((c) => (
-              <button
-                key={c.id}
-                className={`sidebar-channel ${marketingNavigation?.channelId === c.id ? "selected" : ""}`}
-                onClick={() => {
-                  setPage("marketing");
-                  setMarketingNavigation({
-                    tab: "publications",
-                    brandId: c.brand_id,
-                    channelId: c.id,
-                  });
-                }}
-              >
-                <ChannelMark provider={c.provider} />
-                <span>{c.name}</span>
-                <small>
-                  {
-                    marketingData.publications.filter(
-                      (p) =>
-                        p.channel_id === c.id &&
-                        ["scheduled", "publishing", "retry_wait"].includes(
-                          p.status,
-                        ),
-                    ).length
-                  }
-                </small>
-              </button>
-            ))}
+
+        <nav className="buffer-sidebar-main-nav">
           <button
-            className="sidebar-connect"
+            type="button"
+            className={page === "overview" || (page === "marketing" && (!marketingNavigation?.subview || marketingNavigation?.subview === "home") && !marketingNavigation?.compose) ? "active" : ""}
             onClick={() => {
               setPage("marketing");
-              setMarketingNavigation({ tab: "channels" });
+              setMarketingNavigation({ tab: "home", subview: "home" });
             }}
           >
-            <Icon name="plus" size={15} /> Kết nối kênh
+            <span className="sidebar-nav-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                <polyline points="9 22 9 12 15 12 15 22" />
+              </svg>
+            </span>
+            <span>Home</span>
           </button>
-        </div>
-        <div className="sidebar-bottom">
-          <div className="device-mini">
-            <span className={`dot ${online ? "online" : ""}`} />
-            <div>
-              <strong>
-                {online
-                  ? "Facebook: máy đã kết nối"
-                  : "Facebook: chưa có máy online"}
-              </strong>
-              <small>
-                {page === "marketing"
-                  ? "LinkedIn/DEV không cần máy online"
-                  : online
-                    ? device.name
-                    : "Kết nối để chạy Facebook"}
-              </small>
+          <button
+            type="button"
+            className={page === "marketing" && marketingNavigation?.tab === "content" && !marketingNavigation?.compose ? "active" : ""}
+            onClick={() => {
+              setPage("marketing");
+              setMarketingNavigation({ tab: "content", subview: "create" });
+            }}
+          >
+            <span className="sidebar-nav-icon">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="9" y1="18" x2="15" y2="18" />
+                <line x1="10" y1="22" x2="14" y2="22" />
+                <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14" />
+              </svg>
+            </span>
+            <span>Create</span>
+          </button>
+        </nav>
+
+        <div className="sidebar-channels buffer-sidebar-channels-tree">
+          <div className="sidebar-channel-heading">
+            <span className="channel-heading-label">Channels</span>
+            <div className="channel-heading-actions">
+              <button
+                type="button"
+                className="channel-gear-btn"
+                aria-label="Cài đặt"
+                title="Cài đặt"
+                onClick={() => setPage("settings")}
+              >
+                <Icon name="settings" size={15} />
+              </button>
+              <button
+                type="button"
+                className="channel-add-action-btn"
+                aria-label="Kết nối thêm kênh"
+                title="Thêm kênh mới"
+                onClick={() => setShowConnectChannelModal(true)}
+              >
+                <Icon name="plus" size={15} />
+              </button>
             </div>
           </div>
-          <button
-            className="profile"
-            onClick={() =>
+
+          <div className="buffer-channels-tree-list">
+            {marketingData?.channels
+              .filter((c) => c.status !== "disconnected")
+              .map((c) => {
+                const isSelected = marketingNavigation?.channelId === c.id;
+                return (
+                  <div key={c.id} className="buffer-channel-node">
+                    <button
+                      type="button"
+                      className={`channel-branch-header sidebar-channel ${isSelected ? "selected" : ""}`}
+                      onClick={() => {
+                        setPage("marketing");
+                        setMarketingNavigation({
+                          tab: "publications",
+                          brandId: c.brand_id,
+                          channelId: c.id,
+                        });
+                      }}
+                    >
+                      <div className="channel-avatar-badge-wrap">
+                        {c.avatar_url ? (
+                          <img src={c.avatar_url} alt={c.name} className="channel-avatar-circle" />
+                        ) : (
+                          <span className="channel-avatar-circle">{c.name[0].toUpperCase()}</span>
+                        )}
+                        <ChannelMark provider={c.provider} size="mini" />
+                      </div>
+                      <span className="channel-row-name">{c.name}</span>
+                    </button>
+                    <div className="buffer-channel-subnav">
+                      <button
+                        type="button"
+                        className={`channel-subitem ${isSelected && (!marketingNavigation?.subview || marketingNavigation?.subview === "publish") ? "active" : ""}`}
+                        onClick={() => {
+                          setPage("marketing");
+                          setMarketingNavigation({
+                            tab: "publications",
+                            brandId: c.brand_id,
+                            channelId: c.id,
+                            subview: "publish",
+                          });
+                        }}
+                      >
+                        <span className="subitem-icon">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+                            <line x1="16" y1="2" x2="16" y2="6" />
+                            <line x1="8" y1="2" x2="8" y2="6" />
+                            <line x1="3" y1="10" x2="21" y2="10" />
+                          </svg>
+                        </span>
+                        <span>Publish</span>
+                      </button>
+                      <button
+                        type="button"
+                        className={`channel-subitem ${isSelected && marketingNavigation?.subview === "community" ? "active" : ""}`}
+                        onClick={() => {
+                          setPage("marketing");
+                          setMarketingNavigation({
+                            tab: "community",
+                            brandId: c.brand_id,
+                            channelId: c.id,
+                            subview: "community",
+                          });
+                        }}
+                      >
+                        <span className="subitem-icon">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                          </svg>
+                        </span>
+                        <span>Community</span>
+                      </button>
+                      <button
+                        type="button"
+                        className={`channel-subitem ${isSelected && marketingNavigation?.subview === "insights" ? "active" : ""}`}
+                        onClick={() => {
+                          setPage("marketing");
+                          setMarketingNavigation({
+                            tab: "insights",
+                            brandId: c.brand_id,
+                            channelId: c.id,
+                            subview: "insights",
+                          });
+                        }}
+                      >
+                        <span className="subitem-icon">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <line x1="18" y1="20" x2="18" y2="10" />
+                            <line x1="12" y1="20" x2="12" y2="4" />
+                            <line x1="6" y1="20" x2="6" y2="14" />
+                          </svg>
+                        </span>
+                        <span>Insights</span>
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+          </div>
+
+          <div className="buffer-connect-more-box">
+            <span className="connect-more-title">Connect more channels</span>
+            <div className="connect-more-icons">
+              <button
+                type="button"
+                className="connect-badge-btn instagram"
+                title="Instagram"
+                onClick={() => setShowConnectChannelModal(true)}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                  <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                  <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                className="connect-badge-btn threads"
+                title="Threads"
+                onClick={() => setShowConnectChannelModal(true)}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <circle cx="12" cy="12" r="4" />
+                  <path d="M16 8v5a3 3 0 0 0 6 0v-1a10 10 0 1 0-3.92 7.94" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                className="connect-badge-btn bluesky"
+                title="Bluesky"
+                onClick={() => setShowConnectChannelModal(true)}
+              >
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M12 10.8c-1.08-2.08-3.08-5.3-5.5-6.8C3.8 2.2 2 3.1 2 5.5c0 1.2.6 6.3 1 7.4 1.4 3.7 4.5 4.6 7 4.1-3.6 1.8-6.9 4.3-3.6 8 3.8 4.3 5.6-2.5 5.6-2.5s1.8 6.8 5.6 2.5c3.3-3.7 0-6.2-3.6-8 2.5.5 5.6-.4 7-4.1.4-1.1 1-6.2 1-7.4 0-2.4-1.8-3.3-4.5-1.5-2.42 1.5-4.42 4.72-5.5 6.8z" />
+                </svg>
+              </button>
+              <button
+                type="button"
+                className="connect-badge-btn add"
+                title="Kết nối kênh mới"
+                onClick={() => setShowConnectChannelModal(true)}
+              >
+                +
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div className="sidebar-bottom buffer-sidebar-bottom">
+          {showQuotaCard && (() => {
+            const connectedChannelsCount =
+              marketingData?.channels?.filter((c) => c.status === "connected").length || 0;
+            return (
+              <div className="buffer-channel-quota-card">
+                <div className="quota-card-header">
+                  <span>{Math.min(3, connectedChannelsCount)}/3 channels connected</span>
+                  <button
+                    type="button"
+                    className="quota-close-btn"
+                    aria-label="Đóng"
+                    onClick={() => setShowQuotaCard(false)}
+                  >
+                    ✕
+                  </button>
+                </div>
+                <div className="quota-progress-bar">
+                  <div className={`progress-seg ${connectedChannelsCount >= 1 ? "is-filled" : ""}`} />
+                  <div className={`progress-seg ${connectedChannelsCount >= 2 ? "is-filled" : ""}`} />
+                  <div className={`progress-seg ${connectedChannelsCount >= 3 ? "is-filled" : ""}`} />
+                </div>
+              </div>
+            );
+          })()}
+
+          <UserProfileMenu
+            user={data.user}
+            hasQuotaCard={showQuotaCard}
+            onLogout={() =>
               action(async () => {
                 await api("/auth/logout", "POST", {});
+                try {
+                  localStorage.removeItem("user_avatar");
+                } catch {}
                 setData(null);
               })
             }
-          >
-            <span>{data.user.name[0].toUpperCase()}</span>
-            <div>
-              <strong>{data.user.name}</strong>
-              <small>Đăng xuất</small>
-            </div>
-            <Icon name="logout" size={17} />
-          </button>
+            onNavigate={(target) => {
+              if (target === "settings") {
+                setPage("settings");
+              } else if (target === "marketing-channels") {
+                setPage("marketing");
+                setMarketingNavigation({ tab: "channels" });
+              }
+            }}
+          />
         </div>
       </aside>
       <main className="main">
-        <header className="topbar">
-          <span>
-            Không gian làm việc <span className="slash">/</span>{" "}
-            <strong>{title}</strong>
-          </span>
-          {page === "marketing" ? (
-            <span className="badge">Bài tự soạn · API & thủ công</span>
-          ) : (
+        {page !== "marketing" && (
+          <header className="topbar">
+            <span>
+              Không gian làm việc <span className="slash">/</span>{" "}
+              <strong>{title}</strong>
+            </span>
             <button
               className="download-link"
               onClick={() => {
@@ -343,46 +571,44 @@ export default function App() {
               <Icon name="download" size={17} />
               Tải ứng dụng Windows
             </button>
-          )}
-        </header>
-        <div className="page">
-          <div
-            className={`page-heading ${page === "marketing" ? "marketing-page-heading" : ""}`}
-          >
-            <div>
-              <span className="eyebrow">
-                {new Date().toLocaleDateString("vi-VN", {
-                  weekday: "long",
-                  day: "numeric",
-                  month: "long",
-                })}
-              </span>
-              <h1>
-                {page === "overview"
-                  ? `Chào ${data.user.name.split(" ").at(-1)}, cùng bắt đầu nhé.`
-                  : title}
-              </h1>
-              <p>
-                {page === "overview"
-                  ? "Chuẩn bị nội dung tốt. Để BotAds theo lịch bạn chọn."
-                  : page === "campaigns"
-                    ? "Mỗi ý tưởng, một chiến dịch có thể theo dõi."
-                    : page === "devices"
-                      ? "Kết nối máy tính để thực hiện công việc từ website."
-                      : page === "results"
-                        ? "Theo dõi kết quả thực tế của từng lượt gửi."
-                        : page === "marketing"
-                          ? "Quản lý bài tự soạn, kết nối kênh và lịch phân phối nội dung."
+          </header>
+        )}
+        <div className={`page ${page === "marketing" ? "buffer-marketing-page" : ""}`}>
+          {page !== "marketing" && (
+            <div className="page-heading">
+              <div>
+                <span className="eyebrow">
+                  {new Date().toLocaleDateString("vi-VN", {
+                    weekday: "long",
+                    day: "numeric",
+                    month: "long",
+                  })}
+                </span>
+                <h1>
+                  {page === "overview"
+                    ? `Chào ${data.user.name.split(" ").at(-1)}, cùng bắt đầu nhé.`
+                    : title}
+                </h1>
+                <p>
+                  {page === "overview"
+                    ? "Chuẩn bị nội dung tốt. Để BotAds theo lịch bạn chọn."
+                    : page === "campaigns"
+                      ? "Mỗi ý tưởng, một chiến dịch có thể theo dõi."
+                      : page === "devices"
+                        ? "Kết nối máy tính để thực hiện công việc từ website."
+                        : page === "results"
+                          ? "Theo dõi kết quả thực tế của từng lượt gửi."
                           : "Điều chỉnh giới hạn chung cho tài khoản của bạn."}
-              </p>
+                </p>
+              </div>
+              {["overview", "campaigns"].includes(page) && (
+                <button className="primary" onClick={() => setEditor("new")}>
+                  <Icon name="plus" />
+                  Tạo chiến dịch
+                </button>
+              )}
             </div>
-            {["overview", "campaigns"].includes(page) && (
-              <button className="primary" onClick={() => setEditor("new")}>
-                <Icon name="plus" />
-                Tạo chiến dịch
-              </button>
-            )}
-          </div>
+          )}
           {error && (
             <div className="alert error" role="alert">
               {error}
@@ -397,10 +623,12 @@ export default function App() {
           )}
           {page === "marketing" && (
             <MarketingWorkspace
+              user={data?.user}
               assets={data.assets}
               onUpload={upload}
               navigation={marketingNavigation}
               onSnapshot={setMarketingData}
+              onConnectChannel={() => setShowConnectChannelModal(true)}
             />
           )}
           {page === "overview" && (
@@ -830,6 +1058,13 @@ export default function App() {
           onUpload={upload}
         />
       )}
+      <ConnectChannelModal
+        isOpen={showConnectChannelModal}
+        onClose={() => setShowConnectChannelModal(false)}
+        channels={marketingData?.channels || []}
+        onConnectChannel={handleConnectNewChannel}
+        busy={busy}
+      />
     </div>
   );
 }

@@ -231,7 +231,7 @@ before(async () => {
     serviceBindings: { PROVIDER_HTTP: provider },
   });
   db = await mf.getD1Database("DB");
-  for (const file of ["0001_init.sql", "0002_marketing.sql"]) {
+  for (const file of ["0001_init.sql", "0002_marketing.sql", "0006_channel_avatar.sql", "0007_performance_indexes.sql"]) {
     const sql = await readFile(`apps/api/migrations/${file}`, "utf8");
     await db.batch(
       sql

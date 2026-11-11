@@ -1,6 +1,13 @@
 import { error } from "../middleware/security.mjs";
 import { linkedinReason } from "../../../packages/contracts/linkedin-errors.mjs";
 
+const b64 = (b) =>
+  btoa(String.fromCharCode(...new Uint8Array(b)))
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+const strB64 = (s) => b64(new TextEncoder().encode(s));
+
 function oauthError(reason) {
   return Object.assign(error(400, "Không hoàn tất được kết nối LinkedIn."), {
     oauthReason: reason,
@@ -15,6 +22,82 @@ async function oauthJson(response) {
     throw oauthError("provider_response");
   }
 }
+export async function createDPoPProof(
+  privateJwkOrKey,
+  publicJwk,
+  htm,
+  htu,
+  nonce = null,
+) {
+  let privateKey = privateJwkOrKey;
+  if (!privateKey?.type) {
+    privateKey = await crypto.subtle.importKey(
+      "jwk",
+      privateJwkOrKey,
+      { name: "ECDSA", namedCurve: "P-256" },
+      false,
+      ["sign"],
+    );
+  }
+  const cleanPublicJwk = {
+    kty: publicJwk.kty,
+    crv: publicJwk.crv,
+    x: publicJwk.x,
+    y: publicJwk.y,
+  };
+  const header = { alg: "ES256", typ: "dpop+jwt", jwk: cleanPublicJwk };
+  const payload = {
+    jti: crypto.randomUUID(),
+    htm,
+    htu: htu.split("?")[0].split("#")[0],
+    iat: Math.floor(Date.now() / 1000),
+  };
+  if (nonce) payload.nonce = nonce;
+
+  const headerB64 = strB64(JSON.stringify(header));
+  const payloadB64 = strB64(JSON.stringify(payload));
+  const toSign = new TextEncoder().encode(`${headerB64}.${payloadB64}`);
+  const sig = await crypto.subtle.sign(
+    { name: "ECDSA", hash: "SHA-256" },
+    privateKey,
+    toSign,
+  );
+  return `${headerB64}.${payloadB64}.${b64(sig)}`;
+}
+
+export async function fetchWithDPoP(
+  env,
+  url,
+  options = {},
+  privateJwkOrKey,
+  publicJwk,
+  accessToken = null,
+) {
+  const method = (options.method || "GET").toUpperCase();
+  let nonce = options.nonce || null;
+  let dpop = await createDPoPProof(privateJwkOrKey, publicJwk, method, url, nonce);
+  const headers = new Headers(options.headers || {});
+  headers.set("DPoP", dpop);
+  if (accessToken) {
+    headers.set("Authorization", `DPoP ${accessToken}`);
+  }
+
+  let res = await providerFetch(env, url, { ...options, headers });
+  if (res.status === 400 || res.status === 401) {
+    const serverNonce = res.headers.get("dpop-nonce");
+    if (serverNonce && serverNonce !== nonce) {
+      dpop = await createDPoPProof(privateJwkOrKey, publicJwk, method, url, serverNonce);
+      const retryHeaders = new Headers(options.headers || {});
+      retryHeaders.set("DPoP", dpop);
+      if (accessToken) {
+        retryHeaders.set("Authorization", `DPoP ${accessToken}`);
+      }
+      res = await providerFetch(env, url, { ...options, headers: retryHeaders });
+    }
+  }
+  return res;
+}
+
 export class PublishError extends Error {
   constructor(message, state = "failed", retryAfter = 0) {
     super(message);
@@ -93,6 +176,56 @@ export async function devIdentity(env, apiKey) {
   return {
     actorId: String(user.id),
     name: String(user.name || user.username).slice(0, 100),
+    avatarUrl: typeof user.profile_image === "string" ? user.profile_image.slice(0, 500) : "",
+  };
+}
+export async function blueskyIdentity(env, handle, appPassword) {
+  const clean = handle.trim().replace(/^@/, "");
+  let response;
+  try {
+    response = await providerFetch(
+      env,
+      "https://bsky.social/xrpc/com.atproto.server.createSession",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          identifier: clean,
+          password: appPassword.trim(),
+        }),
+      },
+    );
+  } catch {
+    throw error(502, "Không kết nối được Bluesky. Vui lòng kiểm tra mạng.");
+  }
+  if (!response.ok) {
+    throw error(400, "Tên tài khoản hoặc Mật khẩu ứng dụng Bluesky không đúng.");
+  }
+  const session = await response.json();
+  if (!session.did || !session.handle) {
+    throw error(502, "Bluesky trả thông tin phiên không hợp lệ.");
+  }
+  let avatarUrl = "";
+  try {
+    const profRes = await providerFetch(
+      env,
+      `https://bsky.social/xrpc/app.bsky.actor.getProfile?actor=${encodeURIComponent(session.did)}`,
+      { headers: { Authorization: `Bearer ${session.accessJwt}` } },
+    );
+    if (profRes.ok) {
+      const prof = await profRes.json();
+      if (typeof prof.avatar === "string") avatarUrl = prof.avatar.slice(0, 500);
+    }
+  } catch {}
+  return {
+    actorId: session.did,
+    name: `@${session.handle}`,
+    avatarUrl,
+    credential: {
+      did: session.did,
+      handle: session.handle,
+      appPassword: appPassword.trim(),
+    },
   };
 }
 export async function exchangeLinkedIn(env, code, redirectUri) {
@@ -143,6 +276,7 @@ export async function exchangeLinkedIn(env, code, redirectUri) {
   return {
     actorId: `urn:li:person:${user.sub}`,
     name: String(user.name || "LinkedIn").slice(0, 100),
+    avatarUrl: typeof user.picture === "string" ? user.picture.slice(0, 500) : "",
     credential: { accessToken: token.access_token },
     expiresAt: Date.now() + Number(token.expires_in) * 1000,
     scopes: token.scope || "openid profile w_member_social",
@@ -235,6 +369,100 @@ export async function publishToProvider(
           ...(content ? { content } : {}),
         },
       };
+    } else if (account.provider === "bluesky") {
+      let sessionToken = credential.accessJwt || credential.tokenData?.access_token;
+      let dpopProof = null;
+      if (credential.authMode === "oauth" && credential.privateJwk && credential.publicJwk) {
+        sessionToken = credential.tokenData?.access_token;
+        dpopProof = await createDPoPProof(
+          credential.privateJwk,
+          credential.publicJwk,
+          "POST",
+          "https://bsky.social/xrpc/com.atproto.repo.createRecord",
+        );
+      } else if (credential.handle && credential.appPassword) {
+        try {
+          const fresh = await providerFetch(
+            env,
+            "https://bsky.social/xrpc/com.atproto.server.createSession",
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                identifier: credential.handle,
+                password: credential.appPassword,
+              }),
+            },
+          );
+          if (fresh.ok) {
+            const fData = await fresh.json();
+            sessionToken = fData.accessJwt;
+          }
+        } catch {}
+      }
+      let embed;
+      if (image?.bytes && image?.mime) {
+        try {
+          const blobHeaders = {
+            "Content-Type": image.mime,
+          };
+          if (credential.authMode === "oauth" && credential.privateJwk && credential.publicJwk) {
+            blobHeaders["Authorization"] = `DPoP ${sessionToken}`;
+            blobHeaders["DPoP"] = await createDPoPProof(
+              credential.privateJwk,
+              credential.publicJwk,
+              "POST",
+              "https://bsky.social/xrpc/com.atproto.repo.uploadBlob",
+            );
+          } else {
+            blobHeaders["Authorization"] = `Bearer ${sessionToken}`;
+          }
+          const blobRes = await providerFetch(
+            env,
+            "https://bsky.social/xrpc/com.atproto.repo.uploadBlob",
+            {
+              method: "POST",
+              headers: blobHeaders,
+              body: image.bytes,
+            },
+          );
+          if (blobRes.ok) {
+            const bData = await blobRes.json();
+            if (bData.blob) {
+              embed = {
+                $type: "app.bsky.embed.images",
+                images: [{ alt: variant.title || "", image: bData.blob }],
+              };
+            }
+          }
+        } catch {}
+      }
+      const text =
+        (variant.title ? `${variant.title}\n\n` : "") + (variant.content || "");
+      const record = {
+        $type: "app.bsky.feed.post",
+        text: text.slice(0, 3000),
+        createdAt: new Date().toISOString(),
+        ...(embed ? { embed } : {}),
+      };
+      const postHeaders = {
+        "Content-Type": "application/json",
+      };
+      if (dpopProof) {
+        postHeaders["Authorization"] = `DPoP ${sessionToken}`;
+        postHeaders["DPoP"] = dpopProof;
+      } else {
+        postHeaders["Authorization"] = `Bearer ${sessionToken}`;
+      }
+      prepared = {
+        url: "https://bsky.social/xrpc/com.atproto.repo.createRecord",
+        headers: postHeaders,
+        body: {
+          repo: credential.did || account.actor_id,
+          collection: "app.bsky.feed.post",
+          record,
+        },
+      };
     } else throw new PublishError("Kênh này cần đăng thủ công.");
   } catch (e) {
     if (e instanceof PublishError) throw e;
@@ -264,6 +492,16 @@ export async function publishToProvider(
       if (!result.id || url.protocol !== "https:" || url.hostname !== "dev.to")
         throw 0;
       return { remoteId: String(result.id), permalink: url.href };
+    }
+    if (account.provider === "bluesky") {
+      const result = await response.json();
+      const rkey = result.uri?.split("/").pop() || "";
+      const handle =
+        credential.handle || account.name.replace(/^@/, "") || "user";
+      return {
+        remoteId: result.uri || result.cid || "",
+        permalink: `https://bsky.app/profile/${handle}/post/${rkey}`,
+      };
     }
     const remoteId = response.headers.get("x-restli-id");
     if (!/^urn:li:(share|ugcPost):[0-9]+$/.test(remoteId || "")) throw 0;
