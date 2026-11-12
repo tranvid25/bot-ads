@@ -87,9 +87,27 @@ process.once("message", async (message) => {
         { allowStopped: true },
       );
       send({ type: "done", login: true });
+    } else if (message.action === "discover") {
+      leaseUntil = message.leaseUntil;
+      if (fs.existsSync(file("STOP"))) fs.unlinkSync(file("STOP"));
+      const groups = await runtime.runExclusive(() =>
+        require(path.join(root, "discover_only.cjs")).main(message.task),
+      );
+      send({ type: "done", groups });
     } else {
       leaseUntil = message.leaseUntil;
       const { job, campaign, workspace, assets } = message;
+      if (campaign.facebookAccountKey) {
+        const uid = auth?.cookies?.find((c) => c.name === "c_user")?.value;
+        const accountKey = crypto
+          .createHash("sha256")
+          .update("facebook:" + uid)
+          .digest("hex");
+        if (!uid || accountKey !== campaign.facebookAccountKey)
+          throw new Error(
+            "Tài khoản Facebook đang mở khác tài khoản đã duyệt nhóm. Hãy kết nối đúng tài khoản rồi chạy lại.",
+          );
+      }
       const { defaults } = require(path.join(root, "settings"));
       const previous = read("config.json", {});
       const state = mergeReservations(
@@ -105,6 +123,16 @@ process.once("message", async (message) => {
           }
         }
       write("automation_state.json", state);
+      if (campaign.workflowVersion === 2) {
+        for (const url of campaign.groupUrls)
+          state.groups[url] = {
+            ...state.groups[url],
+            advertisingAllowed: true,
+            approvalSource: "user",
+            blocked: false,
+          };
+        write("automation_state.json", state);
+      }
       const config = campaignConfig(
         campaign,
         workspace,

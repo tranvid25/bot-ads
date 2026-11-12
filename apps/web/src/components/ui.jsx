@@ -4,6 +4,7 @@ export const labels = {
   running: "Đang chạy",
   needs_review: "Cần đối soát",
   completed: "Đã kết thúc",
+  no_targets: "Chưa có nhóm đủ điều kiện",
   failed: "Có lỗi",
   canceled: "Đã dừng",
   expired: "Đã lỡ lịch",

@@ -201,3 +201,5 @@ npm run desktop
 npm run desktop:build
 ```
 
+Từ bản 1.1.1, BotAds máy tính có kiểm tra và tải cập nhật trong app. Xem [hướng dẫn phát hành và tự cập nhật](docs/DESKTOP_UPDATES.md), [build cho macOS](docs/MACOS_RELEASE.md).
+

@@ -1,0 +1,164 @@
+.connect-badge-btn.instagram {
+  background: linear-gradient(
+    45deg,
+    #f09433 0%,
+    #e6683c 25%,
+    #dc2743 50%,
+    #cc2366 75%,
+    #bc1888 100%
+  ) !important;
+  border: none !important;
+  color: #ffffff !important;
+}
+
+.connect-badge-btn.threads {
+  background: #111111 !important;
+  border: 1px solid #333333 !important;
+  color: #ffffff !important;
+}
+
+.connect-badge-btn.bluesky {
+  background: #0285ff !important;
+  border: none !important;
+  color: #ffffff !important;
+}
+
+.connect-badge-btn.add {
+  background: #1c1f26 !important;
+  border: 1px solid #333842 !important;
+  color: #9ca3af !important;
+  font-size: 16px !important;
+  font-weight: 600 !important;
+}
+
+.connect-badge-btn.add:hover {
+  color: #ffffff !important;
+  border-color: #555d6e !important;
+}
+
+/* Sidebar Bottom (Quota Card + Profile) */
+
+.buffer-sidebar-bottom {
+  margin-top: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0;
+}
+
+.buffer-channel-quota-card {
+  background: var(--buffer-surface);
+  border: 1px solid var(--buffer-line);
+  border-radius: 10px;
+  padding: 10px 12px;
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 0;
+}
+
+.quota-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--buffer-text);
+}
+
+.quota-close-btn {
+  background: transparent;
+  border: none;
+  color: #9ca3af;
+  font-size: 12px;
+  cursor: pointer;
+  padding: 0;
+}
+
+.quota-close-btn:hover {
+  color: #ffffff;
+}
+
+.quota-progress-bar {
+  display: flex;
+  gap: 4px;
+  height: 4px;
+  width: 100%;
+}
+
+.progress-seg {
+  flex: 1;
+  background: #2d323c;
+  border-radius: 2px;
+}
+
+.progress-seg.is-filled {
+  background: var(--buffer-lime);
+}
+
+/* Organization Profile */
+
+.buffer-org-profile {
+  background: var(--buffer-surface) !important;
+  border: 1px solid #232730 !important;
+  border-radius: 10px !important;
+  padding: 8px 10px !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 10px !important;
+  cursor: pointer !important;
+  color: var(--buffer-text) !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+  text-align: left !important;
+}
+
+.buffer-org-profile:hover {
+  background: #1f2228 !important;
+}
+
+.profile-purple-avatar {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  background: #6366f1;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.profile-info-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.profile-info-text strong {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #ffffff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.profile-info-text small {
+  font-size: 11px;
+  color: #9ca3af;
+}
+
+.profile-avatar-img {
+  width: 28px;
+  height: 28px;
+  border-radius: 7px;
+  object-fit: cover;
+  flex-shrink: 0;
+}

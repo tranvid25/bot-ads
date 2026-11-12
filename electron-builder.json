@@ -6,14 +6,18 @@
   "files": [
     "apps/companion/**",
     "packages/automation/*.js",
+    "packages/automation/*.cjs",
     "packages/desktop-state.cjs",
+    "packages/social-contract.cjs",
+    "packages/browser-launcher.cjs",
+    "packages/desktop-update.cjs",
     "package.json"
   ],
   "extraResources": [
     {
       "from": ".browser-dist",
       "to": "browsers",
-      "filter": ["**/*", "!.links/**"]
+      "filter": ["**/*", "!.links/**", "!chromium_headless_shell-*/**"]
     }
   ],
   "asar": true,

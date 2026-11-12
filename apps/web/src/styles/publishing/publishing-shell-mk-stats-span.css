@@ -1,0 +1,157 @@
+.publishing-shell .mk-stats span {
+  color: var(--buffer-text-muted);
+}
+
+/* Navigation Tabs */
+
+.publishing-shell .mk-tabs[role="tablist"] {
+  display: flex;
+  gap: 20px;
+  border-bottom: 1px solid var(--buffer-line);
+  margin-top: 4px;
+}
+
+.publishing-shell .mk-tabs[role="tablist"] button {
+  border: none;
+  background: transparent;
+  padding: 10px 4px 12px;
+  font-size: 13.5px;
+  font-weight: 500;
+  color: var(--buffer-text-muted);
+  cursor: pointer;
+  position: relative;
+}
+
+.publishing-shell .mk-tabs[role="tablist"] button:hover {
+  color: var(--buffer-text);
+}
+
+.publishing-shell .mk-tabs[role="tablist"] button[aria-selected="true"] {
+  color: var(--buffer-lime);
+  font-weight: 600;
+  box-shadow: inset 0 -2px 0 var(--buffer-lime);
+}
+
+/* Publishing Filter Bar */
+
+.publishing-filters {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 4px 0;
+}
+
+.publishing-filters .mk-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.search-field,
+.publishing-shell .search-field,
+label.search-field {
+  display: flex !important;
+  flex-direction: row !important;
+  align-items: center !important;
+  gap: 8px !important;
+  background: var(--buffer-input-bg) !important;
+  border: 1px solid var(--buffer-input-border) !important;
+  border-radius: 8px !important;
+  padding: 0 12px !important;
+  margin: 0 !important;
+  color: var(--buffer-text-muted) !important;
+  height: 36px !important;
+  min-height: 36px !important;
+  box-sizing: border-box !important;
+  cursor: text !important;
+}
+
+.search-field:focus-within,
+.publishing-shell .search-field:focus-within {
+  border-color: var(--buffer-lime) !important;
+  box-shadow: 0 0 0 1px var(--buffer-lime-border) !important;
+}
+
+.publishing-shell .search-field svg,
+.publishing-shell .search-field .icon {
+  flex-shrink: 0 !important;
+  color: var(--buffer-text-muted) !important;
+  display: block !important;
+  margin: 0 !important;
+}
+
+.publishing-shell .search-field input,
+label.search-field input {
+  border: none !important;
+  outline: none !important;
+  background: transparent !important;
+  color: var(--buffer-text) !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  width: 200px !important;
+  height: 100% !important;
+  font-size: 13px !important;
+  box-shadow: none !important;
+}
+
+.publishing-filters select {
+  padding: 7px 12px;
+  font-size: 12.5px;
+  border-radius: 8px;
+}
+
+/* Segmented Control (List / Calendar Switcher) */
+
+.segmented-control {
+  display: flex;
+  background: var(--buffer-surface);
+  border: 1px solid var(--buffer-line);
+  border-radius: 8px;
+  padding: 2px;
+}
+
+.segmented-control button {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-size: 12.5px;
+  font-weight: 500;
+  color: var(--buffer-text-muted);
+  border: none;
+  background: transparent;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.segmented-control button:hover {
+  color: var(--buffer-text);
+}
+
+.segmented-control button[aria-pressed="true"] {
+  background: var(--buffer-surface-elevated);
+  color: var(--buffer-text);
+  font-weight: 600;
+  border: 1px solid var(--buffer-line);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+}
+
+/* ==========================================================================
+   CHANNEL MARKS (Authentic Badges)
+   ========================================================================== */
+
+.channel-mark {
+  width: 26px;
+  height: 26px;
+  border-radius: var(--buffer-radius-pill);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-weight: 700;
+  font-size: 12px;
+  flex-shrink: 0;
+  color: #ffffff;
+}

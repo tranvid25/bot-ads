@@ -1,0 +1,164 @@
+.publishing-shell .panel .empty,
+.publishing-shell .empty {
+  background: transparent !important;
+  border: none !important;
+  color: var(--buffer-text) !important;
+}
+
+.publishing-shell .empty-symbol {
+  display: grid;
+  place-items: center;
+  width: 55px;
+  height: 55px;
+  background: #20252e !important;
+  border: 1px solid var(--buffer-line) !important;
+  border-radius: 16px;
+  margin: 0 auto 17px;
+  color: var(--buffer-lime) !important;
+}
+
+.publishing-shell .empty h3 {
+  color: #ffffff !important;
+  font-size: 16px;
+  font-weight: 600;
+  margin: 0 0 6px;
+}
+
+.publishing-shell .empty p {
+  color: var(--buffer-text-muted) !important;
+  font-size: 13px;
+  margin: 6px 0 18px;
+}
+
+/* Sub-page Tables (Results, Campaigns, etc.) */
+
+.publishing-shell table {
+  width: 100%;
+  border-collapse: collapse;
+  color: var(--buffer-text);
+}
+
+.publishing-shell th {
+  color: var(--buffer-text-muted) !important;
+  border-bottom: 1px solid var(--buffer-line) !important;
+  background: transparent !important;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.publishing-shell td {
+  color: var(--buffer-text) !important;
+  border-bottom: 1px solid var(--buffer-line) !important;
+  background: transparent !important;
+  font-size: 13px;
+}
+
+.publishing-shell td strong {
+  color: #ffffff !important;
+}
+
+/* Device & Settings specifics */
+
+.publishing-shell .number {
+  background: rgba(154, 230, 120, 0.12) !important;
+  color: var(--buffer-lime) !important;
+  border: 1px solid rgba(154, 230, 120, 0.25) !important;
+}
+
+.publishing-shell .copy-value {
+  background: var(--buffer-input-bg) !important;
+  border: 1px solid var(--buffer-line) !important;
+  color: var(--buffer-lime) !important;
+}
+
+.publishing-shell .pair-code {
+  color: var(--buffer-lime) !important;
+}
+
+.publishing-shell .notice {
+  background: #1f232b !important;
+  border: 1px solid var(--buffer-line) !important;
+  color: var(--buffer-text-secondary) !important;
+}
+
+/* Inputs, Textareas, Selects in Publishing Shell */
+
+.publishing-shell input[type="text"],
+.publishing-shell input[type="search"],
+.publishing-shell input[type="number"],
+.publishing-shell input[type="password"],
+.publishing-shell select,
+.publishing-shell textarea {
+  background: var(--buffer-input-bg) !important;
+  border: 1px solid var(--buffer-input-border) !important;
+  color: var(--buffer-text) !important;
+}
+
+.publishing-shell input:focus,
+.publishing-shell textarea:focus,
+.publishing-shell select:focus {
+  border-color: var(--buffer-lime) !important;
+}
+
+/* Greeting Banner */
+
+.buffer-dashboard-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 24px;
+}
+
+.buffer-greeting-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: var(--buffer-surface);
+  border: 1px solid var(--buffer-line);
+  border-radius: var(--buffer-radius-card);
+}
+
+.greeting-text-wrap {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.greeting-wave {
+  font-size: 28px;
+}
+
+.greeting-title {
+  font-size: 20px;
+  font-weight: 700;
+  margin: 0 0 4px;
+  color: #ffffff;
+}
+
+.greeting-date {
+  font-size: 13px;
+  color: var(--buffer-text-muted);
+}
+
+.greeting-actions-wrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.greeting-action-icon-btn {
+  background: transparent;
+  border: none;
+  color: #9ca3af;
+  padding: 6px;
+  border-radius: 8px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  transition:
+    color 0.15s ease,
+    background 0.15s ease;
+}

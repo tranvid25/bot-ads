@@ -1,0 +1,161 @@
+.subnav-tab.active::after {
+  content: "";
+  position: absolute;
+  bottom: -13px;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #ffffff;
+  border-radius: 2px;
+}
+
+.create-subnav-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.create-tags-filter {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: #14171c;
+  border: 1px solid var(--buffer-line);
+  padding: 4px 10px;
+  border-radius: 8px;
+}
+
+.tags-icon {
+  font-size: 13px;
+}
+
+.tags-select {
+  background: transparent !important;
+  border: none !important;
+  color: var(--buffer-text-secondary) !important;
+  font-size: 12.5px !important;
+  cursor: pointer;
+  padding: 2px !important;
+}
+
+.create-view-toggle {
+  display: flex;
+  align-items: center;
+  background: #14171c;
+  border: 1px solid var(--buffer-line);
+  border-radius: 8px;
+  padding: 2px;
+  gap: 2px;
+}
+
+.view-btn {
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--buffer-text-secondary);
+  font-size: 12.5px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  transition: all 0.15s ease;
+}
+
+.view-btn.active {
+  background: #1e242d;
+  border-color: rgba(154, 230, 120, 0.4);
+  color: var(--buffer-lime);
+  font-weight: 600;
+}
+
+/* Kanban Board Layout */
+
+.buffer-kanban-board-canvas {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding: 4px 8px 24px;
+  align-items: flex-start;
+  scroll-behavior: smooth;
+}
+
+.buffer-kanban-column {
+  flex: 0 0 260px;
+  min-width: 250px;
+  background: #13161b;
+  border: 1px solid #1f232b;
+  border-radius: 12px;
+  padding: 14px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-height: 480px;
+  max-height: calc(100vh - 210px);
+}
+
+.kanban-col-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 2px 4px 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.col-header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.col-title {
+  font-size: 13.5px;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.col-count-badge {
+  background: #1e222a;
+  color: var(--buffer-text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 9999px;
+  border: 1px solid #292f3b;
+}
+
+.col-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.col-add-btn,
+.col-more-btn {
+  background: transparent;
+  border: none;
+  color: var(--buffer-text-muted);
+  font-size: 15px;
+  cursor: pointer;
+  padding: 2px 6px;
+  border-radius: 4px;
+  transition: all 0.15s ease;
+}
+
+.col-add-btn:hover,
+.col-more-btn:hover {
+  background: #1c2028;
+  color: #ffffff;
+}
+
+.kanban-cards-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-right: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
+}

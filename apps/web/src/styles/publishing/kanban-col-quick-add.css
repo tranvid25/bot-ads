@@ -1,0 +1,162 @@
+.kanban-col-quick-add {
+  background: transparent;
+  border: 1px dashed #282f3c;
+  color: var(--buffer-text-muted);
+  font-size: 12.5px;
+  font-weight: 600;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+}
+
+.kanban-col-quick-add:hover {
+  background: rgba(255, 255, 255, 0.03);
+  border-color: #3e485a;
+  color: #ffffff;
+}
+
+.buffer-kanban-add-group-btn {
+  flex: 0 0 200px;
+  background: transparent;
+  border: 1px dashed #262c38;
+  color: var(--buffer-text-secondary);
+  font-size: 13.5px;
+  font-weight: 600;
+  border-radius: 12px;
+  padding: 14px;
+  cursor: pointer;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.buffer-kanban-add-group-btn:hover {
+  background: #14171c;
+  border-color: #3c4556;
+  color: #ffffff;
+}
+
+.buffer-templates-canvas,
+.buffer-feeds-canvas {
+  background: #13161b;
+  border: 1px solid var(--buffer-line);
+  border-radius: 12px;
+  padding: 24px;
+  color: var(--buffer-text-secondary);
+}
+
+.buffer-templates-canvas {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.template-card {
+  background: #1a1d23;
+  border: 1px solid #262c37;
+  border-radius: 10px;
+  padding: 18px;
+}
+
+.template-card h4 {
+  margin: 0 0 6px;
+  font-size: 14px;
+  color: #ffffff;
+}
+
+.template-card p {
+  margin: 0;
+  font-size: 12.5px;
+  color: #9ca3af;
+}
+
+/* ==========================================================================
+   CONNECT A NEW CHANNEL MODAL (Buffer Style)
+   ========================================================================== */
+
+.buffer-connect-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  backdrop-filter: blur(5px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1100;
+  padding: 16px;
+  animation: modalBackdropFade 0.18s ease-out;
+}
+
+@keyframes modalBackdropFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.buffer-connect-modal-content {
+  background: #14171d;
+  border: 1px solid #2a313e;
+  border-radius: 16px;
+  width: 100%;
+  max-width: 860px;
+  max-height: 88vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 26px 32px;
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.85);
+  box-sizing: border-box;
+  animation: modalContentZoom 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes modalContentZoom {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.buffer-connect-modal-header {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 22px;
+}
+
+.buffer-connect-modal-header h2 {
+  font-size: 18px;
+  font-weight: 700;
+  color: #ffffff;
+  margin: 0;
+  text-align: center;
+}
+
+.buffer-connect-close-btn {
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: 1px solid #2a313e;
+  color: #9ca3af;
+  font-size: 14px;
+  cursor: pointer;
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}

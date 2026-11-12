@@ -1,3 +1,4 @@
+import ChannelConnectionForm from "./ChannelConnectionForm";
 import React, { useState } from "react";
 import { CHANNEL_CATALOG } from "./channelCatalog";
 import MetaConnectView from "./MetaConnectView";
@@ -6,6 +7,7 @@ export default function ConnectChannelModal({
   isOpen,
   onClose,
   channels = [],
+  brands = [],
   onConnectChannel,
   busy = false,
   error = "",
@@ -29,7 +31,8 @@ export default function ConnectChannelModal({
   };
 
   async function handleCardClick(ch) {
-    if (connectedMap.has(ch.key) || busy || redirectingKey) return;
+    if ((connectedMap.has(ch.key) && !ch.isMeta) || busy || redirectingKey)
+      return;
     if (
       ch.authType === "oauth" ||
       ch.key === "linkedin" ||
@@ -81,10 +84,15 @@ export default function ConnectChannelModal({
           </button>
         </div>
 
-        {error && <div className="alert error" role="alert">{error}</div>}
+        {error && (
+          <div className="alert error" role="alert">
+            {error}
+          </div>
+        )}
         {selectedChannel ? (
           selectedChannel.isMeta ? (
             <MetaConnectView
+              brands={brands}
               selectedChannel={selectedChannel}
               onBack={() => setSelectedChannel(null)}
               onConnect={async (d) => {
@@ -94,99 +102,18 @@ export default function ConnectChannelModal({
               busy={busy}
             />
           ) : (
-            <div className="buffer-connect-inline-form">
-              <button
-                type="button"
-                className="buffer-connect-back-btn"
-                onClick={() => setSelectedChannel(null)}
-              >
-                ← Quay lại danh sách kênh
-              </button>
-              <div className="inline-form-target-header">
-                <div
-                  className="target-icon-wrap"
-                  style={{ background: selectedChannel.bg }}
-                >
-                  {selectedChannel.icon}
-                </div>
-                <div>
-                  <h3>Kết nối {selectedChannel.name}</h3>
-                  <p>{selectedChannel.desc}</p>
-                </div>
-              </div>
-
-              <form
-                onSubmit={handleConnectSubmit}
-                className="connect-fields-form"
-              >
-                {selectedChannel.key === "bluesky" ? (
-                  <>
-                    <label>
-                      <span>Handle Bluesky (Tên tài khoản)</span>
-                      <input
-                        type="text"
-                        placeholder="vd: username.bsky.social"
-                        value={accountInput}
-                        onChange={(e) => setAccountInput(e.target.value)}
-                        required
-                        autoFocus
-                      />
-                    </label>
-                    <label style={{ marginTop: "10px" }}>
-                      <span>Mật khẩu ứng dụng (App Password)</span>
-                      <input
-                        type="password"
-                        placeholder="xxxx-xxxx-xxxx-xxxx"
-                        value={apiKeyInput}
-                        onChange={(e) => setApiKeyInput(e.target.value)}
-                        required
-                      />
-                    </label>
-                  </>
-                ) : selectedChannel.key === "dev" ? (
-                  <label>
-                    <span>DEV.to API Key</span>
-                    <input
-                      type="password"
-                      placeholder="api_key_..."
-                      value={apiKeyInput}
-                      onChange={(e) => setApiKeyInput(e.target.value)}
-                      required
-                      autoFocus
-                    />
-                    <small>
-                      Lấy API Key trong Settings → Extensions trên DEV.to.
-                    </small>
-                  </label>
-                ) : (
-                  <label>
-                    <span>Tên tài khoản hoặc Handle</span>
-                    <input
-                      type="text"
-                      placeholder={`vd: @my_${selectedChannel.key}_account`}
-                      value={accountInput}
-                      onChange={(e) => setAccountInput(e.target.value)}
-                      required
-                      autoFocus
-                    />
-                    <small>Tên nhận diện tài khoản trên BotSalesOra.</small>
-                  </label>
-                )}
-
-                <div className="inline-form-actions">
-                  <button
-                    type="button"
-                    className="cancel-btn"
-                    onClick={() => setSelectedChannel(null)}
-                  >
-                    Hủy
-                  </button>
-                  <button type="submit" className="confirm-btn" disabled={busy}>
-                    {busy ? "Đang kết nối…" : `Kết nối ${selectedChannel.name}`}
-                  </button>
-                </div>
-              </form>
-            </div>
+            <ChannelConnectionForm
+              {...{
+                selectedChannel,
+                setSelectedChannel,
+                accountInput,
+                setAccountInput,
+                apiKeyInput,
+                setApiKeyInput,
+                handleConnectSubmit,
+                busy,
+              }}
+            />
           )
         ) : (
           <div className="buffer-channel-grid">

@@ -13,7 +13,7 @@
   <body>
     <header>
       <div class="brand"><span>✳</span> botads.</div>
-          <span class="tag">ỨNG DỤNG MÁY TÍNH</span>
+      <span class="tag">ỨNG DỤNG MÁY TÍNH</span>
     </header>
     <main>
       <div class="heading">
@@ -44,6 +44,7 @@
         </form>
       </section>
       <section id="connected" hidden>
+        <p id="browser-note" class="note"></p>
         <div class="section-head">
           <div>
             <h2>Website đã liên kết</h2>
@@ -57,6 +58,26 @@
             <p id="facebook-status">Chưa kết nối</p>
           </div>
           <button id="login" class="primary">Kết nối Facebook</button>
+        </div>
+        <div class="social-connections">
+          <div class="facebook">
+            <div>
+              <h3>Threads</h3>
+              <p id="threads-status">
+                Bấm kết nối Threads trên website để app mở đăng nhập.
+              </p>
+            </div>
+            <button id="forget-threads">Xóa phiên Threads</button>
+          </div>
+          <div class="facebook">
+            <div>
+              <h3>Instagram</h3>
+              <p id="instagram-status">
+                Bấm kết nối Instagram trên website để app mở đăng nhập.
+              </p>
+            </div>
+            <button id="forget-instagram">Xóa phiên Instagram</button>
+          </div>
         </div>
         <div class="controls">
           <button id="resume" class="primary">Nhận việc từ website</button
@@ -79,11 +100,23 @@
         </div>
         <pre id="logs">Sẵn sàng kết nối…</pre>
       </section>
+      <section aria-labelledby="app-version">
+        <div class="section-head">
+          <h2 id="app-version">Phiên bản BotAds</h2>
+          <button id="update-check">Kiểm tra cập nhật</button>
+        </div>
+        <p id="update-status" role="status" aria-live="polite"></p>
+        <button id="update-download" hidden>Tải lại bản cập nhật</button>
+        <button id="update-install" class="primary" hidden>
+          Cài cập nhật &amp; mở lại
+        </button>
+      </section>
       <footer>
-        Phiên Facebook được mã hóa trên máy tính này. Bạn có thể dừng bất cứ lúc
-        nào.
+        Phiên đăng nhập từng kênh được mã hóa trên máy tính này. Bạn có thể dừng
+        bất cứ lúc nào.
       </footer>
     </main>
     <script src="renderer.js"></script>
+    <script src="update-renderer.js"></script>
   </body>
 </html>

@@ -156,7 +156,7 @@ before(async () => {
   );
   db = await mf.getD1Database("DB");
   for (const name of [
-    "0001_init.sql",
+    "0001_init.sql", "0008_facebook_groups.sql",
     "0004_google_auth.sql",
     "0005_google_picture.sql",
   ]) {

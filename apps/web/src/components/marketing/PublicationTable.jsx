@@ -50,15 +50,19 @@ export default function PublicationTable({
                     {p.snapshot.content}
                   </p>
                   <small className="block">
-                    {providers[channel?.provider]} · {channel?.name} · v{p.revision}
+                    {providers[channel?.provider]} · {channel?.name} · v
+                    {p.revision}
                   </small>
                 </td>
                 <td>{date(p.scheduled_at)}</td>
                 <td>
                   <Status value={p.status} provider={channel?.provider} />
-                  {p.error && (
-                    <small className="block danger">{p.error}</small>
+                  {p.transport === "desktop" && (
+                    <small className="block">
+                      Chạy qua app máy tính · máy cần online
+                    </small>
                   )}
+                  {p.error && <small className="block danger">{p.error}</small>}
                   {p.permalink && (
                     <a
                       className="block link"
@@ -77,23 +81,17 @@ export default function PublicationTable({
                 </td>
                 <td>
                   <div className="mk-table-actions">
-                    <button
-                      className="link"
-                      onClick={() => onShowDetails(p)}
-                    >
+                    <button className="link" onClick={() => onShowDetails(p)}>
                       Nội dung & nhật ký
                     </button>
-                    {["awaiting_manual", "unknown"].includes(p.status) &&
-                      !["facebook", "instagram", "threads"].includes(
-                        channel?.provider,
-                      ) && (
-                        <button
-                          className="link"
-                          onClick={() => onConfirmModal(p)}
-                        >
-                          Tôi đã đăng · nhập link
-                        </button>
-                      )}
+                    {["awaiting_manual", "unknown"].includes(p.status) && (
+                      <button
+                        className="link"
+                        onClick={() => onConfirmModal(p)}
+                      >
+                        Tôi đã đăng · nhập link
+                      </button>
+                    )}
                     {p.status === "unknown" && (
                       <button
                         className="link danger"
@@ -129,11 +127,20 @@ export default function PublicationTable({
                       "needs_reauth",
                     ].includes(p.status) && (
                       <>
-                        {["scheduled", "retry_wait", "publishing"].includes(p.status) && onDispatch && (
-                          <button className="link" disabled={busy} onClick={onDispatch} title="Kiểm tra kết quả đăng ngay">
-                            Kiểm tra kết quả ↻
-                          </button>
-                        )}
+                        {p.transport !== "desktop" &&
+                          ["scheduled", "retry_wait", "publishing"].includes(
+                            p.status,
+                          ) &&
+                          onDispatch && (
+                            <button
+                              className="link"
+                              disabled={busy}
+                              onClick={onDispatch}
+                              title="Kiểm tra kết quả đăng ngay"
+                            >
+                              Kiểm tra kết quả ↻
+                            </button>
+                          )}
                         <button
                           className="link danger"
                           disabled={busy || p.cancel_requested}
@@ -153,4 +160,3 @@ export default function PublicationTable({
     </div>
   );
 }
-

@@ -1,0 +1,158 @@
+.brand {
+  display: flex;
+  align-items: center;
+  font-size: 29px;
+  letter-spacing: -1.4px;
+  font-weight: 750;
+  gap: 9px;
+}
+
+.brand-mark {
+  display: block;
+  flex: 0 0 34px;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  object-fit: contain;
+  background: var(--dark);
+}
+
+.brand-dot {
+  color: var(--lime);
+  margin-left: -8px;
+}
+
+.app-shell {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 238px;
+  background: var(--dark);
+  color: #f3f8ef;
+  position: fixed;
+  inset: 0 auto 0 0;
+  padding: 31px 21px 20px;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar .brand {
+  margin: 0 10px 34px;
+}
+
+.workspace {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 14px 10px;
+  border: 1px solid #ffffff18;
+  border-radius: 10px;
+  margin-bottom: 32px;
+}
+
+.workspace strong {
+  font-size: 12px;
+}
+
+.workspace small {
+  display: block;
+  color: #91a99d;
+  font-size: 10px;
+}
+
+.workspace-avatar {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  background: #365448;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.nav-label {
+  font-size: 9px;
+  letter-spacing: 1.7px;
+  color: #8aa194;
+  margin: 0 13px 12px;
+}
+
+.sidebar nav {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sidebar nav button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px;
+  border-radius: 8px;
+  text-align: left;
+  font-size: 13px;
+  color: #b4c7bc;
+}
+
+.sidebar nav button.active {
+  background: #dafa9a;
+  color: #193d2a;
+  font-weight: 650;
+}
+
+.nav-count {
+  margin-left: auto;
+  font-size: 11px;
+  opacity: 0.65;
+}
+
+.sidebar-bottom {
+  margin-top: auto;
+}
+
+.device-mini {
+  display: flex;
+  gap: 10px;
+  padding: 20px 9px;
+}
+
+.device-mini strong {
+  font-size: 11px;
+  display: block;
+}
+
+.device-mini small {
+  font-size: 10px;
+  color: #8da89a;
+}
+
+.dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #a9b4af;
+  margin-right: 6px;
+  flex-shrink: 0;
+}
+
+.dot.online {
+  background: #87c976;
+}
+
+.device-mini > .dot {
+  margin-top: 5px;
+}
+
+.profile {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  text-align: left;
+  color: white;
+  border-top: 1px solid #ffffff16;
+  padding: 18px 5px 0;
+}

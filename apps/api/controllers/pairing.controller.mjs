@@ -95,6 +95,9 @@ export async function revokeDevice(request, env, path, method, context = {}) {
   const { workspaceId, user } = context;
 
   await env.DB.batch([
+    env.DB.prepare("UPDATE marketing_channels SET status='needs_reauth' WHERE workspace_id=? AND device_id=? AND transport='desktop'").bind(workspaceId, path.split("/").at(-1)),
+    env.DB.prepare("UPDATE marketing_publications SET cancel_requested=1,status=CASE WHEN status='publishing' THEN status ELSE 'canceled' END,updated_at=? WHERE workspace_id=? AND transport='desktop' AND status IN ('scheduled','publishing','retry_wait')").bind(Date.now(), workspaceId),
+    env.DB.prepare("UPDATE desktop_social_tasks SET status='canceled',updated_at=? WHERE workspace_id=? AND status IN ('queued','running') AND kind='connect'").bind(Date.now(), workspaceId),
     env.DB.prepare(
       "UPDATE devices SET revoked_at=? WHERE id=? AND workspace_id=?",
     ).bind(Date.now(), path.split("/").at(-1), workspaceId),

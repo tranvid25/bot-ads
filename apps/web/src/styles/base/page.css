@@ -1,0 +1,158 @@
+@media (min-width: 1500px) {
+  .page {
+    padding-top: 45px;
+  }
+  .hero {
+    min-height: 300px;
+  }
+  .hero-art {
+    margin-right: 35px;
+  }
+}
+
+@media (max-width: 1100px) {
+  .sidebar {
+    width: 205px;
+    padding-left: 15px;
+    padding-right: 15px;
+  }
+  .main {
+    margin-left: 205px;
+    width: calc(100% - 205px);
+  }
+  .page {
+    padding: 28px;
+  }
+  .topbar {
+    padding: 0 28px;
+  }
+  .hero-art {
+    width: 240px;
+    transform: scale(0.85);
+    transform-origin: center right;
+  }
+  .hero {
+    padding: 27px;
+  }
+  .page-heading h1 {
+    font-size: 25px;
+  }
+  .stats > div {
+    padding: 18px;
+  }
+  .campaign-card {
+    flex-wrap: wrap;
+  }
+  .campaign-actions {
+    margin-left: auto;
+  }
+}
+
+@media (max-width: 800px) {
+  .sidebar {
+    position: relative;
+    width: 72px;
+    padding: 24px 10px;
+  }
+  .sidebar .brand {
+    font-size: 0;
+    gap: 0;
+    margin: 0 8px 30px;
+  }
+  .brand-dot,
+  .sidebar .workspace,
+  .nav-label,
+  .sidebar .nav-count,
+  .sidebar .device-mini,
+  .sidebar .profile div,
+  .sidebar .profile svg {
+    display: none;
+  }
+  .sidebar nav button {
+    font-size: 0;
+    padding: 14px;
+    gap: 0;
+  }
+  .sidebar .profile {
+    padding-top: 18px;
+    justify-content: center;
+  }
+  .sidebar-bottom {
+    margin-top: 40px;
+  }
+  .main {
+    margin-left: 0;
+    width: calc(100% - 72px);
+  }
+  .topbar {
+    padding: 0 20px;
+    height: 65px;
+  }
+  .topbar > span {
+    font-size: 10px;
+  }
+  .download-link {
+    font-size: 0;
+    gap: 0;
+  }
+  .page {
+    padding: 25px 20px;
+  }
+  .hero-art {
+    display: none;
+  }
+  .hero {
+    min-height: 250px;
+  }
+  .stats {
+    gap: 10px;
+  }
+  .stats > div {
+    padding: 14px;
+  }
+  .stats strong {
+    font-size: 27px;
+  }
+  .stats .device-stat {
+    font-size: 17px;
+  }
+  .stats p {
+    font-size: 9px;
+  }
+  .stats > div > span {
+    font-size: 10px;
+  }
+  .stats svg {
+    display: none;
+  }
+  .connect-grid {
+    grid-template-columns: 1fr;
+  }
+  .page-heading {
+    align-items: flex-start;
+  }
+  .page-heading h1 {
+    font-size: 23px;
+  }
+  .page-heading > .primary {
+    font-size: 0;
+    padding: 12px;
+    gap: 0;
+  }
+  .page-footer {
+    flex-direction: column;
+  }
+  .auth-story {
+    padding: 35px;
+  }
+  .auth-story h1 {
+    font-size: 36px;
+  }
+  .auth-form {
+    padding: 30px;
+  }
+  .campaign-main .row {
+    flex-wrap: wrap;
+    gap: 5px;
+  }
+}

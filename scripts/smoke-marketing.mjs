@@ -144,8 +144,8 @@ try {
   });
   const db = await mf.getD1Database("DB");
   for (const name of [
-    "0001_init.sql",
-    "0002_marketing.sql",
+    "0001_init.sql", "0008_facebook_groups.sql",
+    "0002_marketing.sql", "0009_desktop_social.sql",
     "0003_support.sql",
     "0004_google_auth.sql",
     "0005_google_picture.sql",
@@ -417,7 +417,7 @@ try {
   await page
     .getByRole("row")
     .filter({ hasText: "API pilot" })
-    .filter({ hasText: "API xác nhận đã đăng" })
+    .filter({ hasText: "Đã xác nhận đăng" })
     .first()
     .waitFor({ timeout: 25000 });
   assert.ok(submissions >= 1);

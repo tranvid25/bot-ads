@@ -1,0 +1,163 @@
+@media (max-width: 768px) {
+  .publishing-shell .sidebar {
+    width: 60px;
+    padding: 14px 6px;
+  }
+  .publishing-shell .sidebar .brand {
+    font-size: 0;
+    margin: 0 0 16px;
+    justify-content: center;
+  }
+  .publishing-shell .brand-dot,
+  .publishing-shell .workspace,
+  .publishing-shell .nav-label,
+  .publishing-shell .sidebar-channels,
+  .publishing-shell .device-mini,
+  .publishing-shell .profile div,
+  .publishing-shell .profile svg {
+    display: none;
+  }
+  .publishing-shell .sidebar-new {
+    font-size: 0 !important;
+    padding: 10px !important;
+    border-radius: 50% !important;
+    width: 40px !important;
+    height: 40px !important;
+    margin: 0 auto 16px !important;
+  }
+  .publishing-shell .sidebar nav button {
+    font-size: 0;
+    padding: 10px;
+    justify-content: center;
+  }
+  .publishing-shell .main {
+    margin-left: 60px;
+    width: calc(100% - 60px);
+    max-width: calc(100vw - 60px);
+    overflow-x: hidden;
+  }
+  .publishing-shell .topbar {
+    padding: 0 14px;
+    height: 48px;
+  }
+  .publishing-shell .page {
+    padding: 12px 10px;
+    max-width: 100%;
+    overflow-x: hidden;
+    box-sizing: border-box;
+  }
+  .publishing-shell .mk-workspace {
+    padding: 12px 10px;
+    border-radius: 8px;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+    box-sizing: border-box;
+  }
+  .publishing-shell .mk-intro {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+  }
+  .publishing-shell .mk-stats {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 6px;
+  }
+  .publishing-filters {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 10px;
+  }
+  .publishing-filters .mk-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .search-field,
+  .publishing-shell .search-field input {
+    width: 100% !important;
+  }
+  .buffer-calendar-toolbar {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 10px;
+    width: 100%;
+  }
+  .calendar-nav-group {
+    flex-wrap: wrap;
+    gap: 6px;
+    width: 100%;
+  }
+  .calendar-month-title {
+    min-width: 0;
+    font-size: 13.5px;
+  }
+  .buffer-calendar-grid {
+    grid-template-columns: 1fr;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .calendar-day {
+    min-height: auto;
+    border-right: none;
+    width: 100%;
+    box-sizing: border-box;
+  }
+  .buffer-composer-footer {
+    flex-direction: column;
+    gap: 12px;
+    align-items: stretch;
+  }
+  .composer-footer-right {
+    justify-content: space-between;
+  }
+}
+
+/* ==========================================================================
+   BUFFER DARK MODE & DASHBOARD EXTENSIONS (Matching Screenshots)
+   ========================================================================== */
+
+/* Main Container & Workspace */
+
+.publishing-shell .page {
+  background: var(--buffer-bg);
+}
+
+.publishing-shell .main {
+  background: var(--buffer-bg);
+}
+
+.publishing-shell .topbar {
+  background: var(--buffer-sidebar);
+  border-bottom: 1px solid var(--buffer-line);
+  color: var(--buffer-text);
+}
+
+.publishing-shell .topbar strong {
+  color: #ffffff;
+}
+
+.publishing-shell .mk-workspace {
+  background: var(--buffer-surface);
+  border: 1px solid var(--buffer-line);
+  color: var(--buffer-text);
+}
+
+.publishing-shell .panel {
+  background: var(--buffer-surface) !important;
+  border: 1px solid var(--buffer-line) !important;
+  border-radius: var(--buffer-radius-card) !important;
+  color: var(--buffer-text) !important;
+  box-shadow: var(--buffer-shadow-sm) !important;
+}
+
+.publishing-shell .panel > h2,
+.publishing-shell .panel h2,
+.publishing-shell .panel h3 {
+  color: #ffffff !important;
+}
+
+.publishing-shell .panel > p,
+.publishing-shell .panel p {
+  color: var(--buffer-text-secondary) !important;
+}

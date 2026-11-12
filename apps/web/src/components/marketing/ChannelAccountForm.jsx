@@ -8,6 +8,7 @@ export default function ChannelAccountForm({
   onSubmit,
   busy,
 }) {
+  const desktop = ["threads", "instagram"].includes(connection.provider);
   return (
     <section className="panel mk-form" id="mk-channel-form">
       <h2>Kết nối tài khoản</h2>
@@ -27,7 +28,11 @@ export default function ChannelAccountForm({
             {Object.entries(providers).map(([k, l]) => (
               <option key={k} value={k}>
                 {l}
-                {manual.includes(k) ? " · thủ công" : " · API"}
+                {["threads", "instagram"].includes(k)
+                  ? " · app máy tính"
+                  : manual.includes(k)
+                    ? " · thủ công"
+                    : " · API"}
               </option>
             ))}
           </select>
@@ -72,7 +77,16 @@ export default function ChannelAccountForm({
               : "LinkedIn chưa được chủ hệ thống cấu hình. Cần Developer App có Share on LinkedIn và Sign In with LinkedIn using OpenID Connect; xem hướng dẫn triển khai."}
           </p>
         )}
-        {manual.includes(connection.provider) && (
+        {desktop && (
+          <p className="notice">
+            Mở bản BotAds máy tính mới đã liên kết, rồi bấm yêu cầu bên dưới.
+            App mở trình duyệt để bạn đăng nhập; không cần Meta API key.{" "}
+            {connection.provider === "instagram"
+              ? "Hỗ trợ một ảnh JPG/PNG và caption."
+              : "Hỗ trợ bài chữ/link."}
+          </p>
+        )}
+        {manual.includes(connection.provider) && !desktop && (
           <>
             <label>
               Tên tài khoản để dễ nhận biết
@@ -95,16 +109,18 @@ export default function ChannelAccountForm({
           className="primary"
           disabled={
             busy ||
-            (!manual.includes(connection.provider) &&
+            (!desktop &&
+              !manual.includes(connection.provider) &&
               !capabilities[connection.provider])
           }
         >
-          {connection.provider === "linkedin"
-            ? "Kết nối qua LinkedIn"
-            : "Thêm tài khoản"}
+          {desktop
+            ? "Yêu cầu đăng nhập trên máy tính"
+            : connection.provider === "linkedin"
+              ? "Kết nối qua LinkedIn"
+              : "Thêm tài khoản"}
         </button>
       </form>
     </section>
   );
 }
-

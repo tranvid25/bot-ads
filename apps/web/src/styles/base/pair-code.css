@@ -1,0 +1,164 @@
+.pair-code {
+  font-family: Consolas, monospace;
+  padding: 17px 0;
+  color: var(--green);
+  font-size: 21px;
+  letter-spacing: 1px;
+}
+
+.device-row {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  padding: 10px 0;
+}
+
+.device-row > div {
+  flex: 1;
+}
+
+.device-row p {
+  font-size: 12px;
+  margin-top: 5px;
+}
+
+.notice {
+  padding: 17px 20px;
+  border-radius: 9px;
+  background: #f0f4e9;
+  color: #68765a;
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.notice p {
+  margin-top: 5px;
+}
+
+.settings-panel {
+  max-width: 650px;
+}
+
+.settings-panel .notice {
+  margin-bottom: 22px;
+}
+
+.table-wrap {
+  overflow: auto;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  font-size: 12px;
+}
+
+th {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #8b978d;
+  font-weight: 600;
+  border-bottom: 1px solid var(--line);
+  padding: 14px 10px;
+}
+
+td {
+  padding: 17px 10px;
+  border-bottom: 1px solid #edf0eb;
+  vertical-align: middle;
+}
+
+td strong {
+  font-weight: 600;
+}
+
+.logs {
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 350px;
+  overflow: auto;
+  background: #15352c;
+  color: #d2e2d4;
+  padding: 20px;
+  border-radius: 9px;
+  font-size: 11px;
+  line-height: 1.9;
+}
+
+.page-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 15px;
+  color: #99a39a;
+  font-size: 10px;
+  margin-top: 40px;
+  padding: 18px 0;
+  border-top: 1px solid var(--line);
+}
+
+.alert {
+  border-radius: 9px;
+  padding: 13px 17px;
+  margin: 0 0 20px;
+  font-size: 12px;
+  line-height: 1.6;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.alert.error {
+  background: #fff0ec;
+  color: #a44838;
+}
+
+.alert.success {
+  background: #eaf4e6;
+  color: #456c39;
+}
+
+.alert button {
+  font-size: 18px;
+  color: inherit;
+}
+
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: #0b211a88;
+  backdrop-filter: blur(3px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 25px;
+  z-index: 10;
+}
+
+.editor {
+  width: 800px;
+  max-height: 94vh;
+  background: #fff;
+  border-radius: 17px;
+  overflow: hidden;
+  box-shadow: 0 30px 100px #0004;
+  display: flex;
+  flex-direction: column;
+}
+
+.editor-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 25px 30px 20px;
+}
+
+.editor-head h2 {
+  font-size: 24px;
+}
+
+.editor-head .eyebrow {
+  font-size: 9px;
+  margin-bottom: 6px;
+}

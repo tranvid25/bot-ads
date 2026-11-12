@@ -1,0 +1,161 @@
+.idea-excerpt {
+  color: #d1d5db;
+  font-size: 13px;
+  line-height: 1.5;
+  margin: 0;
+}
+
+.buffer-idea-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: auto;
+  padding-top: 10px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+/* ==========================================================================
+   BUFFER CREATE / IDEAS KANBAN BOARD EXTENSION (Matching Screenshot 1:1)
+   ========================================================================== */
+
+.buffer-create-workspace {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  background: var(--buffer-bg);
+  min-height: calc(100vh - 40px);
+  padding: 6px 0 24px;
+}
+
+.buffer-create-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 4px 8px;
+}
+
+.create-topbar-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.create-title-icon {
+  font-size: 20px;
+}
+
+.create-main-title {
+  margin: 0;
+  font-size: 22px;
+  font-weight: 700;
+  color: #ffffff;
+  letter-spacing: -0.02em;
+}
+
+.create-bookmark-btn {
+  background: transparent;
+  border: none;
+  font-size: 16px;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.15s ease;
+  padding: 2px 4px;
+}
+
+.create-bookmark-btn:hover {
+  opacity: 1;
+}
+
+.create-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.create-feedback-icon {
+  background: transparent;
+  border: none;
+  font-size: 17px;
+  color: var(--buffer-text-secondary);
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 6px;
+  transition: all 0.15s ease;
+}
+
+.create-feedback-icon:hover {
+  color: #ffffff;
+  background: #1c2027;
+}
+
+.buffer-ai-gen-btn {
+  background: #1c212a !important;
+  border: 1px solid #2d3340 !important;
+  color: #f3f4f6 !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  padding: 8px 14px !important;
+  border-radius: 9999px !important;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.buffer-ai-gen-btn:hover {
+  background: #252b36 !important;
+  border-color: #3d4554 !important;
+  color: #ffffff !important;
+}
+
+.buffer-new-idea-pill {
+  background: #1c212a !important;
+  border: 1px solid #2d3340 !important;
+  color: #ffffff !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  padding: 8px 16px !important;
+  border-radius: 9999px !important;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.buffer-new-idea-pill:hover {
+  background: #28303e !important;
+  border-color: #434c5c !important;
+}
+
+.buffer-create-subnav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--buffer-line);
+  padding: 0 8px 12px;
+}
+
+.create-subnav-tabs {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.subnav-tab {
+  background: transparent;
+  border: none;
+  color: var(--buffer-text-secondary);
+  font-size: 13.5px;
+  font-weight: 500;
+  padding: 6px 0;
+  cursor: pointer;
+  position: relative;
+  transition: color 0.15s ease;
+}
+
+.subnav-tab:hover {
+  color: #ffffff;
+}
+
+.subnav-tab.active {
+  color: #ffffff;
+  font-weight: 600;
+}

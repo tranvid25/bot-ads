@@ -1,0 +1,75 @@
+name: Build BotAds for Windows
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: Windows x64 / ${{ matrix.variant }}
+    runs-on: windows-2022
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        variant: [lite, full]
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: node --test tests/desktop-updater.test.cjs tests/browser-launcher.test.cjs
+      - run: npm run check:source
+      - name: Build and verify update metadata
+        env:
+          VARIANT: ${{ matrix.variant }}
+        run: |
+          if ($env:VARIANT -eq 'lite') { npm run desktop:build:lite }
+          else { npm run desktop:build }
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Verify actual updater download and checksum rejection
+        env:
+          VARIANT: ${{ matrix.variant }}
+        run: |
+          $taskFolder = 'release'
+          if ($env:VARIANT -eq 'lite') { $taskFolder = 'release/lite' }
+          node scripts/smoke-desktop-update.cjs "$taskFolder" "$env:VARIANT"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+      - name: Smoke test packaged application and browser
+        env:
+          VARIANT: ${{ matrix.variant }}
+        run: |
+          $taskFolder = Join-Path $PWD 'release'
+          $taskMode = 'bundled'
+          if ($env:VARIANT -eq 'lite') {
+            $taskFolder = Join-Path $taskFolder 'lite'
+            $taskMode = 'system'
+          }
+          $taskExe = Join-Path $taskFolder 'win-unpacked\BotAds.exe'
+          $taskAsar = Join-Path $taskFolder 'win-unpacked\resources\app.asar'
+          node scripts/smoke-packaged-desktop.cjs "$taskExe" "$taskMode"
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          $env:ELECTRON_RUN_AS_NODE = '1'
+          $taskScript = Join-Path $PWD 'scripts\smoke-packaged-browser.cjs'
+          $taskProcess = Start-Process -FilePath $taskExe -ArgumentList @(('"' + $taskScript + '"'), ('"' + $taskAsar + '"')) -WindowStyle Hidden -Wait -PassThru
+          exit $taskProcess.ExitCode
+      - uses: actions/upload-artifact@v4
+        with:
+          name: BotAds-Windows-x64-${{ matrix.variant }}
+          retention-days: 14
+          if-no-files-found: error
+          path: |
+            release/*.exe
+            release/*.sha256
+            release/*.blockmap
+            release/stable-*.yml
+            release/package-size.json
+            release/lite/*.exe
+            release/lite/*.sha256
+            release/lite/*.blockmap
+            release/lite/stable-*.yml
+            release/lite/package-size.json

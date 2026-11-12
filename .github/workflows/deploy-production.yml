@@ -23,11 +23,14 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      - run: npm run check:source
       - run: npx playwright install --with-deps chromium
       - run: npm test
       - run: npm run test:saas
       - run: npm run web:build
       - run: npm run test:marketing:ui
+      - run: npm run test:facebook:ui
+      - run: npm run test:social:ui
       - run: npm run web:check
       - run: npm run cloud:build:production
 

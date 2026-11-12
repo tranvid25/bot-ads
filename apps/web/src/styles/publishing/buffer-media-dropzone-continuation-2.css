@@ -1,0 +1,155 @@
+.buffer-media-dropzone {
+  margin: 0 14px 14px 14px !important;
+  width: 140px !important;
+  height: 110px !important;
+  border: 1px dashed #3a4150 !important;
+  border-radius: 8px !important;
+  background: #161920 !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  text-align: center;
+}
+
+.dropzone-icon {
+  color: #8b949e;
+  margin-bottom: 2px;
+}
+
+.dropzone-text {
+  font-size: 11.5px;
+  color: #8b949e;
+}
+
+.dropzone-link {
+  color: #84d642 !important;
+  font-weight: 500;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.buffer-editor-toolbar-strip {
+  padding: 8px 14px !important;
+  border-top: 1px solid #232833 !important;
+  background: transparent !important;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.strip-left-tools {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.strip-tool-btn {
+  background: transparent !important;
+  border: none !important;
+  color: #8b949e !important;
+  font-size: 14px !important;
+  padding: 2px 6px !important;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.strip-tool-btn:hover {
+  color: #ffffff !important;
+}
+
+.strip-counter-badge {
+  color: #6e7681;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+.buffer-first-comment-row {
+  padding: 8px 14px !important;
+  border-top: 1px solid #232833 !important;
+  background: #161920 !important;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.first-comment-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #8b949e;
+  white-space: nowrap;
+}
+
+.first-comment-input-wrap {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.first-comment-input {
+  flex: 1;
+  background: #12141a !important;
+  border: 1px solid #252a35 !important;
+  border-radius: 6px !important;
+  padding: 6px 12px !important;
+  font-size: 13px !important;
+  color: #ffffff !important;
+  outline: none !important;
+}
+
+.first-comment-bolt-btn {
+  background: #5b46e8 !important;
+  border: none !important;
+  border-radius: 4px !important;
+  width: 24px !important;
+  height: 22px !important;
+  color: #ffffff !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+/* Mockup Placeholder in Preview */
+
+.buffer-preview-header {
+  font-size: 14px;
+  font-weight: 600;
+  color: #ffffff;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.buffer-preview-mockup-placeholder {
+  background: #161920 !important;
+  border: 1px solid #232833 !important;
+  border-radius: 10px !important;
+  min-height: 330px !important;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 30px 16px;
+}
+
+.preview-sparkle {
+  font-size: 20px;
+  opacity: 0.6;
+}
+
+.sparkle-top {
+  align-self: flex-end;
+  margin-right: 30px;
+}
+
+.sparkle-bottom {
+  align-self: flex-start;
+  margin-left: 30px;
+}

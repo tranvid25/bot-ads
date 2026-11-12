@@ -1,0 +1,160 @@
+.preview-mockup-card {
+  width: 200px;
+  background: #1f2228;
+  border: 1px solid #2d313a;
+  border-radius: 10px;
+  padding: 12px;
+  margin: 12px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.mockup-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mockup-avatar {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: #2f3440;
+}
+
+.mockup-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+}
+
+.mockup-line {
+  height: 5px;
+  border-radius: 3px;
+  background: #2f3440;
+}
+
+.line-short {
+  width: 60%;
+}
+
+.line-shorter {
+  width: 40%;
+}
+
+.line-full {
+  width: 100%;
+}
+
+.line-half {
+  width: 75%;
+}
+
+.mockup-body-lines {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+.mockup-media-box {
+  height: 80px;
+  border-radius: 6px;
+  background: #262a34;
+}
+
+.preview-placeholder-text {
+  font-size: 13px;
+  color: #8b949e;
+  font-weight: 500;
+  margin-top: 12px;
+}
+
+.buffer-feed-card {
+  background: #1a1d22 !important;
+  border: 1px solid #2d313a !important;
+}
+
+.buffer-composer-footer {
+  padding: 14px 22px !important;
+  border-top: 1px solid #222631 !important;
+  background: #14171d !important;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.composer-footer-left {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.buffer-create-another-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: #c9d1d9;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.footer-v-separator {
+  color: #333842;
+  margin: 0 4px;
+}
+
+.buffer-save-draft-btn {
+  background: transparent !important;
+  border: none !important;
+  color: #8b949e !important;
+  font-size: 13px !important;
+  cursor: pointer;
+}
+
+.buffer-save-draft-btn:hover {
+  color: #ffffff !important;
+}
+
+.buffer-split-schedule-group {
+  display: flex;
+  align-items: center;
+}
+
+.buffer-split-dropdown-trigger {
+  background: #222630 !important;
+  border: 1px solid #333844 !important;
+  color: #c9d1d9 !important;
+  border-radius: 6px 0 0 6px !important;
+  padding: 7px 12px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.buffer-split-main-btn {
+  background: #222630 !important;
+  border: 1px solid #333844 !important;
+  border-left: none !important;
+  color: #8b949e !important;
+  border-radius: 0 6px 6px 0 !important;
+  padding: 7px 14px !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  cursor: pointer;
+}
+
+.buffer-split-main-btn:hover {
+  color: #ffffff !important;
+}
+
+.buffer-schedule-popup-menu {
+  background: #1f2228 !important;
+  border: 1px solid var(--buffer-line) !important;
+}
+
+/* Channel Picker Card Grid */

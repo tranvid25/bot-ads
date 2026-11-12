@@ -1,0 +1,47 @@
+.mk-workspace td {
+  vertical-align: top;
+  max-width: 320px;
+  overflow-wrap: anywhere;
+}
+
+.mk-events {
+  padding-left: 20px;
+  display: grid;
+  gap: 12px;
+}
+
+@media (max-width: 1000px) {
+  .mk-intro {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .mk-content-list,
+  .mk-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 600px) {
+  .mk-stats {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .mk-intro,
+  .mk-dialog {
+    padding: 16px;
+  }
+  .mk-intro h2 {
+    font-size: 20px;
+  }
+  .mk-overlay {
+    padding: 12px;
+  }
+  .mk-toolbar {
+    align-items: stretch;
+    gap: 10px;
+  }
+  .mk-intro-actions {
+    width: 100%;
+  }
+}

@@ -1,0 +1,158 @@
+:root,
+.publishing-shell {
+  --buffer-lime: #9ae678;
+  --buffer-lime-hover: #86dc63;
+  --buffer-lime-active: #75ce50;
+  --buffer-lime-dark: #123818;
+  --buffer-lime-subtle: rgba(154, 230, 120, 0.12);
+  --buffer-lime-border: rgba(154, 230, 120, 0.28);
+  --buffer-charcoal: #1e293b;
+  --buffer-charcoal-hover: #0f172a;
+
+  /* Buffer Dark Theme Palette */
+  --buffer-bg: #0d0f12;
+  --buffer-surface: #181b20;
+  --buffer-surface-elevated: #1f2228;
+  --buffer-sidebar: #101216;
+  --buffer-line: #282b33;
+  --buffer-line-subtle: #20232a;
+  --buffer-text: #f3f4f6;
+  --buffer-text-secondary: #9ca3af;
+  --buffer-text-muted: #6b7280;
+  --buffer-text-light: #4b5563;
+  --buffer-modal-bg: #1a1d22;
+  --buffer-editor-bg: #14161a;
+  --buffer-input-bg: #121418;
+  --buffer-input-border: #2c303a;
+
+  --buffer-radius-pill: 9999px;
+  --buffer-radius-modal: 16px;
+  --buffer-radius-card: 14px;
+  --buffer-radius-button: 8px;
+  --buffer-shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.35);
+  --buffer-shadow-md:
+    0 4px 6px -1px rgba(0, 0, 0, 0.4), 0 2px 4px -2px rgba(0, 0, 0, 0.3);
+  --buffer-shadow-lg:
+    0 10px 15px -3px rgba(0, 0, 0, 0.45), 0 4px 6px -4px rgba(0, 0, 0, 0.3);
+  --buffer-shadow-modal: 0 25px 50px -12px rgba(0, 0, 0, 0.75);
+
+  /* Scrollbar Theme Tokens */
+  --scrollbar-thumb: rgba(255, 255, 255, 0.16);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.32);
+  --scrollbar-thumb-active: var(--buffer-lime);
+  --scrollbar-track: transparent;
+
+  color: var(--buffer-text);
+  background: var(--buffer-bg);
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* ==========================================================================
+   GLOBAL CUSTOM SCROLLBAR (Cross-Browser, Minimalist Floating Pill)
+   ========================================================================== */
+
+/* Universal Firefox standard */
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+
+/* Universal WebKit (Chrome, Edge, Safari, Opera, Brave) */
+
+*::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+*::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+  min-height: 24px;
+  transition: background 0.15s ease;
+}
+
+*::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.32);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-thumb:active {
+  background: #9ae678;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+*::-webkit-scrollbar-corner {
+  background: transparent;
+}
+
+*::-webkit-scrollbar-button {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* Explicit Utility Classes */
+
+.custom-scrollbar {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.16);
+  border-radius: 9999px;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.32);
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:active {
+  background: #9ae678;
+  border: 2px solid transparent;
+  background-clip: padding-box;
+}
+
+/* Ultra-thin scrollbar for tight areas (kanban columns, dropdowns) */
+
+.custom-scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.14) transparent;
+}
+
+.custom-scrollbar-thin::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+.custom-scrollbar-thin::-webkit-scrollbar-track {
+  background: transparent;
+}

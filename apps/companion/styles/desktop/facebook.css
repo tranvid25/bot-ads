@@ -1,0 +1,78 @@
+.facebook {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: #f2f6ec;
+  border-radius: 9px;
+  padding: 17px;
+  margin: 16px 0;
+}
+
+.facebook p {
+  margin: 0;
+}
+
+.controls {
+  display: flex;
+  gap: 9px;
+  margin-bottom: 18px;
+}
+
+.checkbox {
+  flex-direction: row;
+  align-items: center;
+  font-weight: 400;
+}
+
+.checkbox input {
+  width: 16px;
+  height: 16px;
+  accent-color: #236d4d;
+}
+
+.note {
+  font-size: 11px;
+  margin: 16px 0 0;
+}
+
+.log-section {
+  padding-bottom: 15px;
+}
+
+pre {
+  font:
+    11px/1.8 Consolas,
+    monospace;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  max-height: 180px;
+  overflow: auto;
+  background: #163b2d;
+  color: #d7e8d0;
+  border-radius: 7px;
+  padding: 15px;
+}
+
+.muted,
+footer {
+  font-size: 10px;
+  color: #83917e;
+}
+
+footer {
+  text-align: center;
+  padding: 8px;
+}
+
+#error {
+  padding: 12px;
+  background: #fff0eb;
+  color: #ae5140;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  line-height: 1.7;
+}
+
+[hidden] {
+  display: none !important;
+}

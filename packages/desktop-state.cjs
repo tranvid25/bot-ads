@@ -27,7 +27,7 @@ function campaignConfig(
     headless: false,
     groups: campaign.groupUrls,
     discoveredGroups:
-      previous.cloudCampaignId === job.campaignId
+      campaign.workflowVersion !== 2 && previous.cloudCampaignId === job.campaignId
         ? previous.discoveredGroups || []
         : [],
     cloudJobId: job.id,
@@ -51,9 +51,9 @@ function campaignConfig(
       topicKeywords: campaign.keywords,
     },
     automation: {
-      search: campaign.autoDiscover,
-      sync: true,
-      join: campaign.autoJoin,
+      search: campaign.workflowVersion === 2 ? false : campaign.autoDiscover,
+      sync: campaign.workflowVersion !== 2,
+      join: campaign.workflowVersion === 2 ? false : campaign.autoJoin,
       generateAI: false,
     },
     commentLinkUnderPost: campaign.commentEnabled,

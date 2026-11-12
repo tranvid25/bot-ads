@@ -1,0 +1,156 @@
+.mini-icon {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  background: #eef5e9;
+  border-radius: 8px;
+  color: #578742;
+  margin-bottom: 12px;
+}
+
+.content-card strong {
+  display: block;
+  font-size: 11px;
+}
+
+.fake-line {
+  height: 5px;
+  background: #e9ede7;
+  border-radius: 4px;
+  margin-top: 12px;
+  width: 90%;
+}
+
+.fake-line.short {
+  width: 65%;
+  margin-top: 6px;
+}
+
+.mini-pill {
+  display: inline-block;
+  background: #edf4e5;
+  color: #789069;
+  font-size: 9px;
+  padding: 5px 8px;
+  border-radius: 4px;
+  margin-top: 14px;
+}
+
+.schedule-card {
+  left: 109px;
+  top: 159px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 18px;
+  transform: rotate(5deg);
+  width: 209px;
+}
+
+.schedule-card .mini-icon {
+  margin: 0;
+}
+
+.schedule-card strong {
+  display: block;
+  font-size: 20px;
+}
+
+.schedule-card small {
+  font-size: 9px;
+}
+
+.schedule-card > svg {
+  margin-left: auto;
+  color: #6b9752;
+}
+
+.spark-decoration {
+  position: absolute;
+  right: 0;
+  top: 20px;
+  font-size: 67px;
+  color: #adc88e;
+  transform: rotate(20deg);
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 17px;
+  margin: 24px 0 31px;
+}
+
+.stats > div {
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 21px 23px;
+  border-radius: 12px;
+}
+
+.stats > div > span {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: #708174;
+}
+
+.stats svg {
+  color: #8d9d8c;
+  width: 17px;
+}
+
+.stats strong {
+  display: block;
+  font-size: 34px;
+  font-weight: 600;
+  margin: 15px 0 8px;
+  letter-spacing: -1px;
+}
+
+.stats strong small {
+  font-size: 15px;
+  margin-left: 8px;
+  color: #a1ada4;
+  font-weight: 400;
+  letter-spacing: 0;
+}
+
+.stats p {
+  font-size: 10px;
+  color: #8a978d;
+}
+
+.stats .device-stat {
+  font-size: 23px;
+  letter-spacing: -0.6px;
+  margin-top: 21px;
+  margin-bottom: 11px;
+}
+
+.section-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.section-title h2 {
+  font-size: 18px;
+}
+
+.section-title h3 span {
+  margin-left: 8px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 400;
+}
+
+.campaign-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}

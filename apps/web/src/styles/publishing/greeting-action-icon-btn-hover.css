@@ -1,0 +1,160 @@
+.greeting-action-icon-btn:hover {
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.08);
+}
+
+/* Streak & Metric Score Pills */
+
+.buffer-metrics-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 14px;
+}
+
+.buffer-metric-pill {
+  background: var(--buffer-surface);
+  border: 1px solid var(--buffer-line);
+  border-radius: 12px;
+  padding: 14px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.metric-badge-circle {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 15px;
+  flex-shrink: 0;
+}
+
+.metric-badge-circle.purple {
+  background: rgba(168, 85, 247, 0.2);
+  color: #c084fc;
+  border: 2px solid #a855f7;
+}
+
+.metric-badge-circle.dark {
+  background: #242831;
+  color: #e5e7eb;
+  border: 2px solid #374151;
+}
+
+.metric-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.metric-name {
+  font-size: 13.5px;
+  font-weight: 600;
+  color: var(--buffer-text);
+}
+
+.metric-desc {
+  font-size: 12px;
+  color: var(--buffer-text-muted);
+}
+
+/* First Steps Section */
+
+.buffer-first-steps-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.buffer-first-steps-section .section-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--buffer-text-secondary);
+  margin: 0;
+}
+
+.first-steps-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 14px;
+}
+
+.step-card {
+  background: var(--buffer-surface);
+  border: 1px solid var(--buffer-line);
+  border-radius: 12px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.step-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.step-card-header strong {
+  font-size: 14px;
+  color: #ffffff;
+}
+
+.step-check {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid #3b4250;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: #6b7280;
+}
+
+.step-check.done {
+  background: var(--buffer-lime);
+  color: var(--buffer-lime-dark);
+  border-color: var(--buffer-lime);
+}
+
+.step-card p {
+  font-size: 12px;
+  color: var(--buffer-text-muted);
+  line-height: 1.5;
+  margin: 0;
+  flex: 1;
+}
+
+.buffer-step-btn {
+  background: #20242b !important;
+  border: 1px solid #333842 !important;
+  color: #f3f4f6 !important;
+  border-radius: 8px !important;
+  padding: 7px 12px !important;
+  font-size: 12.5px !important;
+  font-weight: 500 !important;
+  cursor: pointer !important;
+  align-self: flex-start !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 6px !important;
+}
+
+.buffer-step-btn:hover:not(:disabled) {
+  background: #2a2f38 !important;
+  border-color: #4b5260 !important;
+}
+
+/* Buffer Authentic Sidebar (Clone-website Fidelity for Image 1 & Image 2) */
+
+.buffer-sidebar-header {
+  display: flex;
+  align-items: center;
+  padding: 4px 4px 14px 4px;
+  width: 100%;
+  box-sizing: border-box;
+}

@@ -1,0 +1,147 @@
+label {
+  display: grid;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.65;
+}
+
+input,
+select,
+textarea {
+  width: 100%;
+  min-width: 0;
+  background: white;
+  border: 1px solid #cbd8c9;
+  color: #233b35;
+  border-radius: 8px;
+  padding: 11px 12px;
+}
+
+textarea {
+  resize: vertical;
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible,
+button:focus-visible,
+a:focus-visible {
+  outline: 3px solid #8dbb6e;
+  outline-offset: 3px;
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.consent {
+  display: flex;
+  align-items: flex-start;
+  font-weight: 400;
+}
+
+.consent input {
+  width: 17px;
+  height: 17px;
+  flex: 0 0 auto;
+  margin-top: 4px;
+}
+
+button {
+  justify-self: start;
+  padding: 13px 20px;
+  border: 0;
+  border-radius: 9px;
+  background: #176b50;
+  color: white;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+
+.form-status {
+  border-radius: 10px;
+  padding: 0;
+  margin: 0;
+  font-size: 14px;
+}
+
+.form-status.success {
+  padding: 15px;
+  color: #15553b;
+  background: #e5f4e3;
+}
+
+.form-status.error {
+  padding: 15px;
+  color: #96362a;
+  background: #fff0e8;
+}
+
+footer {
+  max-width: 1160px;
+  margin: 0 auto;
+  border-top: 1px solid #dfe7df;
+  padding: 25px 30px;
+}
+
+footer p,
+footer a {
+  font-size: 12px;
+}
+
+footer nav {
+  display: flex;
+  gap: 15px 25px;
+  flex-wrap: wrap;
+}
+
+.skip-link {
+  position: fixed;
+  left: 15px;
+  top: -100px;
+  z-index: 3;
+  padding: 15px;
+  background: white;
+}
+
+.skip-link:focus {
+  top: 15px;
+}
+
+@media (max-width: 760px) {
+  .document-layout {
+    grid-template-columns: 1fr;
+    gap: 15px;
+    padding: 25px 20px;
+  }
+  aside nav {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 5px;
+    margin: 15px 0;
+  }
+  aside .muted {
+    display: none;
+  }
+  .site-header {
+    padding: 20px;
+  }
+  .request-panel {
+    padding: 20px;
+  }
+  .form-grid {
+    grid-template-columns: 1fr;
+  }
+  .site-header .app-link {
+    max-width: 130px;
+    text-align: right;
+  }
+}

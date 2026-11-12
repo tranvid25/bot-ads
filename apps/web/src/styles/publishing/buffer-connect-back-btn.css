@@ -1,0 +1,127 @@
+.buffer-connect-back-btn {
+  align-self: flex-start;
+  background: transparent;
+  border: none;
+  color: #9ae678;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.buffer-connect-back-btn:hover {
+  text-decoration: underline;
+}
+
+.inline-form-target-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  background: #181b22;
+  border: 1px solid #282e3b;
+  border-radius: 12px;
+  padding: 14px 16px;
+}
+
+.target-icon-wrap {
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.inline-form-target-header h3 {
+  margin: 0 0 3px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #ffffff;
+}
+
+.inline-form-target-header p {
+  margin: 0;
+  font-size: 12px;
+  color: #9ca3af;
+}
+
+.connect-fields-form {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.connect-fields-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.connect-fields-form label span {
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #e5e7eb;
+}
+
+.connect-fields-form input {
+  background: #101216;
+  border: 1px solid #2d3340;
+  border-radius: 8px;
+  padding: 10px 12px;
+  font-size: 13.5px;
+  color: #ffffff;
+  outline: none;
+  transition: border-color 0.15s ease;
+}
+
+.connect-fields-form input:focus {
+  border-color: #9ae678;
+}
+
+.connect-fields-form small {
+  font-size: 11.5px;
+  color: #9ca3af;
+}
+
+.inline-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 6px;
+}
+
+.inline-form-actions .cancel-btn {
+  background: #1f232b;
+  border: 1px solid #2d3340;
+  color: #d1d5db;
+  padding: 9px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.inline-form-actions .confirm-btn {
+  background: #9ae678;
+  border: none;
+  color: #0d0f12;
+  padding: 9px 18px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.inline-form-actions .confirm-btn:hover {
+  background: #84dc5f;
+}
+
+.inline-form-actions .confirm-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}

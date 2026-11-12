@@ -1,0 +1,162 @@
+.icon-button {
+  font-size: 28px;
+  color: #8a988d;
+  padding: 5px;
+}
+
+.tabs {
+  display: flex;
+  padding: 0 30px;
+  border-bottom: 1px solid var(--line);
+  gap: 26px;
+}
+
+.tabs button {
+  padding: 14px 0;
+  color: #8c978d;
+  font-size: 12px;
+  border-bottom: 2px solid transparent;
+}
+
+.tabs button span {
+  font-size: 10px;
+  margin-right: 7px;
+}
+
+.tabs button.active {
+  color: var(--green);
+  border-color: var(--green);
+  font-weight: 650;
+}
+
+.editor form {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.editor-body {
+  padding: 25px 30px;
+  overflow: auto;
+}
+
+.editor-footer {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fafbf8;
+  border-top: 1px solid var(--line);
+  padding: 18px 30px;
+}
+
+.editor-footer > span {
+  font-size: 11px;
+  color: var(--muted);
+  margin-right: auto;
+}
+
+.mode-options {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+  margin: 22px 0;
+}
+
+.mode {
+  border: 1px solid var(--line);
+  padding: 18px;
+  border-radius: 10px;
+  text-align: left;
+  display: grid;
+  grid-template-columns: 28px 1fr;
+  column-gap: 10px;
+  color: #607264;
+}
+
+.mode strong {
+  font-size: 13px;
+}
+
+.mode small {
+  grid-column: 2;
+  font-size: 11px;
+  margin-top: 4px;
+}
+
+.mode.selected {
+  border-color: #3c8a60;
+  background: #f0f7eb;
+  color: #226348;
+}
+
+.ai-box {
+  padding: 20px;
+  background: #f4f7ef;
+  border: 1px solid #e0e9d8;
+  border-radius: 10px;
+  margin-bottom: 25px;
+}
+
+.ai-box .check {
+  margin-top: 20px;
+  margin-bottom: 0;
+}
+
+.check {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 9px;
+  font-weight: 500;
+  font-size: 12px;
+}
+
+.post-editor {
+  border: 1px solid var(--line);
+  padding: 18px;
+  border-radius: 10px;
+  margin-bottom: 15px;
+}
+
+.post-editor > .row:first-child {
+  margin-bottom: 12px;
+}
+
+.post-editor .check {
+  margin: 0;
+}
+
+.post-editor > input {
+  margin-bottom: 10px;
+}
+
+.post-editor textarea {
+  margin-bottom: 10px;
+}
+
+.post-editor select {
+  font-size: 12px;
+}
+
+.upload-button {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px dashed #a6b89d;
+  border-radius: 8px;
+  min-width: 105px;
+  margin: 0;
+  padding: 10px;
+  font-size: 12px;
+  cursor: pointer;
+  color: #578042;
+}
+
+.upload-button input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}

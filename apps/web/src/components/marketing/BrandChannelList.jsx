@@ -15,7 +15,7 @@ export default function BrandChannelList({ channels, onDisconnect, busy }) {
           <div>
             <strong>{c.name}</strong>
             <small>
-              {providers[c.provider]} · {manual.includes(c.provider) ? "Tự đăng" : "API"}
+              {providers[c.provider]} · {c.transport === "desktop" ? "App máy tính · cần online" : manual.includes(c.provider) ? "Đăng thủ công" : "API"}
             </small>
             <small>
               {c.status === "connected"

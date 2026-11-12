@@ -1,0 +1,164 @@
+.buffer-manual-notice {
+  font-size: 12px;
+  background: rgba(234, 179, 8, 0.08) !important;
+  border: 1px solid rgba(234, 179, 8, 0.25) !important;
+  color: #facc15 !important;
+  padding: 8px 12px;
+  border-radius: 6px;
+  margin: 0;
+}
+
+.buffer-tracking-box,
+.publishing-shell .mk-tracking {
+  background: #14171d !important;
+  border: 1px solid var(--buffer-line) !important;
+  border-radius: 8px !important;
+  padding: 10px 12px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 4px !important;
+}
+
+.buffer-tracking-box strong,
+.publishing-shell .mk-tracking strong {
+  font-size: 12px !important;
+  color: var(--buffer-text) !important;
+  font-weight: 600 !important;
+}
+
+.buffer-tracking-box small,
+.publishing-shell .mk-tracking small {
+  font-size: 11px !important;
+  color: var(--buffer-text-muted) !important;
+}
+
+.buffer-tracking-box input,
+.publishing-shell .mk-tracking input {
+  font-size: 12px !important;
+  padding: 6px 10px !important;
+  background: #0d0f13 !important;
+  border: 1px solid var(--buffer-line) !important;
+  border-radius: 6px !important;
+  color: var(--buffer-text) !important;
+}
+
+.buffer-preview-scroll-link {
+  font-size: 12px;
+  align-self: flex-start;
+}
+
+/* ==========================================================================
+   COMPOSER FOOTER ACTIONS (Split Button & Options Menu)
+   ========================================================================== */
+
+/* ============================================================
+   COMPOSER FOOTER — compact dropdown + publish button under preview
+   ============================================================ */
+
+.buffer-composer-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  background: var(--buffer-modal-bg);
+  border-top: 1px solid var(--buffer-line);
+  margin-top: auto;
+  gap: 16px;
+}
+
+.composer-footer-left {
+  display: flex;
+  align-items: center;
+  flex: 1;
+}
+
+.composer-footer-hint {
+  font-size: 12.5px;
+  color: var(--buffer-text-muted);
+}
+
+.composer-footer-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  position: relative;
+}
+
+/* Schedule Dropdown Trigger */
+
+.schedule-dropdown-wrap {
+  position: relative;
+}
+
+.schedule-dropdown-trigger {
+  background: var(--buffer-surface-elevated);
+  border: 1.5px solid var(--buffer-line);
+  border-radius: 8px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--buffer-text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition:
+    border-color 0.15s,
+    background 0.15s;
+}
+
+.schedule-dropdown-trigger:hover {
+  border-color: var(--buffer-lime);
+  background: #242831;
+}
+
+.dropdown-caret {
+  font-size: 11px;
+  color: var(--buffer-text-secondary);
+}
+
+/* Schedule Dropdown Popup Menu */
+
+.schedule-dropdown-menu {
+  position: absolute;
+  bottom: calc(100% + 8px);
+  right: 0;
+  width: 260px;
+  background: #1c1f26;
+  border: 1px solid var(--buffer-line);
+  border-radius: 12px;
+  box-shadow: var(--buffer-shadow-modal);
+  padding: 6px;
+  z-index: 250;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.dropdown-menu-item {
+  background: transparent;
+  border: none;
+  border-radius: 8px;
+  padding: 8px 12px;
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  color: var(--buffer-text);
+  transition: background 0.15s;
+}
+
+.dropdown-menu-item:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.dropdown-menu-item.is-selected {
+  background: var(--buffer-lime-subtle);
+  border: 1px solid var(--buffer-lime-border);
+}
+
+.dropdown-menu-item strong {
+  font-size: 13px;
+  color: var(--buffer-text);
+}

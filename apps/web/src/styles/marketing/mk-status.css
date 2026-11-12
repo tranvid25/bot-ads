@@ -1,0 +1,164 @@
+.mk-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: 9999px;
+  background: #f3f4f6;
+  color: #4b5563;
+  font-size: 11.5px;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.mk-published,
+.mk-approved {
+  background: rgba(16, 185, 129, 0.15);
+  color: #34d399;
+}
+
+.mk-unknown,
+.mk-needs_reauth,
+.mk-awaiting_manual {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+}
+
+.mk-failed {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+
+.mk-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow: auto;
+  background: rgba(15, 23, 42, 0.48);
+  backdrop-filter: blur(4px);
+}
+
+.mk-dialog {
+  background: var(--buffer-modal-bg, #1a1d22);
+  border-radius: 16px;
+  width: min(840px, 98vw);
+  max-height: calc(100vh - 48px);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+  border: 1px solid var(--buffer-line, #282b33);
+  color: var(--buffer-text, #f3f4f6);
+  overflow-y: auto;
+}
+
+.mk-form {
+  display: grid;
+  gap: 16px;
+}
+
+.mk-form label,
+.mk-toolbar label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #374151;
+}
+
+.mk-fieldset {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 12px 14px;
+}
+
+.mk-fieldset legend {
+  font-size: 12px;
+  font-weight: 600;
+  padding: 0 6px;
+  color: #4b5563;
+}
+
+.mk-check,
+.mk-form .mk-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 400;
+  font-size: 13px;
+}
+
+.mk-check input {
+  width: 16px;
+  height: 16px;
+  flex: 0 0 auto;
+}
+
+.mk-preview {
+  padding: 16px;
+  border: 1px solid var(--buffer-line, #282b33);
+  border-radius: 10px;
+  display: grid;
+  gap: 12px;
+  background: var(--buffer-editor-bg, #15171c);
+  color: var(--buffer-text, #f3f4f6);
+}
+
+.mk-preview pre {
+  font-family: inherit;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin: 0;
+  line-height: 1.7;
+  font-size: 13.5px;
+}
+
+.mk-preview img,
+.mk-image {
+  max-width: 100%;
+  max-height: 260px;
+  object-fit: contain;
+  border-radius: 8px;
+}
+
+.mk-tracking {
+  display: grid;
+  gap: 6px;
+  padding: 12px 14px;
+  border-radius: 8px;
+  background: #f9fafb;
+  border: 1px solid var(--line);
+}
+
+.mk-channel {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.mk-channel > div {
+  display: grid;
+  gap: 4px;
+}
+
+.mk-empty {
+  grid-column: 1/-1;
+  display: grid;
+  justify-items: start;
+  gap: 16px;
+  padding: 32px;
+}
+
+.mk-table-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}

@@ -1,0 +1,161 @@
+.channel-mark.mini {
+  width: 16px;
+  height: 16px;
+  font-size: 8px;
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  border: 1.5px solid #ffffff;
+}
+
+.channel-mark.small {
+  width: 20px;
+  height: 20px;
+  font-size: 9.5px;
+}
+
+.channel-mark.inline {
+  width: 18px;
+  height: 18px;
+  font-size: 9px;
+  margin-right: 6px;
+}
+
+.channel-mark.large {
+  width: 44px;
+  height: 44px;
+  font-size: 20px;
+  border-radius: 12px;
+}
+
+.channel-linkedin {
+  background: #0a66c2;
+}
+
+.channel-dev {
+  background: #09090b;
+  font-size: 8px;
+  letter-spacing: -0.5px;
+}
+
+.channel-medium {
+  background: #000000;
+  font-family: Georgia, serif;
+}
+
+.channel-reddit {
+  background: #ff4500;
+}
+
+.channel-indiehackers {
+  background: #1f364d;
+  font-size: 9px;
+}
+
+.channel-facebook {
+  background: #1877f2;
+}
+
+.channel-instagram {
+  background: linear-gradient(
+    45deg,
+    #f09433 0%,
+    #e6683c 25%,
+    #dc2743 50%,
+    #cc2366 75%,
+    #bc1888 100%
+  );
+}
+
+/* ==========================================================================
+   BUFFER COMPOSER MODAL (Crown Jewel of the Redesign)
+   ========================================================================== */
+
+.buffer-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.48);
+  backdrop-filter: blur(4px);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  overflow-y: auto;
+}
+
+.buffer-modal-dialog {
+  background: var(--buffer-modal-bg);
+  border-radius: var(--buffer-radius-modal);
+  box-shadow: var(--buffer-shadow-modal);
+  border: 1px solid var(--buffer-line);
+  color: var(--buffer-text);
+  width: min(1080px, 98vw);
+  max-height: calc(100vh - 48px);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  outline: none;
+  padding: 0;
+}
+
+.buffer-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 22px;
+  border-bottom: 1px solid var(--buffer-line);
+  background: var(--buffer-modal-bg);
+  margin: 0;
+}
+
+.buffer-modal-title-wrap h2 {
+  font-size: 17px;
+  font-weight: 600;
+  margin: 0;
+  color: #ffffff;
+}
+
+.buffer-modal-close {
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  color: var(--buffer-text-muted) !important;
+  font-size: 13.5px !important;
+  font-weight: 500 !important;
+  padding: 6px 10px !important;
+  border-radius: 6px !important;
+}
+
+.buffer-modal-close:hover {
+  background: #242831 !important;
+  color: #ffffff !important;
+}
+
+.buffer-modal-content {
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  background: var(--buffer-modal-bg);
+}
+
+/* Composer Container */
+
+.buffer-composer-container {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  background: var(--buffer-modal-bg);
+}
+
+/* Composer Topbar (Create Post, Tags, Templates, AI Assistant, Preview) */
+
+.buffer-composer-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 24px;
+  border-bottom: 1px solid var(--buffer-line);
+  background: var(--buffer-modal-bg);
+}

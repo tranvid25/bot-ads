@@ -1,16 +1,7 @@
-import { mkdir, writeFile } from "node:fs/promises";
-import { fileURLToPath } from "node:url";
+export { legalPagesPlugin } from "./plugin.mjs";
 
-export const LEGAL_PATHS = ["/privacy", "/terms", "/support", "/data-deletion"];
-const updated = "10/11/2026";
-const operator = "XayWebsite";
-const sections = (entries) =>
-  entries
-    .map(
-      ([heading, vi, en]) =>
-        `<section class="document-section"><h2>${heading}</h2><p lang="vi">${vi}</p><p lang="en" class="english">${en}</p></section>`,
-    )
-    .join("\n");
+import { LEGAL_PATHS, updated, operator, sections } from "./info.mjs";
+export { LEGAL_PATHS } from "./info.mjs";
 
 const privacy = sections([
   [
@@ -198,33 +189,4 @@ export function renderLegalPage(pathname) {
       `<a href='${route}'${route === normalized ? ' aria-current="page"' : ""}>${pages[route].title}</a>`,
   ).join("");
   return `<!doctype html><html lang="vi"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>${page.title} — BotAds</title><meta name="description" content="${page.description}"><meta name="theme-color" content="#112f29"><link rel="canonical" href='https://bot.salesora.space${normalized}'><link rel="icon" type="image/png" sizes="32x32" href='/brand/logo-32.png'><link rel="apple-touch-icon" href='/brand/logo-180.png'><link rel="stylesheet" href='/legal.css'>${normalized === "/support" || normalized === "/data-deletion" ? '<script src="/legal.js" defer></script>' : ""}</head><body><a class="skip-link" href='#main'>Đến nội dung / Skip to content</a><header class="site-header"><a class="brand" href='/' aria-label="BotAds — Trang chủ"><img src="/brand/logo-128.png" alt="" width="40" height="40"><span>botads<span class="dot">.</span></span></a><a class="app-link" href='/'>Mở BotAds / Open app ↗</a></header><div class="document-layout"><aside><p class="eyebrow">BOTADS · XAYWEBSITE</p><nav aria-label="Chính sách và hỗ trợ">${nav}</nav><p class="muted">Cập nhật / Updated<br>${updated}</p></aside><main id="main"><div class="page-intro"><p class="eyebrow">THÔNG TIN DỊCH VỤ / SERVICE INFORMATION</p><h1>${page.title}</h1><p class="subtitle">${page.subtitle}</p><p class="muted">Bên vận hành / Operator: ${operator} · ${updated}</p></div>${page.body}</main></div><footer><p>BotAds · Vận hành bởi / Operated by ${operator}</p><nav aria-label="Liên kết cuối trang">${nav}</nav></footer></body></html>`;
-}
-
-export function legalPagesPlugin() {
-  return {
-    name: "botads-public-legal-pages",
-    configureServer(server) {
-      server.middlewares.use((req, res, next) => {
-        const html = renderLegalPage(
-          new URL(req.url, "http://localhost").pathname,
-        );
-        if (!html) return next();
-        res.statusCode = 200;
-        res.setHeader("Content-Type", "text/html; charset=utf-8");
-        res.end(html);
-      });
-    },
-    async closeBundle() {
-      const directory = fileURLToPath(new URL("../dist/", import.meta.url));
-      await mkdir(directory, { recursive: true });
-      await Promise.all(
-        LEGAL_PATHS.map((route) =>
-          writeFile(
-            new URL(`../dist/${route.slice(1)}.html`, import.meta.url),
-            renderLegalPage(route),
-          ),
-        ),
-      );
-    },
-  };
 }

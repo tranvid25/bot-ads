@@ -1,0 +1,82 @@
+name: Build BotAds for macOS
+
+on:
+  workflow_dispatch:
+    inputs:
+      signed:
+        description: Developer ID signing and Apple notarization (requires all signing secrets)
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    name: macOS ${{ matrix.arch }} / ${{ matrix.variant }}
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 90
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { runner: macos-15, arch: arm64, variant: lite }
+          - { runner: macos-15, arch: arm64, variant: full }
+          - { runner: macos-15-intel, arch: x64, variant: lite }
+          - { runner: macos-15-intel, arch: x64, variant: full }
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          architecture: ${{ matrix.arch }}
+          cache: npm
+      - run: npm ci
+      - name: Check architecture and build configuration
+        env:
+          EXPECTED_ARCH: ${{ matrix.arch }}
+        run: |
+          node -e 'if (process.arch !== process.env.EXPECTED_ARCH) process.exit(1)'
+          node --test tests/mac-build.test.cjs
+          npm run check:source
+      - name: Build, verify signature and notarization
+        env:
+          CSC_LINK: ${{ secrets.MAC_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.MAC_CSC_KEY_PASSWORD }}
+          APPLE_ID: ${{ secrets.APPLE_ID }}
+          APPLE_APP_SPECIFIC_PASSWORD: ${{ secrets.APPLE_APP_SPECIFIC_PASSWORD }}
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          SIGNED: ${{ inputs.signed }}
+          VARIANT: ${{ matrix.variant }}
+        run: |
+          args=()
+          if [ "$VARIANT" = lite ]; then args+=(--lite); fi
+          if [ "$SIGNED" = true ]; then args+=(--signed); fi
+          node scripts/build-desktop-mac.cjs "${args[@]}"
+      - name: Smoke test packaged browser and desktop
+        env:
+          ARCH: ${{ matrix.arch }}
+          VARIANT: ${{ matrix.variant }}
+        run: |
+          folder=mac
+          if [ "$ARCH" = arm64 ]; then folder=mac-arm64; fi
+          app="$PWD/release/macos/$ARCH/$VARIANT/$folder/BotAds.app"
+          mode=bundled
+          if [ "$VARIANT" = lite ]; then
+            mode=system
+            if [ ! -d '/Applications/Google Chrome.app' ]; then brew install --cask google-chrome; fi
+          fi
+          ELECTRON_RUN_AS_NODE=1 "$app/Contents/MacOS/BotAds" "$PWD/scripts/smoke-packaged-browser.cjs" "$app/Contents/Resources/app.asar"
+          node scripts/smoke-packaged-desktop.cjs "$app/Contents/MacOS/BotAds" "$mode"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: BotAds-macOS-${{ matrix.arch }}-${{ matrix.variant }}-${{ inputs.signed && 'signed' || 'test' }}
+          if-no-files-found: error
+          retention-days: 14
+          path: |
+            release/macos/${{ matrix.arch }}/${{ matrix.variant }}/*.dmg
+            release/macos/${{ matrix.arch }}/${{ matrix.variant }}/*.zip
+            release/macos/${{ matrix.arch }}/${{ matrix.variant }}/*.sha256
+            release/macos/${{ matrix.arch }}/${{ matrix.variant }}/stable-*.yml
+            release/macos/${{ matrix.arch }}/${{ matrix.variant }}/*.blockmap
+            release/macos/${{ matrix.arch }}/${{ matrix.variant }}/package-size.json

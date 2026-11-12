@@ -1,0 +1,163 @@
+.buffer-tags-popover {
+  position: absolute;
+  top: 100%;
+  left: 120px;
+  margin-top: 8px;
+  background: #1e222a;
+  border: 1px solid #2d3340;
+  border-radius: 8px;
+  padding: 10px 12px;
+  z-index: 50;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+}
+
+.tags-popover-input {
+  background: #12141a !important;
+  border: 1px solid #2d3340 !important;
+  border-radius: 4px !important;
+  color: #ffffff !important;
+  padding: 5px 8px !important;
+  font-size: 12.5px !important;
+}
+
+.composer-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.buffer-topbar-btn {
+  background: transparent !important;
+  border: none !important;
+  border-radius: 6px !important;
+  color: #c9d1d9 !important;
+  font-size: 13px !important;
+  font-weight: 500 !important;
+  padding: 6px 10px !important;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.buffer-topbar-btn:hover {
+  background: #1f232d !important;
+  color: #ffffff !important;
+}
+
+.buffer-preview-badge.is-active {
+  background: rgba(132, 214, 66, 0.12) !important;
+  border: 1px solid rgba(132, 214, 66, 0.4) !important;
+  border-radius: 6px !important;
+  color: #84d642 !important;
+  padding: 5px 12px !important;
+  font-size: 13px !important;
+  font-weight: 600 !important;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.buffer-topbar-icon-btn {
+  background: transparent !important;
+  border: none !important;
+  color: #8b949e !important;
+  font-size: 15px !important;
+  padding: 6px 8px !important;
+  cursor: pointer !important;
+  border-radius: 6px !important;
+}
+
+.buffer-topbar-icon-btn:hover {
+  color: #ffffff !important;
+  background: #1f232d !important;
+}
+
+/* Channel Rail */
+
+.buffer-channel-rail {
+  padding: 12px 22px 6px 22px !important;
+  background: #14171d !important;
+  border-bottom: none !important;
+}
+
+.channel-rail-list {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.channel-rail-avatar {
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  position: relative;
+}
+
+.channel-rail-avatar .avatar-circle {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  background: #232731;
+  position: relative;
+  overflow: visible;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.channel-rail-user-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+
+.avatar-platform-badge {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  z-index: 2;
+}
+
+.avatar-platform-badge .channel-mark {
+  width: 17px !important;
+  height: 17px !important;
+  min-width: 17px !important;
+  font-size: 10px !important;
+  border-radius: 3px !important;
+  border: 1.5px solid #14171d !important;
+}
+
+.channel-rail-add-btn {
+  width: 36px !important;
+  height: 36px !important;
+  border-radius: 6px !important;
+  background: #1c2027 !important;
+  border: 1px dashed #3a4150 !important;
+  color: #8b949e !important;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.channel-rail-add-btn:hover {
+  border-color: #84d642 !important;
+  color: #84d642 !important;
+}
+
+.channel-rail-add-btn.is-open {
+  border-color: #84d642 !important;
+  color: #84d642 !important;
+  background: #242933 !important;
+}
+
+/* Buffer Channel Picker Popover */
+
+.channel-rail-action-wrap {
+  position: relative;
+  display: inline-block;
+}

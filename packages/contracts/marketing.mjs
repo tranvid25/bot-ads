@@ -137,6 +137,7 @@ export function validateSchedule(input, now = Date.now()) {
 export function validatePermalink(provider, value) {
   const href = publicUrl(value, "Link bài đã đăng");
   const u = new URL(href);
+  if (provider === "threads" && ["threads.com", "www.threads.com"].includes(u.hostname)) return href;
   const domain = {
     dev: "dev.to",
     linkedin: "linkedin.com",

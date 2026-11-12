@@ -1,4 +1,4 @@
-const { chromium } = require('playwright');
+const { launchBrowser: launchEngine } = require('../browser-launcher.cjs');
 const path = require('path');
 const fs = require('fs');
 
@@ -25,7 +25,7 @@ async function launchBrowser({ headless = false, startMaximized = true } = {}) {
     args.push('--start-maximized');
   }
 
-  const browser = await chromium.launch({
+  const browser = await launchEngine({
     headless,
     args,
     ...(process.env.BOTADS_BROWSER_CHANNEL ? { channel: process.env.BOTADS_BROWSER_CHANNEL } : {})

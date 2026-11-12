@@ -84,6 +84,12 @@ export function validateCampaign(input, maxDaily = 100) {
   }
   return {
     name,
+    workflowVersion: input.workflowVersion === 2 ? 2 : 1,
+    groupIds: [
+      ...new Set(
+        Array.isArray(input.groupIds) ? input.groupIds.map(String) : [],
+      ),
+    ].slice(0, 200),
     mode: input.mode,
     product: text(input.product, 3000),
     prompt,

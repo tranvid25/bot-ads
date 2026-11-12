@@ -12,6 +12,7 @@ import {
   cookieHeader,
 } from "../middleware/security.mjs";
 import { localClock } from "../../../packages/contracts/campaign.mjs";
+import { reviewedCampaign } from "../services/facebook-campaign.mjs";
 export async function dashboard(request, env, path, method, context = {}) {
   const { workspaceId, user } = context;
 
@@ -23,7 +24,7 @@ export async function dashboard(request, env, path, method, context = {}) {
     ),
     all(
       env,
-      "SELECT id,name,last_seen,facebook_ready,revoked_at FROM devices WHERE workspace_id=? AND revoked_at IS NULL",
+      "SELECT id,name,last_seen,facebook_ready,revoked_at,discovery_supported,social_supported FROM devices WHERE workspace_id=? AND revoked_at IS NULL",
       workspaceId,
     ),
     all(
@@ -43,6 +44,22 @@ export async function dashboard(request, env, path, method, context = {}) {
     ),
   ]);
   const day = localClock(new Date(), user.timezone).day;
+  const visibleCampaigns = await Promise.all(
+    campaigns.map(async (c) => {
+      const campaign = {
+        id: c.id,
+        ...JSON.parse(c.data),
+        enabled: !!c.enabled,
+      };
+      try {
+        await reviewedCampaign(env, workspaceId, campaign, true);
+      } catch (e) {
+        if (e.status !== 409) throw e;
+        campaign.blockedReason = e.message;
+      }
+      return campaign;
+    }),
+  );
   const usage = await one(
     env,
     "SELECT count(*) AS count FROM attempts WHERE workspace_id=? AND day=? AND status IN ('submitting','unknown','success','pending_approval')",
@@ -53,11 +70,7 @@ export async function dashboard(request, env, path, method, context = {}) {
     user: publicUser(user),
     settings: { dailyLimit: user.daily_limit, timezone: user.timezone },
     usage: usage.count,
-    campaigns: campaigns.map((c) => ({
-      id: c.id,
-      ...JSON.parse(c.data),
-      enabled: !!c.enabled,
-    })),
+    campaigns: visibleCampaigns,
     devices,
     jobs,
     assets,

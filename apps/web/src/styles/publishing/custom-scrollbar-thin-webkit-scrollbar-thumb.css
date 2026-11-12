@@ -1,0 +1,161 @@
+.custom-scrollbar-thin::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.14);
+  border-radius: 9999px;
+  border: 1px solid transparent;
+  background-clip: padding-box;
+}
+
+.custom-scrollbar-thin::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+/* Utility to hide scrollbar while preserving scrollability */
+
+.no-scrollbar {
+  scrollbar-width: none !important;
+  -ms-overflow-style: none !important;
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+}
+
+/* ==========================================================================
+   BUTTONS (Buffer Style: Signature Lime-Green & Clean Outline)
+   ========================================================================== */
+
+.publishing-shell button,
+.publishing-shell a,
+.publishing-shell input,
+.publishing-shell select,
+.publishing-shell textarea {
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    transform 0.1s ease;
+}
+
+.publishing-shell button:focus-visible,
+.publishing-shell a:focus-visible,
+.publishing-shell input:focus-visible,
+.publishing-shell select:focus-visible,
+.publishing-shell textarea:focus-visible {
+  outline: 2px solid var(--buffer-lime);
+  outline-offset: 2px;
+}
+
+/* Primary Button: Buffer Signature Lime Green */
+
+.publishing-shell .primary {
+  background: var(--buffer-lime) !important;
+  color: var(--buffer-lime-dark) !important;
+  border: 1px solid rgba(0, 0, 0, 0.08) !important;
+  border-radius: var(--buffer-radius-button) !important;
+  font-weight: 600 !important;
+  font-size: 13.5px !important;
+  padding: 8px 16px !important;
+  box-shadow: var(--buffer-shadow-sm) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 7px !important;
+  cursor: pointer !important;
+}
+
+.publishing-shell .primary:hover:not(:disabled) {
+  background: var(--buffer-lime-hover) !important;
+  color: var(--buffer-lime-dark) !important;
+  transform: translateY(-1px);
+  box-shadow: var(--buffer-shadow-md) !important;
+}
+
+.publishing-shell .primary:active:not(:disabled) {
+  background: var(--buffer-lime-active) !important;
+  transform: translateY(0);
+}
+
+.publishing-shell .primary:disabled {
+  opacity: 0.55 !important;
+  cursor: not-allowed !important;
+}
+
+.publishing-shell .primary.small {
+  padding: 6px 12px !important;
+  font-size: 12.5px !important;
+}
+
+/* Secondary Button: Buffer Dark Outline */
+
+.publishing-shell .secondary {
+  background: #20242b !important;
+  border: 1px solid #333842 !important;
+  color: var(--buffer-text) !important;
+  border-radius: var(--buffer-radius-button) !important;
+  font-weight: 500 !important;
+  font-size: 13px !important;
+  padding: 8px 14px !important;
+  box-shadow: var(--buffer-shadow-sm) !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 6px !important;
+  cursor: pointer !important;
+}
+
+.publishing-shell .secondary:hover:not(:disabled) {
+  background: #292d37 !important;
+  border-color: #4b5260 !important;
+  color: #ffffff !important;
+}
+
+.publishing-shell .secondary.small {
+  padding: 5px 10px !important;
+  font-size: 12px !important;
+}
+
+/* Link Button */
+
+.publishing-shell .link {
+  background: transparent !important;
+  border: none !important;
+  color: var(--buffer-lime) !important;
+  font-weight: 500 !important;
+  padding: 4px 6px !important;
+  cursor: pointer !important;
+  text-decoration: none !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  gap: 4px !important;
+}
+
+.publishing-shell .link:hover {
+  text-decoration: underline !important;
+}
+
+.publishing-shell .link.danger {
+  color: #f87171 !important;
+}
+
+/* Badge System */
+
+.publishing-shell .badge {
+  background: #f3f4f6;
+  color: var(--buffer-text-secondary);
+  border-radius: 6px;
+  font-size: 11.5px;
+  font-weight: 500;
+  padding: 3px 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.publishing-shell .badge.success {
+  background: #ecfdf5;
+  color: #059669;
+}
+
+/* Inputs, Selects, Textareas */

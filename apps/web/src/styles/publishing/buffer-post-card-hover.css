@@ -1,0 +1,164 @@
+.buffer-post-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.35);
+  border-color: #3b4250;
+}
+
+.post-card-top {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.post-card-time {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--buffer-text-secondary);
+}
+
+.post-card-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--buffer-text);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.post-card-snippet {
+  font-size: 11px;
+  color: var(--buffer-text-muted);
+  line-height: 1.4;
+  margin: 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.post-card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.post-card-channel {
+  font-size: 10px;
+  color: var(--buffer-text-muted);
+}
+
+/* Discreet Add Post Button */
+
+.buffer-calendar-add {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 6px;
+  border: 1px dashed #e2e8f0;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--buffer-text-light);
+  font-size: 11px;
+  cursor: pointer;
+  margin-top: auto;
+  opacity: 0.6;
+}
+
+.buffer-calendar-add:hover {
+  opacity: 1;
+  background: #f8fafc;
+  color: #15803d;
+  border-color: #86efac;
+}
+
+.buffer-calendar-hint {
+  font-size: 12px;
+  color: var(--buffer-text-muted);
+  margin: 4px 0 0;
+}
+
+/* ==========================================================================
+   STATUS BADGES & POST LISTING
+   ========================================================================== */
+
+.mk-status {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 8px;
+  border-radius: var(--buffer-radius-pill);
+  font-size: 11.5px;
+  font-weight: 500;
+}
+
+.mk-published,
+.mk-user_reported_published,
+.mk-approved {
+  background: rgba(154, 230, 120, 0.16) !important;
+  color: #9ae678 !important;
+  border: 1px solid rgba(154, 230, 120, 0.3) !important;
+}
+
+.mk-scheduled,
+.mk-publishing,
+.mk-retry_wait {
+  background: rgba(59, 130, 246, 0.15) !important;
+  color: #60a5fa !important;
+  border: 1px solid rgba(59, 130, 246, 0.3) !important;
+}
+
+.mk-unknown,
+.mk-needs_reauth,
+.mk-awaiting_manual {
+  background: rgba(245, 158, 11, 0.15);
+  color: #fbbf24;
+}
+
+.mk-failed {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+}
+
+.mk-canceled {
+  background: rgba(107, 114, 128, 0.15);
+  color: var(--buffer-text-muted);
+}
+
+/* Publications Status Tabs */
+
+.publication-status-tabs {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.publication-status-tabs button {
+  background: transparent;
+  border: none;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--buffer-text-muted);
+  cursor: pointer;
+  padding: 6px 4px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.publication-status-tabs button:hover {
+  color: var(--buffer-text);
+}
+
+.publication-status-tabs button[aria-pressed="true"] {
+  color: var(--buffer-text);
+  font-weight: 600;
+}
+
+.publication-status-tabs span {
+  background: #f3f4f6;
+  border-radius: var(--buffer-radius-pill);
+  padding: 1px 7px;
+  font-size: 11px;
+}
+
+/* Publications Table styled as Clean Buffer Cards */

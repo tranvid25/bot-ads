@@ -1,0 +1,85 @@
+.fb-workspace {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  min-width: 0;
+  gap: 24px;
+}
+.fb-workspace .panel {
+  min-width: 0;
+  max-width: 100%;
+}
+.fb-workspace .section-title,
+.fb-workspace .mk-actions {
+  flex-wrap: wrap;
+}
+.facebook-guide li > div {
+  min-width: 0;
+}
+.fb-workspace button {
+  max-width: 100%;
+  white-space: normal;
+}
+.facebook-guide {
+  display: grid;
+  gap: 18px;
+}
+.facebook-guide ol {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 22px;
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.facebook-guide li {
+  display: flex;
+  gap: 12px;
+  border: 1px solid var(--buffer-line, var(--line));
+  border-radius: 10px;
+  padding: 18px;
+}
+.facebook-guide li p {
+  font-size: 13px;
+  margin: 8px 0;
+}
+.fb-step-number {
+  width: 28px;
+  height: 28px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  background: #8fdd7433;
+  color: var(--buffer-lime, var(--green));
+}
+.fb-import {
+  flex: 1;
+  min-width: 180px;
+}
+.fb-group-list {
+  display: grid;
+  gap: 15px;
+}
+.fb-group-row {
+  display: grid;
+  gap: 8px;
+  border: 1px solid var(--buffer-line, var(--line));
+  padding: 16px;
+  border-radius: 8px;
+  overflow-wrap: anywhere;
+}
+.fb-group-row .mk-check {
+  display: flex;
+  flex-direction: row;
+}
+.fb-group-row p {
+  font-size: 13px;
+}
+.fb-group-row a {
+  color: var(--buffer-lime, var(--green));
+}
+@media (max-width: 800px) {
+  .facebook-guide ol {
+    grid-template-columns: 1fr;
+  }
+}

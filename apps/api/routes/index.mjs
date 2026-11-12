@@ -1,4 +1,6 @@
 import { identity, checkOrigin, error } from "../middleware/security.mjs";
+import { facebookRoute } from "../controllers/facebook.controller.mjs";
+import { desktopSocialRoute } from "../controllers/desktop-social.controller.mjs";
 import { authenticate } from "../controllers/auth.controller.mjs";
 import { deviceRoute } from "../controllers/device.controller.mjs";
 import { metadata } from "../controllers/public.controller.mjs";
@@ -74,6 +76,8 @@ export async function route(request, env, execution) {
     return authenticate(request, env, "login");
   if (path.startsWith("/api/device/")) return deviceRoute(request, env, path);
   const context = await identity(request, env);
+  if (path.startsWith("/api/marketing/desktop")) return desktopSocialRoute(request, env, context);
+  if (path === "/api/facebook" || path.startsWith("/api/facebook/")) return facebookRoute(request, env, context);
   if (path === "/api/auth/google/account" && ["GET", "DELETE"].includes(method))
     return googleAccount(request, env, context);
   if (path === "/api/support/requests" && method === "GET")

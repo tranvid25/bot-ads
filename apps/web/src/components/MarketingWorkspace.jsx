@@ -1,3 +1,5 @@
+import channelSubmit from "./marketing/channelSubmit";
+import DesktopConnectionProgress from "./marketing/DesktopConnectionProgress";
 import React, { useEffect, useState } from "react";
 import { api } from "../lib/api";
 import { linkedinErrors } from "../../../../packages/contracts/linkedin-errors.mjs";
@@ -100,6 +102,7 @@ export default function MarketingWorkspace({ user, assets, onUpload, navigation,
 
   return (
     <div className="mk-workspace">
+<DesktopConnectionProgress />
       {error && <div className="alert error" role="alert">{error}<button onClick={() => setError("")}>×</button></div>}
       {notice && <div className="alert success" role="status">{notice}<button onClick={() => setNotice("")}>×</button></div>}
 
@@ -139,13 +142,8 @@ export default function MarketingWorkspace({ user, assets, onUpload, navigation,
           onChannelSubmit={async (e) => {
             e.preventDefault();
             const ok = await action(async () => {
-              if (connection.provider === "linkedin" || (connection.provider === "bluesky" && !connection.apiKey)) {
-                const res = await api(`/marketing/${connection.provider}/start`, "POST", { brandId });
-                window.location.assign(res.url);
-              } else if (connection.provider === "bluesky") {
-                await api("/marketing/channels/bluesky", "POST", { brandId, handle: connection.name, appPassword: connection.apiKey });
-              } else await api(`/marketing/channels/${connection.provider === "dev" ? "dev" : "manual"}`, "POST", { brandId, ...connection });
-            }, "Đã thêm tài khoản kênh.");
+              await channelSubmit({connection,brandId,setConnection,setNotice});
+            }, ["threads", "instagram"].includes(connection.provider) ? "Đã gửi yêu cầu. Mở app BotAds để đăng nhập và xác minh tài khoản." : "Đã thêm tài khoản kênh.");
             if (ok) setConnection((c) => ({ ...c, apiKey: "", name: "" }));
           }}
           onDisconnectChannel={(cId) => action(() => api(`/marketing/channels/${cId}`, "DELETE"), "Đã ngắt kết nối và hủy các lượt chưa gửi của tài khoản này.")}

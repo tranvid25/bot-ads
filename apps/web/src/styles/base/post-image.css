@@ -1,0 +1,154 @@
+.post-image {
+  height: 100px;
+  max-width: 100%;
+  object-fit: contain;
+  margin-top: 12px;
+  border-radius: 7px;
+}
+
+.hint {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 8px 0 18px;
+  line-height: 1.6;
+}
+
+.soft-panel {
+  padding: 18px;
+  background: #f6f8f4;
+  border-radius: 9px;
+  margin-top: 22px;
+}
+
+.soft-panel > .check:last-child {
+  margin-bottom: 0;
+}
+
+.field-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 18px;
+}
+
+.weekdays {
+  display: flex;
+  gap: 9px;
+  margin: 18px 0 25px;
+}
+
+.weekdays button {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  width: 40px;
+  height: 39px;
+  font-size: 12px;
+  color: #879680;
+}
+
+.weekdays button.selected {
+  background: var(--green);
+  color: white;
+  border-color: var(--green);
+}
+
+.auth-shell {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  min-height: 100vh;
+}
+
+.auth-story {
+  background: var(--dark);
+  color: white;
+  padding: 48px 55px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  min-height: 100vh;
+}
+
+.auth-story h1 {
+  font-size: 48px;
+  line-height: 1.2;
+  margin: 25px 0;
+  letter-spacing: -1.8px;
+}
+
+.auth-story p {
+  max-width: 400px;
+  color: #b4c7b9;
+  font-size: 15px;
+}
+
+.auth-story .eyebrow {
+  color: #b4d88e;
+  font-size: 10px;
+}
+
+.auth-story > small {
+  color: #8da497;
+}
+
+.story-flow {
+  display: flex;
+  flex-direction: column;
+  gap: 17px;
+  margin-top: 45px;
+  color: #c8dfb4;
+  font-size: 13px;
+}
+
+.auth-form {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 45px;
+}
+
+.auth-box {
+  width: 100%;
+  max-width: 380px;
+}
+
+.auth-box h2 {
+  font-size: 31px;
+  margin-bottom: 10px;
+}
+
+.auth-box > p {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 30px;
+}
+
+.auth-box form {
+  margin-top: 30px;
+}
+
+.auth-box .auth-switch {
+  margin-top: 20px;
+  text-align: center;
+  font-size: 12px;
+}
+
+.auth-box > small {
+  font-size: 11px;
+  display: block;
+  line-height: 1.8;
+}
+
+.loading {
+  height: 100vh;
+  display: grid;
+  place-content: center;
+  gap: 20px;
+}
+
+.loading .brand {
+  color: var(--dark);
+}
+
+.loading p {
+  font-size: 13px;
+  color: var(--muted);
+}

@@ -1,0 +1,163 @@
+.campaign-card {
+  display: flex;
+  align-items: center;
+  gap: 17px;
+  padding: 22px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+
+.campaign-emblem {
+  background: #f1f4ed;
+  color: #698454;
+  display: grid;
+  place-items: center;
+  width: 45px;
+  height: 45px;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.campaign-main {
+  flex: 1;
+}
+
+.campaign-main p {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 6px 0 2px;
+}
+
+.campaign-main p span {
+  margin: 0 6px;
+}
+
+.campaign-main small {
+  font-size: 10px;
+}
+
+.campaign-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.badge {
+  display: inline-block;
+  font-size: 10px;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+  background: #f0f2ef;
+  color: #718074;
+  border-radius: 5px;
+  padding: 5px 8px;
+}
+
+.badge.success,
+.badge.completed,
+.badge.confirmed {
+  color: #417648;
+  background: #edf5e9;
+}
+
+.badge.running {
+  color: #25685c;
+  background: #e2f4ec;
+}
+
+.badge.unknown,
+.badge.needs_review,
+.badge.pending_approval,
+.badge.submitting {
+  color: #9a772b;
+  background: #fff4d9;
+}
+
+.badge.failed {
+  color: #a75046;
+  background: #fcebe7;
+}
+
+.empty {
+  background: #fff;
+  border: 1px dashed #d9e3d6;
+  border-radius: 12px;
+  padding: 36px 20px;
+  text-align: center;
+}
+
+.empty-symbol {
+  display: grid;
+  place-items: center;
+  width: 55px;
+  height: 55px;
+  background: #f0f5ea;
+  border-radius: 16px;
+  margin: 0 auto 17px;
+  color: #91aa7c;
+}
+
+.empty h3 {
+  font-size: 16px;
+}
+
+.empty p {
+  font-size: 12px;
+  color: var(--muted);
+  margin: 9px 0 20px;
+}
+
+.panel {
+  background: var(--buffer-surface, #181b20);
+  border: 1px solid var(--buffer-line, var(--line));
+  border-radius: 13px;
+  padding: 27px;
+  margin-bottom: 22px;
+}
+
+.panel > h2 {
+  margin-bottom: 15px;
+}
+
+.panel > p {
+  font-size: 13px;
+  color: var(--muted);
+  margin-bottom: 21px;
+}
+
+.panel .empty {
+  border: 0;
+}
+
+.connect-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+.number {
+  font-size: 11px;
+  background: #eaf2e1;
+  border-radius: 50%;
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  color: #5c7b46;
+  margin-bottom: 20px;
+}
+
+.connect-grid h2 {
+  font-size: 19px;
+}
+
+.copy-value {
+  padding: 12px;
+  background: #f5f7f3;
+  border: 1px solid #e9ede6;
+  border-radius: 8px;
+  font-size: 13px;
+  margin-bottom: 15px;
+  overflow-wrap: anywhere;
+}

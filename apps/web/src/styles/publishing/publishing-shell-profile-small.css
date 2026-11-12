@@ -1,0 +1,161 @@
+.publishing-shell .profile small {
+  font-size: 11px;
+  color: var(--buffer-text-muted);
+}
+
+/* ==========================================================================
+   MAIN CONTENT AREA (Buffer Floating Card Layout)
+   ========================================================================== */
+
+.publishing-shell .main {
+  margin-left: 240px;
+  width: calc(100% - 240px);
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--buffer-bg);
+}
+
+.publishing-shell .topbar {
+  display: none !important;
+}
+
+.publishing-shell .topbar strong {
+  color: var(--buffer-text);
+}
+
+.publishing-shell .topbar .slash {
+  margin: 0 6px;
+  color: var(--buffer-text-light);
+}
+
+/* Page Card Container */
+
+.publishing-shell .page {
+  padding: 24px 32px 40px;
+  max-width: 1400px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+.publishing-shell .marketing-page-heading {
+  display: none;
+}
+
+.publishing-shell .mk-workspace {
+  background: var(--buffer-surface);
+  border: 1px solid var(--buffer-line);
+  border-radius: var(--buffer-radius-card);
+  padding: 24px 28px;
+  box-shadow: var(--buffer-shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* ==========================================================================
+   WORKSPACE HEADER & TOOLBAR (Matching Buffer All Channels View)
+   ========================================================================== */
+
+.publishing-shell .mk-intro {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  padding: 0 0 16px;
+  border-bottom: 1px solid var(--buffer-line-subtle);
+  background: transparent;
+  border-radius: 0;
+}
+
+.publishing-shell .mk-intro h2 {
+  font-size: 20px;
+  font-weight: 600;
+  letter-spacing: -0.4px;
+  margin: 0 0 4px;
+  color: var(--buffer-text);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.publishing-shell .mk-intro p {
+  color: var(--buffer-text-muted);
+  font-size: 13px;
+  margin: 0;
+}
+
+.publishing-shell .mk-intro-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+/* Brand Toolbar */
+
+.publishing-shell .mk-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 0;
+  font-size: 12.5px;
+}
+
+.publishing-shell .mk-toolbar label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--buffer-text-secondary);
+  font-weight: 500;
+  margin: 0;
+}
+
+.publishing-shell .mk-toolbar select {
+  padding: 6px 10px;
+  font-size: 12.5px;
+  border-radius: 6px;
+}
+
+.publishing-shell .mk-toolbar a {
+  color: #15803d;
+  font-weight: 500;
+}
+
+.publishing-shell .mk-toolbar > small {
+  margin-left: auto;
+  color: var(--buffer-text-muted);
+}
+
+/* Inline Stats Pill Bar (Replaces ugly bulky boxes) */
+
+.publishing-shell .mk-stats {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 8px 12px;
+  background: #f9fafb;
+  border: 1px solid var(--buffer-line);
+  border-radius: 8px;
+}
+
+.publishing-shell .mk-stats > div {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0;
+  border: none;
+  background: transparent;
+  font-size: 12.5px;
+}
+
+.publishing-shell .mk-stats strong {
+  font-size: 12.5px;
+  background: var(--buffer-surface-elevated);
+  border: 1px solid var(--buffer-line);
+  border-radius: 4px;
+  padding: 2px 7px;
+  color: var(--buffer-text);
+  font-weight: 600;
+}

@@ -31,7 +31,7 @@ export default function ChannelPicker({
             <div className="channel-card-top">
               <ChannelMark provider={key} size="large" />
               <span className={`badge ${manual.includes(key) ? "badge-manual" : "badge-api"}`}>
-                {manual.includes(key) ? "Thủ công" : "Tự động API"}
+                {["threads", "instagram"].includes(key) ? "App máy tính" : manual.includes(key) ? "Thủ công" : "Tự động API"}
               </span>
             </div>
             <h3>{label}</h3>

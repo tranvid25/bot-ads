@@ -22,10 +22,11 @@ async function inspectGroup(page, url) {
   }
   return evidence;
 }
-async function main({ config = loadConfig(), dependencies = {} } = {}) {
+async function main({ config = loadConfig(), dependencies = {}, force = false } = {}) {
   if (!config.groupSelection.enabled) return;
   const state = loadState();
   const candidates = [...new Set([...config.groups, ...config.discoveredGroups])].filter(url => {
+    if (force) return true;
     const group = state.groups[url] || {};
     if (group.blocked || group.advertisingAllowed && group.approvalSource !== 'automatic') return false;
     return group.selection?.policyMode !== config.groupSelection.mode || !group.selection?.checkedAt || Date.now() - new Date(group.selection.checkedAt) >= config.groupSelection.recheckDays * 86400000;

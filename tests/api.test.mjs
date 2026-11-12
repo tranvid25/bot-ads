@@ -72,7 +72,7 @@ before(async () => {
     },
   });
   db = await mf.getD1Database("DB");
-  const schema = await readFile("apps/api/migrations/0001_init.sql", "utf8");
+  const schema = await readFile("apps/api/migrations/0001_init.sql", "utf8") + "\n" + await readFile("apps/api/migrations/0008_facebook_groups.sql", "utf8") + "\n" + await readFile("apps/api/migrations/0002_marketing.sql", "utf8") + "\n" + await readFile("apps/api/migrations/0009_desktop_social.sql", "utf8");
   await db.batch(
     schema
       .split(";")

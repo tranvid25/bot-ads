@@ -155,8 +155,8 @@ before(async () => {
   });
   db = await mf.getD1Database("DB");
   for (const name of [
-    "0001_init.sql",
-    "0002_marketing.sql",
+    "0001_init.sql", "0008_facebook_groups.sql",
+    "0002_marketing.sql", "0009_desktop_social.sql",
     "0006_channel_avatar.sql",
   ]) {
     const sql = await readFile(`apps/api/migrations/${name}`, "utf8");

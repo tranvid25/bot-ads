@@ -1,0 +1,162 @@
+a {
+  color: var(--green);
+  text-decoration: none;
+}
+
+h1,
+h2,
+h3,
+p {
+  margin: 0;
+}
+
+h1 {
+  font-size: 30px;
+  letter-spacing: -1px;
+  font-weight: 650;
+}
+
+h2 {
+  font-size: 21px;
+  font-weight: 650;
+  letter-spacing: -0.45px;
+}
+
+h3 {
+  font-size: 15px;
+  font-weight: 650;
+}
+
+p {
+  line-height: 1.65;
+}
+
+small {
+  font-size: 12px;
+  line-height: 1.6;
+  color: var(--muted);
+}
+
+button {
+  border: 0;
+  background: none;
+}
+
+input,
+textarea,
+select {
+  width: 100%;
+  border: 1px solid #d9e2db;
+  border-radius: 9px;
+  padding: 11px 13px;
+  background: #fff;
+  color: #243e34;
+  outline: none;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: #3d9673;
+  box-shadow: 0 0 0 3px #30946715;
+}
+
+textarea {
+  resize: vertical;
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 18px;
+}
+
+label small {
+  font-weight: 400;
+}
+
+input[type="checkbox"] {
+  accent-color: var(--green);
+  width: 17px;
+  height: 17px;
+  flex-shrink: 0;
+}
+
+.primary,
+.secondary {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
+  border-radius: 9px;
+  padding: 12px 17px;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.primary {
+  background: var(--green);
+  color: #fff;
+}
+
+.primary:hover {
+  background: #12543f;
+}
+
+.secondary {
+  background: white;
+  border: 1px solid #dce4dd;
+  color: #3c5348;
+}
+
+.small {
+  padding: 9px 13px;
+}
+
+.wide {
+  width: 100%;
+}
+
+.link {
+  color: var(--green);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 5px;
+}
+
+.danger {
+  color: #b5473d !important;
+}
+
+.muted {
+  color: var(--muted);
+}
+
+.block {
+  display: block;
+  margin-top: 7px;
+}
+
+.row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.between {
+  justify-content: space-between;
+}
+
+.eyebrow {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 1.4px;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}

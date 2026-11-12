@@ -1,0 +1,163 @@
+.publishing-shell input,
+.publishing-shell select,
+.publishing-shell textarea {
+  border: 1px solid var(--buffer-input-border);
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 13.5px;
+  color: var(--buffer-text);
+  background: var(--buffer-input-bg);
+}
+
+.publishing-shell input:focus,
+.publishing-shell select:focus,
+.publishing-shell textarea:focus {
+  border-color: var(--buffer-lime);
+  box-shadow: 0 0 0 3px rgba(154, 230, 120, 0.25);
+  outline: none;
+}
+
+/* ==========================================================================
+   APP SHELL & SIDEBAR (Buffer Style)
+   ========================================================================== */
+
+.publishing-shell .sidebar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  width: 240px;
+  padding: 14px 14px 12px;
+  background: var(--buffer-sidebar);
+  border-right: 1px solid var(--buffer-line);
+  color: var(--buffer-text);
+  z-index: 30;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  scrollbar-width: none; /* Hide scrollbar for Firefox */
+  -ms-overflow-style: none; /* Hide scrollbar for IE/Edge */
+}
+
+.publishing-shell .sidebar::-webkit-scrollbar {
+  display: none; /* Hide scrollbar for Chrome/Safari/Brave */
+  width: 0;
+  height: 0;
+}
+
+.publishing-shell .sidebar .brand {
+  margin: 0 6px 18px;
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--buffer-text);
+}
+
+.publishing-shell .brand-mark {
+  border-radius: 8px;
+}
+
+.publishing-shell .brand-dot {
+  color: var(--buffer-lime);
+}
+
+/* Sidebar Top Button: "+ New" Capsule Pill in Buffer Lime */
+
+.publishing-shell .sidebar-new {
+  background: var(--buffer-lime) !important;
+  color: var(--buffer-lime-dark) !important;
+  border-radius: var(--buffer-radius-pill) !important;
+  width: 100% !important;
+  padding: 10px 18px !important;
+  font-weight: 600 !important;
+  font-size: 14px !important;
+  border: none !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 8px !important;
+  margin-bottom: 12px !important;
+  cursor: pointer !important;
+}
+
+.publishing-shell .sidebar-new:hover {
+  background: var(--buffer-lime-hover) !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.28) !important;
+}
+
+.publishing-shell .workspace {
+  padding: 8px 10px;
+  margin-bottom: 10px;
+  border: 1px solid var(--buffer-line);
+  border-radius: 8px;
+  background: var(--buffer-surface-elevated);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.publishing-shell .workspace strong {
+  display: block;
+  font-size: 13px;
+  color: var(--buffer-text);
+}
+
+.publishing-shell .workspace small {
+  font-size: 11px;
+  color: var(--buffer-text-muted);
+}
+
+.publishing-shell .workspace-avatar,
+.publishing-shell .profile > span {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--buffer-radius-pill);
+  background: #242933;
+  color: var(--buffer-lime);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 13px;
+  flex-shrink: 0;
+}
+
+.publishing-shell .nav-label {
+  color: var(--buffer-text-muted);
+  margin: 0 8px 8px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+}
+
+.publishing-shell .sidebar nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.publishing-shell .sidebar nav button {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: none;
+  background: transparent;
+  color: var(--buffer-text-secondary);
+  font-size: 13px;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+
+.publishing-shell .sidebar nav button:hover {
+  background: #1c2027;
+  color: #ffffff;
+}

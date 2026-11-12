@@ -2,7 +2,13 @@ import React, { useState } from "react";
 import Dialog from "./Dialog";
 import { providers, manual } from "./constants";
 
-export default function ScheduleModal({ schedule, channels, onClose, onConfirm, busy }) {
+export default function ScheduleModal({
+  schedule,
+  channels,
+  onClose,
+  onConfirm,
+  busy,
+}) {
   const [selectedChannels, setSelectedChannels] = useState([]);
   const [scheduledAt, setScheduledAt] = useState("");
 
@@ -17,7 +23,9 @@ export default function ScheduleModal({ schedule, channels, onClose, onConfirm, 
           await onConfirm({
             revision: schedule.revision,
             channelIds: selectedChannels,
-            scheduledAt: scheduledAt ? new Date(scheduledAt).toISOString() : undefined,
+            scheduledAt: scheduledAt
+              ? new Date(scheduledAt).toISOString()
+              : undefined,
           });
         }}
       >
@@ -25,6 +33,12 @@ export default function ScheduleModal({ schedule, channels, onClose, onConfirm, 
           {schedule.title} · v{schedule.revision}
         </h3>
         <p>Chọn tài khoản thuộc thương hiệu và đã có bản nội dung tương ứng.</p>
+        {channels.some((c) => c.transport === "desktop") && (
+          <p className="notice">
+            Threads/Instagram qua app cần máy bật, có mạng và app đang nhận
+            việc. Threads hỗ trợ chữ/link; Instagram cần một ảnh JPG/PNG.
+          </p>
+        )}
         <div className="mk-form">
           {channels
             .filter(
@@ -78,4 +92,3 @@ export default function ScheduleModal({ schedule, channels, onClose, onConfirm, 
     </Dialog>
   );
 }
-

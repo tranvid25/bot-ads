@@ -61,7 +61,7 @@ before(async () => {
     },
   });
   db = await mf.getD1Database("DB");
-  for (const file of ["0001_init.sql", "0003_support.sql"]) {
+  for (const file of ["0001_init.sql", "0008_facebook_groups.sql", "0003_support.sql"]) {
     const schema = await readFile(`apps/api/migrations/${file}`, "utf8");
     await db.batch(
       schema

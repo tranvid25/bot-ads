@@ -15,6 +15,7 @@ import { validateCampaign } from "../../../packages/contracts/campaign.mjs";
 import { generate } from "../services/gemini.service.mjs";
 import { validateAssets } from "../services/campaign.service.mjs";
 import { enqueue } from "../services/jobs.service.mjs";
+import { reviewedCampaign } from "../services/facebook-campaign.mjs";
 export async function generateDrafts(request, env, path, method, context = {}) {
   const { workspaceId, user } = context;
   return json({
@@ -25,7 +26,11 @@ export async function generateDrafts(request, env, path, method, context = {}) {
 export async function saveCampaign(request, env, path, method, context = {}) {
   const { workspaceId, user } = context;
 
-  const campaign = validateCampaign(await body(request), maxDaily(env));
+  const campaign = await reviewedCampaign(
+    env,
+    workspaceId,
+    validateCampaign(await body(request), maxDaily(env)),
+  );
   campaign.timezone = user.timezone;
   await validateAssets(env, workspaceId, campaign);
   const campaignId = method === "POST" ? id() : path.split("/").at(-1);
