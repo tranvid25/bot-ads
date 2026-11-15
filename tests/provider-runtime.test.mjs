@@ -40,6 +40,7 @@ test("LinkedIn and DEV use native Workers fetch without a provider service bindi
         return Response.json({ sub: "fixture-member", name: "Runtime Test" });
       }
       if (url.pathname === "/api/users/me") {
+        assert.match(request.headers.get("user-agent"), /BotAds/);
         assert.equal(request.headers.get("api-key"), "fixture-dev-key");
         return Response.json({
           id: 123,

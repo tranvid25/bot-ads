@@ -14,6 +14,7 @@ export async function oauthJson(response) {
   }
 }
 export const devHeaders = (key) => ({
+  "User-Agent": "BotAds (https://bot.salesora.space)",
   "api-key": key,
   Accept: "application/vnd.forem.api-v1+json",
   "Content-Type": "application/json",
