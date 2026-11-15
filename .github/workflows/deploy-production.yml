@@ -34,9 +34,18 @@ jobs:
       - run: npm run web:check
       - run: npm run cloud:build:production
 
+  desktop-release:
+    name: Build and publish desktop installers
+    needs: verify
+    permissions:
+      contents: write
+    uses: ./.github/workflows/windows-desktop.yml
+    with:
+      publish: true
+
   deploy:
     name: Deploy backend Worker
-    needs: verify
+    needs: [verify, desktop-release]
     runs-on: ubuntu-latest
     environment: production
     steps:

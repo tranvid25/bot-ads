@@ -33,12 +33,13 @@ Windows hiện theo cấu hình chứng chỉ cũ: bộ cài chưa ký Authentic
 ## Chủ BotAds phát hành bản mới
 
 1. Tăng version bằng `npm version <version> --no-git-tag-version`, commit cả package.json và package-lock.json. Không tái sử dụng version cho nội dung khác. Các nhánh thử dùng version prerelease không được phát hành vào feed stable.
-2. Build bằng **Actions → Build BotAds for Windows**; với Mac dùng **Build BotAds for macOS**, `signed = true`. Các workflow chỉ tạo artifact, không tự publish release.
+2. Khi push lên `main`, workflow **Deploy production** chạy kiểm thử, gọi build Windows Lite/Full và tự publish release đầy đủ trước khi deploy backend. Release Windows dùng `GITHUB_TOKEN` của Actions, không cần thêm PAT. Với Mac vẫn dùng **Build BotAds for macOS**, `signed = true`, rồi phát hành sau nghiệm thu.
+   Khi chạy riêng **Build BotAds for Windows**, tùy chọn `publish` mặc định tắt: chỉ tạo artifact. Bật `publish` để publish sau khi cả hai build và smoke test đạt. Release đã public không bị ghi đè khi deploy lại cùng version; thiếu asset thì chặn deploy để tránh link hỏng.
 3. Build script kiểm tra ASAR, đúng luồng Lite/Full và SHA-512 của từng artifact so với manifest. CI còn chạy thử GUI và trình duyệt của package. Trên Windows có kiểm tra updater thật tải bộ cài qua máy chủ loopback và từ chối checksum sai; bài này không cài ứng dụng.
 4. Tải artifact của từng gói. Tạo GitHub Release dạng **draft** cho tag tương ứng, ví dụ `v1.1.1`; upload các `.exe`, `.dmg`, `.zip`, `.blockmap`, `.sha256` và toàn bộ `stable-*.yml` ở bảng trên. Không upload thư mục win-unpacked, dữ liệu người dùng hoặc Secrets.
 5. Hoàn tất tất cả file trước khi publish release và đặt làm **Latest**; không dùng prerelease. Khách không cần token GitHub; repo/release và assets phải tải công khai được.
 6. Feed dùng release Latest chung. Mỗi lần phát hành phải chứa đủ các gói/manifest đang hỗ trợ. Nếu chưa phát hành Mac thì không công bố hỗ trợ cập nhật Mac; nếu tạm giữ Mac ở bản cũ thì cần mang cả manifest và artifact Mac cũ sang release mới để khách Mac vẫn kiểm tra được.
-7. Cập nhật `DOWNLOAD_URL` của Worker để khách cài lần đầu nhận bộ cài mới. Biến này độc lập với feed tự cập nhật và vẫn cần cấu hình khi đổi release.
+7. Cập nhật `DOWNLOAD_URL` trong wrangler.jsonc cùng lúc tăng version. Test `desktop-release.test.cjs` yêu cầu URL khớp version source. Từ 1.1.3 link mặc định dùng Lite, Full vẫn có trong GitHub Release. Backend chờ bước release thành công rồi mới deploy URL này; không đổi link production trước khi asset tồn tại.
 
 Từ 1.1.1 lên bản cao hơn cần thử trên máy thử đã cài thật: ghép máy, lưu session, nâng cấp khi rảnh, xác nhận app tự mở lại và dữ liệu vẫn nguyên; thử mất mạng và chặn cài trong lúc đăng. Không xác nhận nghiệm thu cập nhật chỉ bằng unit test hoặc mở win-unpacked. Hiện chưa có thử nghiệm nâng cấp qua release công khai.
 

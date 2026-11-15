@@ -2,6 +2,16 @@ name: Build BotAds for Windows
 
 on:
   workflow_dispatch:
+    inputs:
+      publish:
+        description: Publish verified installers to GitHub Release
+        type: boolean
+        default: false
+  workflow_call:
+    inputs:
+      publish:
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -22,7 +32,7 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - run: node --test tests/desktop-updater.test.cjs tests/browser-launcher.test.cjs
+      - run: node --test tests/desktop-updater.test.cjs tests/browser-launcher.test.cjs tests/facebook-login-window.test.cjs tests/desktop-release.test.cjs
       - run: npm run check:source
       - name: Build and verify update metadata
         env:
@@ -73,3 +83,26 @@ jobs:
             release/lite/*.blockmap
             release/lite/stable-*.yml
             release/lite/package-size.json
+
+  publish:
+    name: Publish verified Windows release
+    needs: build
+    if: inputs.publish
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v6
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: BotAds-Windows-x64-*
+          path: release-artifacts
+          merge-multiple: true
+      - name: Publish complete release before updating download links
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: node scripts/publish-desktop-release.cjs
