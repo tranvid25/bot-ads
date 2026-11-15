@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { api } from "../../lib/api";
+import { ACTIVE_REFRESH_MS } from "../../../../../packages/contracts/refresh.mjs";
 import { googleAuthErrors } from "../../../../../packages/contracts/google-auth.mjs";
 export default function useAppEffects({
   meta,
@@ -66,7 +67,7 @@ export default function useAppEffects({
     const timer = setInterval(() => {
       if (document.visibilityState === "visible")
         refreshRef.current({ dashboardOnly: true });
-    }, 30000);
+    }, ACTIVE_REFRESH_MS);
     return () => clearInterval(timer);
   }, [!!data, page, activeJob]);
 }

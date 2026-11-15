@@ -7,6 +7,7 @@ import { Miniflare, Response } from "miniflare";
 import { chromium } from "playwright";
 import { generateKeyPair, exportJWK, SignJWT } from "jose";
 import { LEGAL_PATHS } from "../apps/web/legal/pages.mjs";
+import { ACTIVE_REFRESH_MS } from "../packages/contracts/refresh.mjs";
 
 // Isolated D1/R2 and provider fixture: no real accounts, tokens or public posts.
 let mf,
@@ -229,7 +230,7 @@ try {
   };
   await page.waitForTimeout(500);
   page.on("request", trackIdle);
-  await page.waitForTimeout(31000);
+  await page.waitForTimeout(ACTIVE_REFRESH_MS + 1000);
   page.off("request", trackIdle);
   assert.deepEqual(idleRequests, [], "Idle dashboard and marketing must not poll");
   assert.equal(
@@ -443,7 +444,9 @@ try {
     .filter({ hasText: "API pilot" })
     .filter({ hasText: "Đã xác nhận đăng" })
     .first()
-    .waitFor({ timeout: 25000 });
+    // Dispatch returns before waitUntil finishes. Allow two refresh cycles plus
+    // network/CI overhead; keep asserting the confirmed state, not just queued.
+    .waitFor({ timeout: ACTIVE_REFRESH_MS * 2 + 15000 });
   assert.ok(submissions >= 1);
   await page.goto(origin + "/support?topic=deletion");
   await page.getByLabel("Tên / Name", { exact: true }).fill("Marketing Pilot");

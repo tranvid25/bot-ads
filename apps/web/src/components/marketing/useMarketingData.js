@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { api } from "../../lib/api";
+import { ACTIVE_REFRESH_MS } from "../../../../../packages/contracts/refresh.mjs";
 export default function useMarketingData({
   snapshot,
   onSnapshot,
@@ -36,7 +37,7 @@ export default function useMarketingData({
     const timer = setInterval(() => {
       if (document.visibilityState === "visible")
         loadRef.current().catch((e) => setError(e.message));
-    }, 30000);
+    }, ACTIVE_REFRESH_MS);
     return () => clearInterval(timer);
   }, [active]);
   return { data, load };
