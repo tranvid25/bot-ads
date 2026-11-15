@@ -9,29 +9,43 @@ export default function ChannelPicker({
   onStartBrand,
 }) {
   return (
-    <section className="mk-channel-picker buffer-channel-picker-modal" aria-label="Các nền tảng đăng bài">
+    <section
+      className="mk-channel-picker buffer-channel-picker-modal"
+      aria-label="Các nền tảng đăng bài"
+    >
       <div className="buffer-picker-header">
         <div className="picker-header-badge">
-          <span>⚡ Mạng xã hội</span>
+          <span>Mạng xã hội</span>
         </div>
         <h2>Connect a channel · Chọn nền tảng</h2>
         <p>
-          Personalize your profile to make the most out of Buffer. Chọn kênh để bắt đầu lên lịch và phân phối nội dung tự động.
+          Personalize your profile to make the most out of Buffer. Chọn kênh để
+          bắt đầu lên lịch và phân phối nội dung tự động.
         </p>
         {!brands.length && (
           <div className="notice buffer-picker-notice">
-            ℹ️ Chọn một nền tảng bên dưới, sau đó nhập tên thương hiệu để liên kết tài khoản.
+            ℹ️ Chọn một nền tảng bên dưới, sau đó nhập tên thương hiệu để liên
+            kết tài khoản.
           </div>
         )}
       </div>
 
       <div className="mk-channel-cards buffer-channel-cards-grid">
         {Object.entries(onboardingProviders).map(([key, label]) => (
-          <article className={`panel mk-channel-card buffer-channel-card ${connection.provider === key ? "is-selected" : ""}`} key={key}>
+          <article
+            className={`panel mk-channel-card buffer-channel-card ${connection.provider === key ? "is-selected" : ""}`}
+            key={key}
+          >
             <div className="channel-card-top">
               <ChannelMark provider={key} size="large" />
-              <span className={`badge ${manual.includes(key) ? "badge-manual" : "badge-api"}`}>
-                {["threads", "instagram"].includes(key) ? "App máy tính" : manual.includes(key) ? "Thủ công" : "Tự động API"}
+              <span
+                className={`badge ${manual.includes(key) ? "badge-manual" : "badge-api"}`}
+              >
+                {["threads", "instagram"].includes(key)
+                  ? "App máy tính"
+                  : manual.includes(key)
+                    ? "Thủ công"
+                    : "Tự động API"}
               </span>
             </div>
             <h3>{label}</h3>
@@ -51,7 +65,9 @@ export default function ChannelPicker({
                 if (!brands.length) onStartBrand();
                 else {
                   requestAnimationFrame(() =>
-                    document.getElementById("mk-channel-form")?.scrollIntoView({ block: "start", behavior: "smooth" }),
+                    document
+                      .getElementById("mk-channel-form")
+                      ?.scrollIntoView({ block: "start", behavior: "smooth" }),
                   );
                 }
               }}

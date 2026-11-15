@@ -69,7 +69,7 @@ $("pair-form").addEventListener("submit", (e) => {
   e.preventDefault();
   command("pair", { server: $("server").value, code: $("code").value });
 });
-for (const name of ["login", "resume", "stop", "website"])
+for (const name of ["login", "resume", "stop", "website", "open-diagnostics"])
   $(name).addEventListener("click", () => command(name));
 $("disconnect").addEventListener("click", () => {
   if (confirm("Xóa liên kết và phiên Facebook đã lưu trên máy này?"))

@@ -29,10 +29,11 @@
         <p>Đăng nhập website → Thiết bị → Tạo mã liên kết.</p>
         <form id="pair-form">
           <label
-            >Địa chỉ website<input
+            >Địa chỉ máy chủ BotAds<input
               id="server"
               type="url"
-              placeholder="https://botads.website-cua-ban.com"
+              placeholder="https://bot.salesora.space"
+              value="https://bot.salesora.space"
               required /></label
           ><label
             >Mã liên kết<input
@@ -42,6 +43,10 @@
               maxlength="25" /></label
           ><button class="primary" type="submit">Liên kết máy tính</button>
         </form>
+        <p class="note">
+          Nhập địa chỉ trang bạn đăng nhập BotAds, không phải website được quảng
+          bá như xaywebsite.com.
+        </p>
       </section>
       <section id="connected" hidden>
         <p id="browser-note" class="note"></p>
@@ -97,6 +102,7 @@
         <div class="section-head">
           <h2>Hoạt động gần đây</h2>
           <span id="job" class="muted">Chưa có lượt chạy</span>
+          <button id="open-diagnostics">Mở nhật ký kết nối</button>
         </div>
         <pre id="logs">Sẵn sàng kết nối…</pre>
       </section>

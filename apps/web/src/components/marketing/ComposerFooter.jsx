@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 
 export default function ComposerFooter({ busy, onSave }) {
-  const [mode, setMode] = useState("next"); // "now" | "next" | "custom"
+  const [mode, setMode] = useState("now");
   const [customDateTime, setCustomDateTime] = useState("");
   const [openDropdown, setOpenDropdown] = useState(false);
   const dropdownRef = useRef(null);
@@ -14,42 +14,45 @@ export default function ComposerFooter({ busy, onSave }) {
     }
     if (openDropdown) {
       document.addEventListener("mousedown", handleClickOutside);
-      return () => document.removeEventListener("mousedown", handleClickOutside);
+      return () =>
+        document.removeEventListener("mousedown", handleClickOutside);
     }
   }, [openDropdown]);
 
   const handlePublish = (e) => {
     if (mode === "now") {
       onSave(e, { publishNow: true });
-    } else if (mode === "custom" && customDateTime) {
-      onSave(e, { publishNow: false, scheduledAt: new Date(customDateTime).toISOString() });
-    } else {
-      const nextTime = new Date(Date.now() + 3600000).toISOString();
-      onSave(e, { publishNow: false, scheduledAt: nextTime });
+    } else if (
+      mode === "custom" &&
+      customDateTime &&
+      new Date(customDateTime).getTime() > Date.now()
+    ) {
+      onSave(e, {
+        publishNow: false,
+        scheduledAt: new Date(customDateTime).toISOString(),
+      });
     }
   };
 
-  const currentLabel = mode === "now"
-    ? "⚡ Đăng ngay"
-    : mode === "custom" && customDateTime
-      ? `⏰ ${new Date(customDateTime).toLocaleDateString("vi-VN", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })}`
-      : mode === "custom"
-        ? "⏰ Chọn ngày & giờ"
-        : "📅 Khung giờ tiếp theo";
+  const currentLabel =
+    mode === "now"
+      ? "Now"
+      : mode === "custom" && customDateTime
+        ? `${new Date(customDateTime).toLocaleDateString("vi-VN", { month: "numeric", day: "numeric", hour: "2-digit", minute: "2-digit" })}`
+        : mode === "custom"
+          ? "Đặt giờ"
+          : "Now";
 
-  const btnLabel = busy
-    ? "Đang xử lý…"
-    : mode === "now"
-      ? "⚡ Đăng ngay"
-      : "📅 Lên lịch đăng";
+  const btnLabel = busy ? "Đang xử lý…" : "Đăng";
 
-  const canPublish = mode !== "custom" || !!customDateTime;
+  const canPublish =
+    mode !== "custom" || new Date(customDateTime).getTime() > Date.now();
 
   return (
     <div className="buffer-composer-footer">
       <div className="composer-footer-left">
         <span className="composer-footer-hint">
-          💡 Chọn lịch và xuất bản trực tiếp lên các kênh đã kết nối.
+          Chọn thời gian và đăng lên các kênh đã kết nối.
         </span>
       </div>
 
@@ -75,33 +78,30 @@ export default function ComposerFooter({ busy, onSave }) {
                   setOpenDropdown(false);
                 }}
               >
-                <strong>⚡ Đăng ngay</strong>
+                <strong>Now</strong>
                 <small>Xuất bản ngay lập tức</small>
               </button>
 
-              <button
-                type="button"
-                className={`dropdown-menu-item ${mode === "next" ? "is-selected" : ""}`}
-                onClick={() => {
-                  setMode("next");
-                  setOpenDropdown(false);
-                }}
+              <div
+                className={`dropdown-menu-item custom-datetime-item ${mode === "custom" ? "is-selected" : ""}`}
               >
-                <strong>📅 Khung giờ tiếp theo</strong>
-                <small>Xếp tự động (1 giờ tới)</small>
-              </button>
-
-              <div className={`dropdown-menu-item custom-datetime-item ${mode === "custom" ? "is-selected" : ""}`}>
                 <div
                   role="button"
                   tabIndex={0}
                   onClick={() => setMode("custom")}
+                  onKeyDown={(event) => {
+                    if (["Enter", " "].includes(event.key)) {
+                      event.preventDefault();
+                      setMode("custom");
+                    }
+                  }}
                   style={{ cursor: "pointer", width: "100%" }}
                 >
-                  <strong>⏰ Chọn ngày & giờ cụ thể</strong>
+                  <strong>Đặt giờ</strong>
                 </div>
                 <input
                   type="datetime-local"
+                  aria-label="Ngày và giờ đăng"
                   value={customDateTime}
                   onChange={(e) => {
                     setCustomDateTime(e.target.value);

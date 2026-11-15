@@ -46,10 +46,19 @@ export default function ComposerEditorBox({
           {!sel.assetId ? (
             <div className="buffer-media-dropzone">
               <div className="dropzone-icon">
-                <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round">
-                  <rect width="18" height="18" x="3" y="3" rx="2" ry="2"/>
-                  <circle cx="8.5" cy="8.5" r="1.5"/>
-                  <polyline points="21 15 16 10 5 21"/>
+                <svg
+                  width="22"
+                  height="22"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                >
+                  <rect width="18" height="18" x="3" y="3" rx="2" ry="2" />
+                  <circle cx="8.5" cy="8.5" r="1.5" />
+                  <polyline points="21 15 16 10 5 21" />
                 </svg>
               </div>
               <div className="dropzone-text">
@@ -67,7 +76,10 @@ export default function ComposerEditorBox({
                       setBusy(true);
                       try {
                         const result = await onUpload(file);
-                        patchVariant({ assetId: result.id, publicImageConsent: true });
+                        patchVariant({
+                          assetId: result.id,
+                          publicImageConsent: true,
+                        });
                       } catch (err) {
                         setError(err.message);
                       } finally {
@@ -80,11 +92,17 @@ export default function ComposerEditorBox({
             </div>
           ) : (
             <div className="buffer-selected-media-preview">
-              <img className="mk-image" alt="Ảnh đính kèm" src={`/api/assets/${selected.assetId}`} />
+              <img
+                className="mk-image"
+                alt="Ảnh đính kèm"
+                src={`/api/assets/${selected.assetId}`}
+              />
               <button
                 type="button"
                 className="buffer-remove-media-btn"
-                onClick={() => patchVariant({ assetId: "", publicImageConsent: false })}
+                onClick={() =>
+                  patchVariant({ assetId: "", publicImageConsent: false })
+                }
                 title="Xóa ảnh này"
                 aria-label="Xóa ảnh"
               >
@@ -97,11 +115,34 @@ export default function ComposerEditorBox({
 
       <div className="buffer-editor-toolbar-strip">
         <div className="strip-left-tools">
-          <button type="button" className="strip-tool-btn" title="Chèn thêm">+ ▾</button>
-          <button type="button" className="strip-tool-btn" title="Biểu tượng cảm xúc">😊</button>
-          <button type="button" className="strip-tool-btn" title="Chèn hashtag">#</button>
-          <button type="button" className="strip-tool-btn" title="Trợ lý AI viết bài">
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <button type="button" className="strip-tool-btn" title="Chèn thêm">
+            + ▾
+          </button>
+          <button
+            type="button"
+            className="strip-tool-btn"
+            title="Biểu tượng cảm xúc"
+          >
+            😊
+          </button>
+          <button type="button" className="strip-tool-btn" title="Chèn hashtag">
+            #
+          </button>
+          <button
+            type="button"
+            className="strip-tool-btn"
+            title="Trợ lý AI viết bài"
+          >
+            <svg
+              width="13"
+              height="13"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
               <path d="m12 3-1.912 5.813a2 2 0 0 1-1.275 1.275L3 12l5.813 1.912a2 2 0 0 1 1.275 1.275L12 21l1.912-5.813a2 2 0 0 1 1.275-1.275L21 12l-5.813-1.912a2 2 0 0 1-1.275-1.275L12 3Z" />
             </svg>
           </button>
@@ -122,14 +163,6 @@ export default function ComposerEditorBox({
             value={sel.firstComment || ""}
             onChange={(e) => patchVariant({ firstComment: e.target.value })}
           />
-          <button
-            type="button"
-            className="first-comment-bolt-btn"
-            title="Tự động đăng bình luận đầu tiên"
-            aria-label="Tự động bình luận đầu tiên"
-          >
-            ⚡
-          </button>
         </div>
       </div>
     </div>

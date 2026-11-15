@@ -28,6 +28,12 @@ module.exports = (ctx) => {
         if (!ctx.window || event.sender !== ctx.window.webContents)
           throw new Error("Không có quyền.");
         if (command === "state") return ctx.state();
+        if (command === "open-diagnostics") {
+          const diagnostics = require("./diagnostics.cjs");
+          diagnostics.record(ctx, { event: "opened" });
+          await ctx.shell.openPath(diagnostics.file(ctx));
+          return ctx.state();
+        }
         if (command.startsWith("update-")) return ctx.updates.command(command);
         if (ctx.installingUpdate)
           throw new Error("Đang cài cập nhật, vui lòng đợi app mở lại.");
@@ -38,41 +44,7 @@ module.exports = (ctx) => {
             throw new Error(
               "Dừng và đồng bộ lượt hiện tại trước khi đổi liên kết.",
             );
-          const server = ctx.validateServer(payload.server);
-          const response = await fetch(`${server}/api/device/pair`, {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-              code: String(payload.code || "").slice(0, 100),
-              name: ctx.os.hostname(),
-            }),
-            signal: AbortSignal.timeout(20000),
-            redirect: "error",
-          });
-          const responseText = await response.text();
-          let result = {};
-          if (responseText) {
-            try {
-              result = JSON.parse(responseText);
-            } catch {
-              throw new Error(
-                `Máy chủ trả phản hồi không hợp lệ (HTTP ${response.status}). Kiểm tra cửa sổ cloud:dev.`,
-              );
-            }
-          }
-          if (!response.ok)
-            throw new Error(
-              result.error ||
-                `Máy chủ từ chối ghép thiết bị (HTTP ${response.status}). Tạo mã mới rồi thử lại.`,
-            );
-          if (!responseText)
-            throw new Error(
-              `Máy chủ trả phản hồi rỗng (HTTP ${response.status}). Kiểm tra cửa sổ cloud:dev.`,
-            );
-          if (!/^[a-f0-9-]{36}$/.test(result.workspaceId) || !result.token)
-            throw new Error("Website trả dữ liệu liên kết không hợp lệ.");
+          const { server, result } = await require("./pair.cjs")(ctx, payload);
           if (
             ctx.credentials.connection?.workspaceId !== result.workspaceId ||
             ctx.credentials.connection?.server !== server
