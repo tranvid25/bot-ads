@@ -45,6 +45,7 @@ export default function useChannelConnect({
         });
       } else if (["threads", "instagram"].includes(provider)) {
         await api("/marketing/desktop/start", "POST", { brandId, provider });
+        setMarketingData(await api("/marketing"));
         setNotice(`Đã gửi yêu cầu ${provider}. Mở app BotAds trên máy và tự đăng nhập ở cửa sổ trình duyệt. Chưa kết nối cho đến khi xác minh tài khoản.`);
         return;
       } else if (provider === "bluesky") {

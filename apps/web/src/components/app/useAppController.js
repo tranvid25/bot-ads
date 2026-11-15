@@ -1,4 +1,5 @@
 import { api, readApiResponse } from "../../lib/api";
+import { useRef } from "react";
 import useAppState from "./useAppState";
 import useAppEffects from "./useAppEffects";
 import useChannelConnect from "./useChannelConnect";
@@ -48,22 +49,30 @@ export default function useAppController() {
     campaignSeed,
     setCampaignSeed,
   } = state;
-  const refresh = async () => {
-    try {
-      const [d, m] = await Promise.all([
-        api("/dashboard"),
-        api("/marketing").catch(() => null),
-      ]);
-      setData(d);
-      if (m) setMarketingData(m);
-      setLimit(d.settings.dailyLimit);
-      return d;
-    } catch (e) {
-      if (e.status === 401) setData(null);
-      else setError(e.message);
-    } finally {
-      setLoading(false);
-    }
+  const refreshing = useRef(null);
+  const refresh = (options = {}) => {
+    if (refreshing.current) return refreshing.current;
+    refreshing.current = (async () => {
+      try {
+        const [d, m] = await Promise.all([
+          api("/dashboard"),
+          options.dashboardOnly
+            ? Promise.resolve(null)
+            : api("/marketing").catch(() => null),
+        ]);
+        setData(d);
+        if (m) setMarketingData(m);
+        setLimit(d.settings.dailyLimit);
+        return d;
+      } catch (e) {
+        if (e.status === 401) setData(null);
+        else setError(e.message);
+      } finally {
+        setLoading(false);
+        refreshing.current = null;
+      }
+    })();
+    return refreshing.current;
   };
   async function action(work, message) {
     setBusy(true);

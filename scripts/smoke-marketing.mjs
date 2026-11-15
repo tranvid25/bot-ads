@@ -221,6 +221,17 @@ try {
   await page
     .getByRole("heading", { name: /Good Afternoon/i })
     .waitFor();
+  // An idle workspace must not repeatedly fetch dashboard/marketing snapshots.
+  const idleRequests = [];
+  const trackIdle = request => {
+    if (["/api/dashboard", "/api/marketing"].includes(new URL(request.url()).pathname))
+      idleRequests.push(request.url());
+  };
+  await page.waitForTimeout(500);
+  page.on("request", trackIdle);
+  await page.waitForTimeout(31000);
+  page.off("request", trackIdle);
+  assert.deepEqual(idleRequests, [], "Idle dashboard and marketing must not poll");
   assert.equal(
     (
       await db
@@ -366,9 +377,22 @@ try {
       });
       await d.getByLabel(/^Tags DEV/).fill("webdev,javascript");
     }
-    // Select "Next Available" pill (default) and click publish
-    await d.getByRole("button", { name: /Khung giờ tiếp theo/i }).click();
-    await d.getByRole("button", { name: /Lên lịch đăng|Đăng ngay/i }).last().click();
+    // Exercise both timing options and the single publish action.
+    const timing = d.getByRole("button", { name: "Now", exact: false });
+    await timing.waitFor();
+    if (provider === "dev") {
+      await timing.click();
+      await d.getByRole("button", { name: "Đặt giờ", exact: true }).click();
+      const future = new Date(Date.now() + 3600000);
+      const local = new Date(future.getTime() - future.getTimezoneOffset() * 60000)
+        .toISOString().slice(0, 16);
+      await d.getByLabel("Ngày và giờ đăng", { exact: true }).fill(local);
+      // Close the menu without changing the selected schedule.
+      await d.getByLabel(/^Nội dung/).click();
+    }
+    const publish = d.getByRole("button", { name: "Đăng", exact: true });
+    assert.equal(await publish.count(), 1);
+    await publish.click();
     await d.waitFor({ state: "hidden" });
   }
   await page

@@ -1,3 +1,4 @@
+import useMarketingData from "./marketing/useMarketingData";
 import channelSubmit from "./marketing/channelSubmit";
 import DesktopConnectionProgress from "./marketing/DesktopConnectionProgress";
 import React, { useEffect, useState } from "react";
@@ -11,17 +12,14 @@ import MarketingFilters from "./marketing/MarketingFilters";
 import MarketingTabsView from "./marketing/MarketingTabsView";
 import MarketingModals from "./marketing/MarketingModals";
 
-export default function MarketingWorkspace({ user, assets, onUpload, navigation, onSnapshot, onConnectChannel }) {
-  const [data, setData] = useState(null), [brandId, setBrandId] = useState(""), [tab, setTab] = useState("home");
+export default function MarketingWorkspace({ user, assets, onUpload, navigation, onSnapshot, onConnectChannel, snapshot }) {
+  const [brandId, setBrandId] = useState(snapshot?.brands[0]?.id || ""), [tab, setTab] = useState("home");
   const [channelFilter, setChannelFilter] = useState(""), [publicationView, setPublicationView] = useState("list"), [statusFilter, setStatusFilter] = useState("all"), [search, setSearch] = useState("");
   const [error, setError] = useState(""), [notice, setNotice] = useState(""), [busy, setBusy] = useState(false), [editor, setEditor] = useState(null);
   const [brandForm, setBrandForm] = useState(null), [connection, setConnection] = useState({ provider: "dev", apiKey: "", name: "" });
   const [schedule, setSchedule] = useState(null), [confirm, setConfirm] = useState(null), [metrics, setMetrics] = useState(null), [showPublication, setShowPublication] = useState(null), [notPosted, setNotPosted] = useState(null);
 
-  async function load() {
-    const next = await api("/marketing");
-    setData(next); onSnapshot?.(next); setBrandId((curr) => curr || next.brands[0]?.id || "");
-  }
+  const { data, load } = useMarketingData({ snapshot, onSnapshot, setBrandId, setError });
 
   useEffect(() => {
     if (!navigation) return;
@@ -38,8 +36,7 @@ export default function MarketingWorkspace({ user, assets, onUpload, navigation,
   useEffect(() => {
     let alive = true;
     const refresh = () => { if (alive) load().catch((e) => { if (alive) setError(e.message); }); };
-    refresh();
-    const timer = setInterval(() => { if (document.visibilityState === "visible") refresh(); }, 15000);
+    if (!snapshot) refresh();
     const params = new URLSearchParams(window.location.search);
     if (params.has("linkedin") || params.has("bluesky")) {
       setTab("channels");
@@ -49,7 +46,7 @@ export default function MarketingWorkspace({ user, assets, onUpload, navigation,
       ["linkedin", "linkedin_reason", "bluesky", "bluesky_reason"].forEach((k) => params.delete(k));
       window.history.replaceState(null, "", window.location.pathname + (params.size ? `?${params}` : "") + window.location.hash);
     }
-    return () => { alive = false; clearInterval(timer); };
+    return () => { alive = false; };
   }, []);
 
   async function action(fn, message) {
@@ -102,7 +99,7 @@ export default function MarketingWorkspace({ user, assets, onUpload, navigation,
 
   return (
     <div className="mk-workspace">
-<DesktopConnectionProgress />
+<DesktopConnectionProgress snapshot={data} onConnected={load} />
       {error && <div className="alert error" role="alert">{error}<button onClick={() => setError("")}>×</button></div>}
       {notice && <div className="alert success" role="status">{notice}<button onClick={() => setNotice("")}>×</button></div>}
 

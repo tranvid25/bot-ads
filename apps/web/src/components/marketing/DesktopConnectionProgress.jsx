@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { api } from "../../lib/api";
 const labels = {
   queued: "Chờ máy mở trình duyệt",
@@ -8,29 +8,54 @@ const labels = {
   needs_reauth: "Cần đăng nhập lại",
   canceled: "Đã dừng",
 };
-export default function DesktopConnectionProgress() {
+export default function DesktopConnectionProgress({ snapshot, onConnected }) {
+  const connectedRef = useRef(onConnected),
+    completed = useRef(new Set());
+  connectedRef.current = onConnected;
   const [data, setData] = useState(null),
     [error, setError] = useState("");
   useEffect(() => {
-    let alive = true;
-    const load = () =>
-      api("/marketing/desktop/status")
+    let alive = true,
+      timer;
+    const load = () => {
+      if (document.visibilityState !== "visible") {
+        timer = setTimeout(load, 10000);
+        return;
+      }
+      return api("/marketing/desktop/status")
         .then((value) => {
           if (alive) {
             setData(value);
             setError("");
+            let changed = false;
+            for (const task of value.tasks || []) {
+              if (
+                task.status === "completed" &&
+                !completed.current.has(task.id)
+              ) {
+                completed.current.add(task.id);
+                changed = true;
+              }
+            }
+            if (changed) connectedRef.current?.().catch(() => {});
+            if (
+              value.tasks?.some((task) =>
+                ["queued", "running"].includes(task.status),
+              )
+            )
+              timer = setTimeout(load, 10000);
           }
         })
         .catch((e) => {
           if (alive) setError(e.message);
         });
+    };
     load();
-    const timer = setInterval(load, 10000);
     return () => {
       alive = false;
-      clearInterval(timer);
+      clearTimeout(timer);
     };
-  }, []);
+  }, [snapshot]);
   if (!error && !data?.tasks?.length) return null;
   return (
     <section className="panel mk-form" aria-label="Kết nối kênh qua máy tính">

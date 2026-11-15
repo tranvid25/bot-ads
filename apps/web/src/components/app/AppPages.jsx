@@ -21,6 +21,7 @@ export default function AppPages() {
     setError,
     setShowConnectChannelModal,
     setMarketingData,
+    marketingData,
     marketingNavigation,
     setCampaignSeed,
     upload,
@@ -83,6 +84,7 @@ export default function AppPages() {
       )}
       {page === "marketing" && (
         <MarketingWorkspace
+          snapshot={marketingData}
           user={data?.user}
           assets={data.assets}
           onUpload={upload}

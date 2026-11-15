@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { api } from "../../lib/api";
 import { googleAuthErrors } from "../../../../../packages/contracts/google-auth.mjs";
 export default function useAppEffects({
@@ -11,6 +11,8 @@ export default function useAppEffects({
   setError,
   refresh,
 }) {
+  const refreshRef = useRef(refresh);
+  refreshRef.current = refresh;
   useEffect(() => {
     const url = new URL(window.location.href);
     if (page === "marketing") url.searchParams.delete("page");
@@ -53,9 +55,18 @@ export default function useAppEffects({
         url.pathname + url.search + url.hash,
       );
     }
-    const timer = setInterval(() => {
-      if (document.visibilityState === "visible") refresh();
-    }, 15000);
-    return () => clearInterval(timer);
   }, [!!data]);
+  const activeJob = data?.jobs?.some((job) =>
+    ["queued", "running"].includes(job.status),
+  );
+  useEffect(() => {
+    if (!data || page === "marketing" || page === "settings") return;
+    // Device pairing needs liveness; other pages only poll while work is active.
+    if (page !== "devices" && !activeJob) return;
+    const timer = setInterval(() => {
+      if (document.visibilityState === "visible")
+        refreshRef.current({ dashboardOnly: true });
+    }, 30000);
+    return () => clearInterval(timer);
+  }, [!!data, page, activeJob]);
 }
