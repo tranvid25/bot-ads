@@ -2,6 +2,42 @@ const { test } = require('node:test');
 const assert = require('node:assert/strict');
 const { EventEmitter } = require('node:events');
 const { waitForLogin } = require('../packages/automation/login_session.cjs');
+const fs = require('node:fs');
+const vm = require('node:vm');
+
+function stoppedRuntime() {
+  const sandbox = { module: { exports: {} }, Date, setTimeout, process,
+    require: name => name === 'fs' ? { existsSync: () => true }
+      : name === './storage' ? { file: name => name } : require(name) };
+  vm.runInNewContext(fs.readFileSync('packages/automation/runtime.js', 'utf8'), sandbox);
+  return sandbox.module.exports;
+}
+
+test('login stays open with a previous STOP file and leaves the stop flag effective for automation', async () => {
+  const runtime = stoppedRuntime();
+  const s = session(); let pauses = 0, saves = 0, closes = 0;
+  s.page = { goto: async () => {} };
+  s.context.close = s.browser.close = async () => { closes++; };
+  const sandbox = { module: { exports: {} }, console,
+    require: name => name === './browser_helper'
+      ? { launchBrowser: async () => s, saveAuth: async () => { saves++; } }
+      : name === './runtime' ? { sleep: async (ms, options) => {
+        await runtime.sleep(0, options);
+        if (++pauses === 2) s.browser.emit('disconnected');
+      } } : { waitForLogin } };
+  vm.runInNewContext(fs.readFileSync('packages/automation/login.js', 'utf8'), sandbox);
+  await sandbox.module.exports.main();
+  assert.equal(saves, 2);
+  assert.equal(pauses, 2);
+  assert.equal(closes, 2);
+  await assert.rejects(runtime.sleep(0), /resume/);
+});
+
+test('allowing a previous STOP file still honors a new stop command', async () => {
+  const runtime = stoppedRuntime();
+  runtime.setExecutionGuard(() => { throw new Error('new stop command'); });
+  await assert.rejects(runtime.sleep(0, { allowStopped: true }), /new stop command/);
+});
 function session() {
   const browser = new EventEmitter(), context = new EventEmitter();
   context.pages = () => [{ isClosed: () => false, url: () => 'https://www.facebook.com/' }];

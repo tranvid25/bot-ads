@@ -5,7 +5,10 @@ async function main() {
   const session = await launchBrowser({ headless: false });
   try {
     await session.page.goto('https://www.facebook.com', { waitUntil: 'domcontentloaded', timeout: 45000 });
-    await waitForLogin(session, { save: saveAuth, sleep });
+    await waitForLogin(session, { save: saveAuth, sleep: ms => sleep(ms, { allowStopped: true }) });
+  } catch (error) {
+    console.error('Cửa sổ đăng nhập Facebook đóng do lỗi: ' + error.message);
+    throw error;
   } finally { await session.context.close().catch(() => {}); await session.browser.close().catch(() => {}); }
 }
 if (require.main === module) cli(main);

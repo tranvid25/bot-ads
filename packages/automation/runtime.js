@@ -8,15 +8,15 @@ function setExecutionGuard(guard) { executionGuard = guard; }
 function setSubmissionGuard(guard) { submissionGuard = guard; }
 async function authorizeSubmission(details) { checkStop(); return submissionGuard ? submissionGuard(details) : null; }
 function startDeadline(minutes) { deadline = Date.now() + minutes * 60000; }
-function checkStop() {
+function checkStop({ allowStopped = false } = {}) {
   if (executionGuard) executionGuard();
-  if (fs.existsSync(file('STOP'))) throw new HaltError('Đã yêu cầu dừng. Chạy npm run resume để cho phép lượt tiếp theo.');
+  if (!allowStopped && fs.existsSync(file('STOP'))) throw new HaltError('Đã yêu cầu dừng. Chạy npm run resume để cho phép lượt tiếp theo.');
   if (Date.now() >= deadline) throw new HaltError('Đã đạt giới hạn thời gian lượt chạy.');
 }
-async function sleep(ms) {
+async function sleep(ms, options) {
   const until = Date.now() + ms;
-  do { checkStop(); await new Promise(resolve => setTimeout(resolve, Math.min(500, Math.max(0, until - Date.now())))); } while (Date.now() < until);
-  checkStop();
+  do { checkStop(options); await new Promise(resolve => setTimeout(resolve, Math.min(500, Math.max(0, until - Date.now())))); } while (Date.now() < until);
+  checkStop(options);
 }
 function acquireLock() {
   const target = file('botads.lock');

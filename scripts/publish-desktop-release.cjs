@@ -12,7 +12,9 @@ if (!repo || !process.env.GH_TOKEN || !process.env.GITHUB_SHA)
 function gh(args, allowFailure = false) {
   const result = spawnSync("gh", args, { encoding: "utf8" });
   if (result.status !== 0 && !allowFailure)
-    throw new Error(`GitHub release command failed (${args.join(" ")}): ${result.stderr || result.error || result.stdout}`);
+    throw new Error(
+      `GitHub release command failed (${args.join(" ")}): ${result.stderr || result.error || result.stdout}`,
+    );
   return result;
 }
 const required = ["", "-Lite"]
@@ -25,11 +27,14 @@ function findRelease() {
   const existing = gh(["api", `repos/${repo}/releases/tags/${tag}`], true);
   if (existing.status === 0) return JSON.parse(existing.stdout);
   if (!/HTTP 404/.test(existing.stderr || ""))
-    throw new Error(`Cannot look up release ${tag}: ${existing.stderr || existing.error}`);
+    throw new Error(
+      `Cannot look up release ${tag}: ${existing.stderr || existing.error}`,
+    );
   // Drafts may not resolve through the tag endpoint until publication.
-  const pages = JSON.parse(gh([
-    "api", `repos/${repo}/releases?per_page=100`, "--paginate", "--slurp",
-  ]).stdout);
+  const pages = JSON.parse(
+    gh(["api", `repos/${repo}/releases?per_page=100`, "--paginate", "--slurp"])
+      .stdout,
+  );
   return pages.flat().find((value) => value.tag_name === tag) || null;
 }
 let release = findRelease();
@@ -115,7 +120,9 @@ if (!release) {
 gh(["release", "upload", tag, ...files, "--clobber"]);
 release = findRelease();
 if (!release) throw new Error(`Uploaded release ${tag} could not be found.`);
-release = JSON.parse(gh(["api", `repos/${repo}/releases/${release.id}`]).stdout);
+release = JSON.parse(
+  gh(["api", `repos/${repo}/releases/${release.id}`]).stdout,
+);
 assertAssets(release);
 gh(["release", "edit", tag, "--draft=false", "--latest"]);
 console.log(
