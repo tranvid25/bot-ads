@@ -1,6 +1,6 @@
 {
   "name": "botads",
-  "version": "1.1.5",
+  "version": "1.1.6",
   "description": "Facebook Group Auto Post Bot for app.pronunreview.com",
   "main": "index.js",
   "scripts": {

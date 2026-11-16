@@ -5,8 +5,18 @@ const fs = require('fs');
 const { file } = require('./storage');
 const AUTH_PATH = file('auth.json');
 let managedAuth = null;
-function setManagedAuth(adapter) { managedAuth = adapter; }
-async function saveAuth(context) {
+let lastInteractiveState = null;
+function setManagedAuth(adapter) { managedAuth = adapter; lastInteractiveState = null; }
+async function saveAuth(context, { interactive = false } = {}) {
+  if (interactive) {
+    const state = await require('./interactive_auth.cjs').interactiveState(context);
+    const serialized = JSON.stringify(state);
+    if (serialized === lastInteractiveState) return;
+    if (managedAuth) await managedAuth.save(state);
+    else fs.writeFileSync(AUTH_PATH, serialized);
+    lastInteractiveState = serialized;
+    return;
+  }
   if (managedAuth) return managedAuth.save(await context.storageState());
   return context.storageState({ path: AUTH_PATH });
 }
@@ -17,6 +27,7 @@ async function saveAuth(context) {
  * "Failed to create a ProcessSingleton: Lock file can not be created (0x20)"
  */
 async function launchBrowser({ headless = false, startMaximized = true } = {}) {
+  lastInteractiveState = null;
   const args = [
     '--disable-blink-features=AutomationControlled',
     '--no-sandbox'

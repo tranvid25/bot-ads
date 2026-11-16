@@ -17,6 +17,7 @@ for (const required of [
   "/packages/automation/discover_only.cjs",
   "/packages/automation/automation.js",
   "/packages/automation/storage.js",
+  "/packages/automation/interactive_auth.cjs",
   "/packages/desktop-state.cjs",
   "/packages/social-contract.cjs",
   "/packages/browser-launcher.cjs",

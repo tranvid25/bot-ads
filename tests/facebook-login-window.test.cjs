@@ -20,7 +20,7 @@ test('login stays open with a previous STOP file and leaves the stop flag effect
   s.context.close = s.browser.close = async () => { closes++; };
   const sandbox = { module: { exports: {} }, console,
     require: name => name === './browser_helper'
-      ? { launchBrowser: async () => s, saveAuth: async () => { saves++; } }
+      ? { launchBrowser: async () => s, saveAuth: async (_, options) => { assert.equal(options.interactive, true); saves++; } }
       : name === './runtime' ? { sleep: async (ms, options) => {
         await runtime.sleep(0, options);
         if (++pauses === 2) s.browser.emit('disconnected');
