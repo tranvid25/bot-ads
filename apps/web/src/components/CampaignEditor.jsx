@@ -1,4 +1,5 @@
 import CampaignContent from "./facebook/CampaignContent";
+import "../styles/campaign-editor.css";
 import CampaignAudience from "./facebook/CampaignAudience";
 import CampaignSchedule from "./facebook/CampaignSchedule";
 import React, { useState } from "react";

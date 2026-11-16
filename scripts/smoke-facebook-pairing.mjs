@@ -73,6 +73,23 @@ try {
     .getByRole("button", { name: "Soạn bài cho 1 nhóm đã chọn", exact: true })
     .click();
   const dialog = page.getByRole("dialog", { name: "Một chiến dịch mới" });
+  await dialog.waitFor();
+  const colors = await dialog.evaluate(element => {
+    const style = getComputedStyle(element);
+    const title = getComputedStyle(element.querySelector('h2'));
+    const footer = getComputedStyle(element.querySelector('.editor-footer'));
+    return { background: style.backgroundColor, title: title.color, footer: footer.backgroundColor };
+  });
+  assert.equal(colors.background, 'rgb(26, 29, 34)', 'Campaign modal must use the shell dark surface');
+  assert.equal(colors.title, 'rgb(243, 244, 246)', 'Campaign title must be readable on its surface');
+  assert.equal(colors.footer, 'rgb(24, 27, 32)', 'Footer must match the modal theme');
+  await page.screenshot({ path: 'test-results/facebook-campaign-editor-desktop.png' });
+  await page.setViewportSize({ width: 390, height: 844 });
+  assert.ok((await dialog.boundingBox()).width <= 390);
+  assert.ok((await dialog.boundingBox()).x >= 0, 'Campaign modal must not overflow off the left edge');
+  await dialog.getByRole('button', { name: 'Lưu chiến dịch', exact: true }).scrollIntoViewIfNeeded();
+  await page.screenshot({ path: 'test-results/facebook-campaign-editor-mobile.png' });
+  await page.setViewportSize({ width: 1440, height: 1000 });
   await dialog
     .getByLabel("Tên chiến dịch", { exact: true })
     .fill("XayWebsite Facebook pilot");

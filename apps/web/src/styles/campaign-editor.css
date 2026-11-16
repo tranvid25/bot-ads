@@ -1,0 +1,90 @@
+.publishing-shell .modal-backdrop {
+  z-index: 3000;
+  box-sizing: border-box;
+}
+.publishing-shell .editor {
+  width: min(800px, 100%);
+  min-width: 0;
+  --line: var(--buffer-line);
+  --muted: var(--buffer-text-secondary);
+  --green: var(--buffer-lime);
+  background: var(--buffer-modal-bg);
+  color: var(--buffer-text);
+  border: 1px solid var(--buffer-line);
+  color-scheme: dark;
+}
+.publishing-shell .editor-head,
+.publishing-shell .editor > .tabs {
+  flex-shrink: 0;
+}
+.publishing-shell .editor-head h2,
+.publishing-shell .editor h3,
+.publishing-shell .editor label {
+  color: var(--buffer-text);
+}
+.publishing-shell .editor form {
+  flex: 1;
+  overflow: hidden;
+}
+.publishing-shell .editor-body {
+  min-height: 0;
+  flex: 1;
+  overscroll-behavior: contain;
+}
+.publishing-shell .editor-footer {
+  flex-shrink: 0;
+  background: var(--buffer-surface);
+  border-color: var(--buffer-line);
+}
+.publishing-shell .editor .eyebrow,
+.publishing-shell .editor .tabs button,
+.publishing-shell .editor .mode,
+.publishing-shell .editor .mode small {
+  color: var(--buffer-text-secondary);
+}
+.publishing-shell .editor .tabs button.active {
+  color: var(--buffer-lime);
+  border-color: var(--buffer-lime);
+}
+.publishing-shell .editor .mode {
+  background: var(--buffer-editor-bg);
+  border-color: var(--buffer-line);
+}
+.publishing-shell .editor .mode.selected {
+  background: var(--buffer-lime-subtle);
+  color: var(--buffer-lime);
+  border-color: var(--buffer-lime-border);
+}
+.publishing-shell .editor .ai-box {
+  background: var(--buffer-editor-bg);
+  border-color: var(--buffer-line);
+}
+.publishing-shell .editor .post-editor {
+  background: var(--buffer-editor-bg);
+  border-color: var(--buffer-line);
+}
+.publishing-shell .editor .soft-panel,
+.publishing-shell .editor .notice {
+  background: var(--buffer-surface-elevated);
+  color: var(--buffer-text-secondary);
+  border-color: var(--buffer-line);
+}
+.publishing-shell .editor input:not([type="checkbox"]):not([type="radio"]):not([type="file"]) {
+  background: var(--buffer-input-bg);
+  color: var(--buffer-text);
+  border-color: var(--buffer-input-border);
+}
+.publishing-shell .editor input::placeholder,
+.publishing-shell .editor textarea::placeholder {
+  color: var(--buffer-text-secondary);
+  opacity: 1;
+}
+@media (max-width: 600px) {
+  .publishing-shell .editor > .tabs {
+    gap: 12px;
+    overflow-x: auto;
+  }
+  .publishing-shell .editor .tabs button {
+    white-space: nowrap;
+  }
+}
