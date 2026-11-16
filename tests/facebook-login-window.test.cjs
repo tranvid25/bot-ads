@@ -51,6 +51,42 @@ test('authenticated login remains open past six minutes until the user closes it
   assert.equal(iterations, 3); assert.equal(saves, 3);
   assert.equal(s.browser.listenerCount('disconnected'), 0);
 });
+
+test('closing the last page completes login even while browser/context remain connected', async () => {
+  const s = session(); let saves = 0;
+  s.browser.isConnected = () => true;
+  await waitForLogin(s, { save: async () => { saves++; }, log() {},
+    sleep: async () => { s.context.pages = () => []; } });
+  assert.equal(saves, 1);
+  assert.equal(s.browser.isConnected(), true);
+});
+
+test('closing the last page before authentication does not connect', async () => {
+  const s = session(); s.context.cookies = async () => [];
+  await assert.rejects(waitForLogin(s, { save: async () => assert.fail(), log() {},
+    sleep: async () => { s.context.pages = () => []; } }), /trước/);
+});
+
+test('last-page close is detected with a real browser that remains connected', async () => {
+  const { launchBrowser } = require('../packages/browser-launcher.cjs');
+  const browser = await launchBrowser({ headless: true }, {
+    env: process.platform === 'win32' ? { BOTADS_BROWSER_MODE: 'system' } : {},
+  });
+  try {
+    const context = await browser.newContext();
+    await context.route('https://www.facebook.com/**', route => route.fulfill({ body: '<html>Fixture only</html>', contentType: 'text/html' }));
+    await context.addCookies([{ name: 'c_user', value: 'fixture', domain: '.facebook.com', path: '/' }]);
+    const page = await context.newPage();
+    await page.goto('https://www.facebook.com/');
+    let saved = false;
+    await waitForLogin({ browser, context, page }, {
+      save: async () => { saved = true; }, log() {},
+      sleep: async () => { await page.close(); },
+    });
+    assert.equal(saved, true);
+    assert.equal(browser.isConnected(), true);
+  } finally { await browser.close(); }
+});
 test('closing without login is not reported as connected', async () => {
   const s = session(); s.context.cookies = async () => [];
   await assert.rejects(waitForLogin(s, { save: async () => assert.fail(), log() {},

@@ -10,6 +10,12 @@ async function waitForLogin(session, { save, sleep, now = Date.now, log = consol
     while (!closed) {
       try {
         const pages = session.context.pages().filter(page => !page.isClosed());
+        // Closing the last Chrome window can leave Playwright's browser/context
+        // alive. It closes pages without emitting context close/disconnected.
+        if (!pages.length || session.browser.isConnected?.() === false) {
+          closed = true;
+          break;
+        }
         const page = pages.find(page => {
           try { return /(^|\.)facebook\.com$/.test(new URL(page.url()).hostname); }
           catch { return false; }

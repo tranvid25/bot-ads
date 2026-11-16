@@ -48,7 +48,7 @@
         "ALLOW_REGISTRATION": "true",
         "MAX_ASSET_MB": "5",
         "AI_DAILY_REQUESTS": "10",
-        "DOWNLOAD_URL": "https://github.com/tranvid25/bot-ads/releases/download/v1.1.6/BotAds-Setup-1.1.6-Lite.exe",
+        "DOWNLOAD_URL": "https://github.com/tranvid25/bot-ads/releases/download/v1.1.7/BotAds-Setup-1.1.7-Lite.exe",
       },
     },
   },
