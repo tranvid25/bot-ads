@@ -12,9 +12,7 @@ async function launchBrowser(options = {}, dependencies = {}) {
         : {};
     return chromium.launch({ ...options, ...channel });
   }
-  const platform = dependencies.platform || process.platform;
-  const channels =
-    platform === "win32" ? ["msedge", "chrome"] : ["chrome", "msedge"];
+  const channels = ["chrome", "msedge"];
   for (const channel of channels) {
     try {
       return await chromium.launch({ ...options, channel });

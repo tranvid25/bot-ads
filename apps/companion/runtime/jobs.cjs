@@ -77,7 +77,7 @@ module.exports = (ctx) => {
     ctx.notify();
   }
   async function tick() {
-    if (ctx.installingUpdate || ctx.polling || !ctx.credentials.connection)
+    if (ctx.installingUpdate || ctx.polling || !ctx.credentials.connection || ctx.credentials.connection.invalid)
       return;
     ctx.polling = true;
     try {

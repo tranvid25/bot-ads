@@ -30,17 +30,17 @@ test("full package can run headless with its full Chromium and no separate shell
   );
   assert.deepEqual(fake.calls, [{ headless: true, channel: "chromium" }]);
 });
-test("Lite uses Edge first on Windows without a personal user data directory", async () => {
+test("Lite uses Chrome first on Windows without a personal user data directory", async () => {
   const fake = engine();
   await launchBrowser(
     { headless: false },
     { ...fake, env: { BOTADS_BROWSER_MODE: "system" }, platform: "win32" },
   );
-  assert.deepEqual(fake.calls, [{ headless: false, channel: "msedge" }]);
+  assert.deepEqual(fake.calls, [{ headless: false, channel: "chrome" }]);
   assert.equal("userDataDir" in fake.calls[0], false);
 });
-test("Lite falls back to Chrome if Edge is unavailable", async () => {
-  const fake = engine(["msedge"]);
+test("Lite falls back to Edge if Chrome is unavailable", async () => {
+  const fake = engine(["chrome"]);
   const result = await launchBrowser(
     { headless: false },
     { ...fake, env: { BOTADS_BROWSER_MODE: "system" }, platform: "win32" },
@@ -48,7 +48,7 @@ test("Lite falls back to Chrome if Edge is unavailable", async () => {
   assert.equal(result, fake.browser);
   assert.deepEqual(
     fake.calls.map((c) => c.channel),
-    ["msedge", "chrome"],
+    ["chrome", "msedge"],
   );
 });
 test("Lite reports missing browsers instead of installing or silently launching an unrelated profile", async () => {

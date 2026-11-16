@@ -68,6 +68,11 @@ module.exports = (ctx) => {
             throw new Error("Ghép với website trước.");
           if (ctx.current || ctx.discovery.busy())
             throw new Error("Đợi lượt hiện tại kết thúc và đồng bộ.");
+          await ctx.request("/heartbeat", "POST", {
+            facebookReady: ctx.state().facebookReady,
+            discoverySupported: true,
+            socialSupported: true,
+          });
           const result = await ctx.spawnRunner({
             action: "login",
           });

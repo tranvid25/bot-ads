@@ -22,6 +22,8 @@ module.exports = (ctx) => {
   async function request(route, method = "POST", payload = {}, options = {}) {
     const connection = ctx.credentials.connection;
     if (!connection) throw new Error("Chưa liên kết thiết bị.");
+    if (connection.invalid)
+      throw Object.assign(new Error(connection.invalid), { status: 401 });
     const response = await fetch(`${connection.server}/api/device${route}`, {
       method,
       headers: {
@@ -37,10 +39,20 @@ module.exports = (ctx) => {
       redirect: "error",
     });
     if (!response.ok) {
+      // A response from the previous pairing must not invalidate its replacement.
+      if (ctx.credentials.connection !== connection)
+        throw Object.assign(new Error("Liên kết thiết bị đã thay đổi. Vui lòng thử lại."), { status: 409 });
       let message;
       try {
         message = (await response.json()).error;
       } catch {}
+      if (response.status === 401) {
+        message = "Liên kết thiết bị không còn hợp lệ. Mở website BotAds, tạo mã ghép mới (thu hồi máy cũ nếu cần), rồi ghép lại trong ứng dụng.";
+        connection.invalid = message;
+        ctx.lastSeen = 0;
+        ctx.error = message;
+        ctx.log(message);
+      }
       throw Object.assign(
         new Error(message || `Máy chủ trả lỗi ${response.status}`),
         {

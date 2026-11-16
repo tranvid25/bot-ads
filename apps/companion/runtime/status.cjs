@@ -20,7 +20,7 @@ module.exports = (ctx) => {
       server: ctx.credentials.connection?.server || "",
       browserMode: ctx.browserMode || "bundled",
       update: ctx.updates?.state(),
-      linked: !!ctx.credentials.connection,
+      linked: !!ctx.credentials.connection && !ctx.credentials.connection.invalid,
       facebookReady: !!ctx.credentials.auth?.cookies?.some(
         (c) => c.name === "c_user",
       ),
@@ -35,7 +35,7 @@ module.exports = (ctx) => {
       busy: !!ctx.child,
       currentJob: ctx.current?.job?.id || null,
       currentSocial: ctx.social?.info(),
-      online: Date.now() - ctx.lastSeen < 120000,
+      online: !!ctx.credentials.connection && !ctx.credentials.connection.invalid && Date.now() - ctx.lastSeen < 120000,
       error: ctx.error,
       logs: ctx.logs,
       startup: ctx.startup,
