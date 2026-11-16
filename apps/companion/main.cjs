@@ -78,6 +78,6 @@ ctx.discovery = require("./discovery-client.cjs")({
   stopped: () => ctx.stoppedByUser,
 });
 ctx.hasWork = () =>
-  ctx.child || ctx.current || ctx.discovery.busy() || ctx.social.busy();
+  ctx.facebookLogin || ctx.child || ctx.current || ctx.discovery.busy() || ctx.social.busy();
 ctx.updates = require("./runtime/updater.cjs")(ctx);
 require("./runtime/lifecycle.cjs")(ctx);

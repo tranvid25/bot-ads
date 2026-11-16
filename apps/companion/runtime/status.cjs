@@ -32,7 +32,7 @@ module.exports = (ctx) => {
           ],
         ),
       ),
-      busy: !!ctx.child,
+      busy: !!ctx.child || !!ctx.facebookLogin,
       currentJob: ctx.current?.job?.id || null,
       currentSocial: ctx.social?.info(),
       online: !!ctx.credentials.connection && !ctx.credentials.connection.invalid && Date.now() - ctx.lastSeen < 120000,

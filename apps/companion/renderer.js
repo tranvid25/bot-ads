@@ -1,6 +1,8 @@
 const $ = (id) => document.getElementById(id);
 let busy = false;
+let latestState;
 function show(state) {
+  latestState = state;
   $("pairing").hidden = state.linked;
   $("connected").hidden = !state.linked;
   $("status").textContent = state.paused
@@ -33,6 +35,7 @@ function show(state) {
     ? "Đăng nhập lại"
     : "Kết nối Facebook";
   $("login").disabled = busy || state.busy || !!state.currentJob;
+  $("facebook-change").disabled = busy || state.busy || !!state.currentJob;
   $("startup").checked = state.startup;
   $("job").textContent = state.currentSocial
     ? `${state.currentSocial.kind === "connect" ? "Đăng nhập" : "Đăng bài"} ${state.currentSocial.provider}`
@@ -52,6 +55,8 @@ function show(state) {
 }
 async function command(name, payload) {
   busy = true;
+  $("login").disabled = true;
+  $("facebook-change").disabled = true;
   try {
     show(await window.botads.command(name, payload));
   } catch (e) {
@@ -62,7 +67,8 @@ async function command(name, payload) {
     $("error").hidden = false;
   } finally {
     busy = false;
-    $("login").disabled = false;
+    for (const id of ["login", "facebook-change"])
+      $(id).disabled = !!latestState?.busy || !!latestState?.currentJob;
   }
 }
 $("pair-form").addEventListener("submit", (e) => {
@@ -74,6 +80,10 @@ for (const name of ["login", "resume", "stop", "website", "open-diagnostics"])
 $("disconnect").addEventListener("click", () => {
   if (confirm("Xóa liên kết và phiên Facebook đã lưu trên máy này?"))
     command("disconnect");
+});
+$("facebook-change").addEventListener("click", () => {
+  if (confirm("Xóa phiên Facebook cũ để đăng nhập tài khoản khác? Lịch đăng sẽ tạm nghỉ. Bạn cần duyệt lại nhóm cho tài khoản mới."))
+    command("facebook-change");
 });
 for (const provider of ["threads", "instagram"])
   $(`forget-${provider}`).addEventListener("click", () => {

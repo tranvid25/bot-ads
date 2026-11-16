@@ -61,26 +61,10 @@ module.exports = (ctx) => {
           await ctx.tick();
           return ctx.state();
         }
-        if (command === "login") {
-          if (ctx.social.busy())
-            throw new Error("Đợi kết nối/đăng kênh hiện tại hoàn tất.");
-          if (!ctx.credentials.connection)
-            throw new Error("Ghép với website trước.");
-          if (ctx.current || ctx.discovery.busy())
-            throw new Error("Đợi lượt hiện tại kết thúc và đồng bộ.");
-          await ctx.request("/heartbeat", "POST", {
-            facebookReady: ctx.state().facebookReady,
-            discoverySupported: true,
-            socialSupported: true,
+        if (command === "login" || command === "facebook-change")
+          return require("./facebook-login.cjs")(ctx, {
+            changeAccount: command === "facebook-change",
           });
-          const result = await ctx.spawnRunner({
-            action: "login",
-          });
-          if (result.error) throw new Error(result.error);
-          ctx.log("Đã lưu phiên Facebook được mã hóa trên máy này.");
-          await ctx.tick();
-          return ctx.state();
-        }
         if (command === "stop") {
           ctx.stoppedByUser = true;
           if (ctx.child)

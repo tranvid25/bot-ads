@@ -13,6 +13,7 @@ for (const required of [
   "/apps/companion/runner.cjs",
   "/apps/companion/discovery-client.cjs",
   "/apps/companion/runtime/jobs.cjs",
+  "/apps/companion/runtime/facebook-login.cjs",
   "/packages/automation/discover_only.cjs",
   "/packages/automation/automation.js",
   "/packages/automation/storage.js",
