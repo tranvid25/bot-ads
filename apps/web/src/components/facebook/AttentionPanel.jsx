@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { facebookAttention } from "../../../../../packages/contracts/facebook-attention.mjs";
-export default function AttentionPanel({ data, onNavigate }) {
+export default function AttentionPanel({ data, onNavigate, onRefresh }) {
   const [dismissed, setDismissed] = useState([]);
   const [expanded, setExpanded] = useState(false);
   const items = facebookAttention(data).filter(
@@ -10,6 +10,9 @@ export default function AttentionPanel({ data, onNavigate }) {
   return (
     <section className="panel" aria-label="Thông báo Facebook cần xử lý">
       <h2>Cần chú ý · {items.length}</h2>
+      <button className="secondary small" onClick={onRefresh}>
+        Cập nhật trạng thái
+      </button>
       {(expanded ? items : items.slice(0, 3)).map((item) => (
         <div className="fb-attention-row" key={item.id}>
           <p>{item.text}</p>

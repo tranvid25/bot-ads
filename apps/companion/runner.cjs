@@ -11,6 +11,7 @@ const {
 const { setManagedAuth } = require(path.join(root, "browser_helper"));
 let leaseUntil = 0;
 let stopped = false;
+let finishLogin = false;
 const send = (data) => {
   if (process.connected) process.send(data);
 };
@@ -28,6 +29,7 @@ const pending = new Map();
 process.on("message", (message) => {
   if (message.type === "lease") leaseUntil = message.until;
   if (message.type === "stop") stopped = true;
+  if (message.type === "finish-login") finishLogin = true;
   if (message.type === "reply") {
     const task = pending.get(message.id);
     if (task) {
@@ -83,7 +85,7 @@ process.once("message", async (message) => {
   try {
     if (message.action === "login") {
       await runtime.runExclusive(
-        () => require(path.join(root, "login")).main(),
+        () => require(path.join(root, "login")).main({ finish: () => finishLogin }),
         { allowStopped: true },
       );
       send({ type: "done", login: true });

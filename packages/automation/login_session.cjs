@@ -1,5 +1,5 @@
 // Keep the interactive browser open after authentication. Persist before it closes.
-async function waitForLogin(session, { save, sleep, now = Date.now, log = console.log }) {
+async function waitForLogin(session, { save, sleep, now = Date.now, log = console.log, finish = () => false }) {
   let closed = false, saved = false, valid = false;
   const deadline = now() + 6 * 60000;
   const onClose = () => { closed = true; };
@@ -27,6 +27,11 @@ async function waitForLogin(session, { save, sleep, now = Date.now, log = consol
           await save(session.context);
           if (!saved) log('Đã lưu phiên Facebook. Cửa sổ vẫn mở để bạn kiểm tra; hãy tự đóng khi hoàn tất.');
           saved = true;
+        }
+        if (finish()) {
+          if (!saved || !valid) throw new Error('Chưa xác minh được phiên Facebook hiện tại. Hãy đăng nhập và hoàn tất xác minh trước.');
+          log('Đã xác nhận hoàn tất kết nối Facebook. Đóng cửa sổ kết nối để nhận công việc.');
+          return;
         }
       } catch (error) {
         if (!closed) throw error;

@@ -44,6 +44,15 @@ function session() {
   context.cookies = async () => [{ name: 'c_user', value: 'fixture' }];
   return { browser, context };
 }
+test('explicit finish saves and completes without waiting for Chrome to disconnect', async () => {
+  const s = session(); let saved = false;
+  await waitForLogin(s, { save: async () => { saved = true; }, sleep: async () => assert.fail('must complete'), log() {}, finish: () => true });
+  assert.equal(saved, true);
+});
+test('explicit finish cannot report success without a valid current login', async () => {
+  const s = session(); s.context.cookies = async () => [];
+  await assert.rejects(waitForLogin(s, { save: async () => assert.fail(), sleep: async () => {}, log() {}, finish: () => true }), /Chưa xác minh/);
+});
 test('authenticated login remains open past six minutes until the user closes it', async () => {
   const s = session(); let iterations = 0, saves = 0, time = 0;
   await waitForLogin(s, { save: async () => { saves++; }, now: () => time, log() {},

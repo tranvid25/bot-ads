@@ -76,8 +76,11 @@ test('failed new login keeps the old account cleared and lets the user try again
 test('polling does not claim jobs while a fresh Facebook login is opening', async () => {
   const ctx = fixture();
   ctx.facebookLogin = true;
-  ctx.request = async () => assert.fail('must not poll');
+  const calls = [];
+  ctx.request = async route => { calls.push(route); return {}; };
   await require('../apps/companion/runtime/jobs.cjs')(ctx).tick();
+  assert.deepEqual(calls, ['/heartbeat']);
+  assert.equal(ctx.error, '');
 });
 
 for (const cleared of [false, true]) {

@@ -77,7 +77,12 @@ module.exports = (ctx) => {
     ctx.notify();
   }
   async function tick() {
-    if (ctx.installingUpdate || ctx.facebookLogin || ctx.polling || !ctx.credentials.connection || ctx.credentials.connection.invalid)
+    if (
+      ctx.installingUpdate ||
+      ctx.polling ||
+      !ctx.credentials.connection ||
+      ctx.credentials.connection.invalid
+    )
       return;
     ctx.polling = true;
     try {
@@ -88,6 +93,7 @@ module.exports = (ctx) => {
         jobId: ctx.current?.job?.id,
       });
       ctx.error = "";
+      if (ctx.facebookLogin) return;
       if (ctx.social.busy()) {
         await ctx.social.tick();
         return;

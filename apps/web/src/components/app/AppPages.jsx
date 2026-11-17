@@ -26,6 +26,7 @@ export default function AppPages() {
     marketingNavigation,
     setCampaignSeed,
     upload,
+    refresh,
     device,
     title,
   } = useApp();
@@ -94,7 +95,7 @@ export default function AppPages() {
           onConnectChannel={() => setShowConnectChannelModal(true)}
         />
       )}
-      {["facebook", "campaigns", "devices", "results"].includes(page) && <AttentionPanel data={data} onNavigate={setPage} />}
+      {["facebook", "campaigns", "devices", "results"].includes(page) && <AttentionPanel data={data} onNavigate={setPage} onRefresh={() => refresh({ dashboardOnly: true })} />}
       {page === "overview" && <OverviewPage />}
       {page === "facebook" && (
         <FacebookWorkspace

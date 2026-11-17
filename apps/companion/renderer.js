@@ -2,18 +2,22 @@ const $ = (id) => document.getElementById(id);
 let busy = false;
 let latestState;
 function show(state) {
+  $("login-finish-panel").hidden = !state.facebookLogin;
+  $("finish-login").disabled = !state.facebookLogin || !state.facebookReady;
   latestState = state;
   $("pairing").hidden = state.linked;
   $("connected").hidden = !state.linked;
-  $("status").textContent = state.paused
-    ? "Đang tạm nghỉ"
-    : state.busy
-      ? "Đang làm việc"
-      : state.online
-        ? "Đã kết nối"
-        : state.linked
-          ? "Đang nối lại"
-          : "Chưa liên kết";
+  $("status").textContent = state.facebookLogin
+    ? "Chờ hoàn tất kết nối Facebook"
+    : state.paused
+      ? "Đang tạm nghỉ"
+      : state.busy
+        ? "Đang làm việc"
+        : state.online
+          ? "Đã kết nối"
+          : state.linked
+            ? "Đang nối lại"
+            : "Chưa liên kết";
   $("status").className = "pill" + (state.online ? " online" : "");
   $("server-name").textContent = state.server;
   $("browser-note").textContent =
@@ -37,11 +41,13 @@ function show(state) {
   $("login").disabled = busy || state.busy || !!state.currentJob;
   $("facebook-change").disabled = busy || state.busy || !!state.currentJob;
   $("startup").checked = state.startup;
-  $("job").textContent = state.currentSocial
-    ? `${state.currentSocial.kind === "connect" ? "Đăng nhập" : "Đăng bài"} ${state.currentSocial.provider}`
-    : state.currentJob
-      ? "Đang xử lý lượt " + state.currentJob.slice(0, 8)
-      : "Chưa có lượt chạy";
+  $("job").textContent = state.facebookLogin
+    ? "Bấm Hoàn tất kết nối Facebook để nhận việc"
+    : state.currentSocial
+      ? `${state.currentSocial.kind === "connect" ? "Đăng nhập" : "Đăng bài"} ${state.currentSocial.provider}`
+      : state.currentJob
+        ? "Đang xử lý lượt " + state.currentJob.slice(0, 8)
+        : "Chưa có lượt chạy";
   $("logs").textContent = state.logs.length
     ? state.logs
         .map(
@@ -75,14 +81,25 @@ $("pair-form").addEventListener("submit", (e) => {
   e.preventDefault();
   command("pair", { server: $("server").value, code: $("code").value });
 });
-for (const name of ["login", "resume", "stop", "website", "open-diagnostics"])
+for (const name of [
+  "login",
+  "resume",
+  "stop",
+  "website",
+  "open-diagnostics",
+  "finish-login",
+])
   $(name).addEventListener("click", () => command(name));
 $("disconnect").addEventListener("click", () => {
   if (confirm("Xóa liên kết và phiên Facebook đã lưu trên máy này?"))
     command("disconnect");
 });
 $("facebook-change").addEventListener("click", () => {
-  if (confirm("Xóa phiên Facebook cũ để đăng nhập tài khoản khác? Lịch đăng sẽ tạm nghỉ. Bạn cần duyệt lại nhóm cho tài khoản mới."))
+  if (
+    confirm(
+      "Xóa phiên Facebook cũ để đăng nhập tài khoản khác? Lịch đăng sẽ tạm nghỉ. Bạn cần duyệt lại nhóm cho tài khoản mới.",
+    )
+  )
     command("facebook-change");
 });
 for (const provider of ["threads", "instagram"])

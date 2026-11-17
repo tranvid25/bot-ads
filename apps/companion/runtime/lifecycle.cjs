@@ -61,6 +61,16 @@ module.exports = (ctx) => {
           await ctx.tick();
           return ctx.state();
         }
+        if (command === "finish-login") {
+          if (
+            !ctx.facebookLogin ||
+            !ctx.child?.connected ||
+            !ctx.state().facebookReady
+          )
+            throw new Error("Chưa có phiên đăng nhập đang chờ hoàn tất.");
+          ctx.child.send({ type: "finish-login" });
+          return ctx.state();
+        }
         if (command === "login" || command === "facebook-change")
           return require("./facebook-login.cjs")(ctx, {
             changeAccount: command === "facebook-change",
@@ -75,6 +85,10 @@ module.exports = (ctx) => {
           return ctx.state();
         }
         if (command === "resume") {
+          if (ctx.facebookLogin)
+            throw new Error(
+              "Bấm Hoàn tất kết nối Facebook trước khi nhận việc.",
+            );
           ctx.stoppedByUser = false;
           await ctx.tick();
           return ctx.state();
