@@ -1,14 +1,24 @@
-import React from "react";
+import React, { useEffect } from "react";
 import ReportExport from "../facebook/ReportExport";
+import JobWaitNotice from "../facebook/JobWaitNotice";
 import { api } from "../../lib/api";
 import { Badge, Empty, date } from "../ui";
 import { useApp } from "./AppContext";
 export default function ResultsPage() {
-  const { data, events, setEvents, action } = useApp();
+  const { data, events, setEvents, action, setPage, refresh } = useApp();
+  useEffect(() => {
+    refresh({ dashboardOnly: true });
+    const frame = requestAnimationFrame(() => {
+      const heading = document.getElementById("facebook-jobs-title");
+      heading?.scrollIntoView({ block: "start" });
+      heading?.focus({ preventScroll: true });
+    });
+    return () => cancelAnimationFrame(frame);
+  }, []);
   return (
     <>
       <section className="panel">
-        <h2>Các lượt chạy gần đây</h2>
+        <h2 id="facebook-jobs-title" tabIndex={-1}>Các lượt chạy gần đây</h2>
         {!data.jobs.length ? (
           <Empty
             title="Chưa có lượt chạy"
@@ -42,6 +52,7 @@ export default function ResultsPage() {
                     <td>{date(j.created_at)}</td>
                     <td>
                       <Badge status={j.status} />
+                      <JobWaitNotice job={j} data={data} onNavigate={setPage} />
                       {!!j.cancel_requested && j.status === "running" && (
                         <small className="block">Đang yêu cầu dừng</small>
                       )}

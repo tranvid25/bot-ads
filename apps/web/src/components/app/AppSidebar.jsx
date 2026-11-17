@@ -138,6 +138,10 @@ export default function AppSidebar() {
           </span>
           <span>Chiến dịch Facebook</span>
         </button>
+        <button type="button" className={page === "results" ? "active" : ""} onClick={() => setPage("results")}>
+          <span className="sidebar-nav-icon"><Icon name="history" size={17} /></span>
+          <span>Kết quả Facebook</span>
+        </button>
       </nav>
 
       <SidebarChannels />

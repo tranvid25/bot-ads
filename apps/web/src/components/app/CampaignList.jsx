@@ -1,10 +1,11 @@
 import React from "react";
 import "../../styles/campaign-list.css";
+import JobWaitNotice from "../facebook/JobWaitNotice";
 import { api } from "../../lib/api";
 import { Icon, Empty } from "../ui";
 import { useApp } from "./AppContext";
 export default function CampaignList() {
-  const { data, setEditor, busy, action } = useApp();
+  const { data, setEditor, busy, action, setPage } = useApp();
   return (
     <div className="campaign-list">
       {data.campaigns.length ? (
@@ -35,6 +36,7 @@ export default function CampaignList() {
                   {c.blockedReason}
                 </p>
               )}
+              {data.jobs.filter(j => j.campaign_id === c.id && ["queued", "running", "needs_review"].includes(j.status)).slice(0,1).map(job => <JobWaitNotice key={job.id} job={job} data={data} onNavigate={setPage} />)}
             </div>
             <div className="campaign-actions">
               <button
@@ -59,7 +61,7 @@ export default function CampaignList() {
               </button>
               <button
                 className="primary small"
-                disabled={busy || !!c.blockedReason}
+                disabled={busy || !!c.blockedReason || data.jobs.some(j => j.campaign_id === c.id && ["queued", "running", "needs_review"].includes(j.status))}
                 onClick={() =>
                   action(
                     () => api(`/campaigns/${c.id}/run`, "POST", {}),

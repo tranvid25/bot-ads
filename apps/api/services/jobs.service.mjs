@@ -5,6 +5,7 @@ import { isDue } from "../../../packages/contracts/campaign.mjs";
 import { reviewedCampaign } from "./facebook-campaign.mjs";
 import { expireTasks } from "./desktop-social/tasks.mjs";
 export async function enqueue(env, row, slot) {
+  await run(env, "UPDATE jobs SET status='expired',updated_at=? WHERE workspace_id=? AND status='queued' AND created_at<?", Date.now(), row.workspace_id, Date.now() - 7200000);
   const existing = await one(
     env,
     "SELECT id,status FROM jobs WHERE slot=?",
@@ -13,11 +14,13 @@ export async function enqueue(env, row, slot) {
   if (existing) return existing;
   const pending = await one(
     env,
-    "SELECT id FROM jobs WHERE workspace_id=? AND status='queued' LIMIT 1",
+    "SELECT j.id,j.status,j.campaign_id,j.created_at,c.name FROM jobs j JOIN campaigns c ON c.id=j.campaign_id WHERE j.workspace_id=? AND j.status='queued' ORDER BY j.created_at LIMIT 1",
     row.workspace_id,
   );
-  if (pending && slot.startsWith("manual:"))
-    throw error(409, "Đã có lượt đang chờ. Xem ở mục Kết quả.");
+  if (pending && slot.startsWith("manual:")) {
+    if (pending.campaign_id === row.id) return { id: pending.id, status: pending.status, reused: true };
+    throw error(409, `Đang chờ lượt ${pending.id.slice(0,8)} của chiến dịch “${pending.name}”. Vào Kết quả để xem lý do chờ hoặc hủy lượt cũ; không cần bấm Chạy nhiều lần.`);
+  }
   if (pending) return pending;
   const snapshot = await reviewedCampaign(
     env,

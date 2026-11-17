@@ -197,6 +197,18 @@ try {
     path: "test-results/facebook-guide-mobile.png",
     fullPage: true,
   });
+  dashboard.jobs = [
+    { id: "queued-job", campaign_id: "fixture-campaign", status: "queued", created_at: Date.now() },
+    { id: "failed-job", campaign_id: "fixture-campaign", status: "failed", created_at: Date.now(), result: JSON.stringify({ error: "Fixture failure" }) },
+  ];
+  await page.goto(`${base}/?page=devices`);
+  const attention = page.getByRole("region", { name: "Thông báo Facebook cần xử lý" });
+  await attention.getByRole("button", { name: "Xem kết quả & nhật ký", exact: true }).click();
+  await page.getByRole("heading", { name: "Các lượt chạy gần đây", exact: true }).waitFor();
+  assert.equal(await attention.count(), 0, "Result navigation must show jobs instead of repeating the warning panel");
+  await page.getByText(/Mã lượt: queued-j/).waitFor();
+  await page.getByText("Fixture failure", { exact: true }).waitFor();
+  await page.locator(".buffer-sidebar-main-nav").getByRole("button", { name: "Kết quả Facebook", exact: true }).waitFor();
   assert.deepEqual(errors, []);
   console.log(
     "PASS: pairing, four-step guide, import/review/select groups, campaign composer, discovery and mobile; no live posting.",

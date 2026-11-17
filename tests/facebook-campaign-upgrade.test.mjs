@@ -76,6 +76,9 @@ test("retrying a create/save-and-run request produces one campaign and one job",
     assert.equal(second.status, 200, JSON.stringify(second.data));
     assert.equal(first.data.id, second.data.id);
     assert.equal(first.data.job.id, second.data.job.id);
+    const rerun = await w.request(`/campaigns/${first.data.id}/run`, { method: "POST", cookie: a.cookie, data: {} });
+    assert.equal(rerun.status, 200);
+    assert.equal(rerun.data.id, first.data.job.id);
     assert.equal(
       (
         await w.request("/campaigns", {

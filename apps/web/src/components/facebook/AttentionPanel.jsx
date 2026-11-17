@@ -15,6 +15,9 @@ export default function AttentionPanel({ data, onNavigate, onRefresh }) {
       </button>
       {(expanded ? items : items.slice(0, 3)).map((item) => (
         <div className="fb-attention-row" key={item.id}>
+          {item.id.startsWith("job:") && <small>
+            {data.campaigns?.find(c => c.id === data.jobs.find(j => j.id === item.id.slice(4))?.campaign_id)?.name || "Chiến dịch Facebook"} · Mã lượt {item.id.slice(4,12)}
+          </small>}
           <p>{item.text}</p>
           <div className="mk-actions">
             <button
