@@ -23,6 +23,16 @@
         </div>
         <span id="status" class="pill">Chưa liên kết</span>
       </div>
+      <section aria-label="Các bước bắt đầu Facebook">
+        <h2>Bắt đầu đăng bài Facebook</h2>
+        <ol>
+          <li>Đăng nhập website BotAds → Thiết bị → tạo mã và liên kết app. <strong id="step-pair"></strong></li>
+          <li>Bấm Kết nối Facebook → đăng nhập → Hoàn tất kết nối Facebook. <strong id="step-login"></strong></li>
+          <li>Bật nhận việc Facebook. <strong id="step-receive"></strong></li>
+          <li>Trên website: duyệt nhóm → tạo chiến dịch → Đăng ngay hoặc Đặt lịch → xem Nhật ký chiến dịch.</li>
+        </ol>
+        <p>Bạn có thể soạn chiến dịch trước. Đến lúc chạy, máy phải bật nhận việc và có mạng. Lần sau mở app và kiểm tra trạng thái; chỉ đăng nhập lại khi phiên hết hạn.</p>
+      </section>
       <div id="error" role="alert" hidden></div>
       <section id="pairing">
         <h2>01 · Liên kết với website</h2>
@@ -98,9 +108,10 @@
         </div>
         <div class="controls">
           <button id="resume" class="primary">Nhận việc từ website</button
-          ><button id="stop">Dừng / tạm nghỉ</button
+          ><button id="stop">Tạm dừng nhận việc Facebook</button
           ><button id="disconnect" class="danger">Xóa liên kết trên máy</button>
         </div>
+        <p id="receiving-status" role="status" aria-live="polite"></p>
         <label class="checkbox"
           ><input id="startup" type="checkbox" />Khởi động cùng máy tính</label
         >
@@ -134,6 +145,7 @@
         bất cứ lúc nào.
       </footer>
     </main>
+    <script src="receiving-state.js"></script>
     <script src="renderer.js"></script>
     <script src="update-renderer.js"></script>
   </body>

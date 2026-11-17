@@ -66,6 +66,7 @@ Object.assign(ctx, require("./runtime/reporting.cjs")(ctx));
 Object.assign(ctx, require("./runtime/runner.cjs")(ctx));
 Object.assign(ctx, require("./runtime/jobs.cjs")(ctx));
 Object.assign(ctx, require("./runtime/window.cjs")(ctx));
+ctx.tickRechecks = require("./runtime/rechecks.cjs")(ctx);
 ctx.social = require("./social-client.cjs")(ctx);
 ctx.socialEvent = require("./runtime/social-events.cjs")(ctx);
 ctx.discovery = require("./discovery-client.cjs")({
@@ -75,7 +76,7 @@ ctx.discovery = require("./discovery-client.cjs")({
   getAuth: () => ctx.credentials.auth,
   dataDir: ctx.dataDir,
   log: ctx.log,
-  stopped: () => ctx.stoppedByUser,
+  stopped: () => ctx.stoppedByUser || ctx.credentials.facebookReceiving === false,
 });
 ctx.hasWork = () =>
   ctx.facebookLogin || ctx.child || ctx.current || ctx.discovery.busy() || ctx.social.busy();

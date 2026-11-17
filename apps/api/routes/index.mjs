@@ -1,3 +1,5 @@
+import { campaignResults } from "../controllers/campaign-results.mjs";
+import { requestRecheck } from "../controllers/facebook-rechecks.mjs";
 import { identity, checkOrigin, error } from "../middleware/security.mjs";
 import { facebookRoute } from "../controllers/facebook.controller.mjs";
 import { templateRoute } from "../controllers/facebook-templates.mjs";
@@ -87,6 +89,10 @@ export async function route(request, env, execution) {
     return ownSupportRequests(request, env, context);
   if (path === "/api/marketing" || path.startsWith("/api/marketing/"))
     return marketingRoute(request, env, context, execution);
+  if (/^\/api\/campaigns\/[^/]+\/results$/.test(path) && method === "GET")
+    return campaignResults(request, env, path.split("/")[3], context);
+  if (/^\/api\/attempts\/[^/]+\/recheck$/.test(path) && method === "POST")
+    return requestRecheck(request, env, path.split("/")[3], context);
   if (path === "/api/auth/logout" && method === "POST")
     return logout(request, env, path, method, context);
   if (path === "/api/dashboard" && method === "GET")

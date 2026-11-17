@@ -15,7 +15,7 @@ export async function facebookWorker() {
     },
   });
   const db = await mf.getD1Database("DB");
-  for (const migration of ["0001_init.sql", "0002_marketing.sql", "0008_facebook_groups.sql", "0009_desktop_social.sql"]) {
+  for (const migration of ["0001_init.sql", "0002_marketing.sql", "0008_facebook_groups.sql", "0009_desktop_social.sql", "0011_facebook_rechecks.sql"]) {
     const sql = await readFile("apps/api/migrations/" + migration, "utf8");
     await db.batch(
       sql

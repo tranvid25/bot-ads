@@ -1,0 +1,20 @@
+.fb-report .section-title { flex-wrap: wrap; align-items: flex-start; }
+.fb-report .section-title h2 { flex: 1 1 240px; overflow-wrap: anywhere; }
+.fb-report .report-counts { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin: 20px 0; }
+.fb-report .report-counts p { margin: 0; padding: 12px; border: 1px solid #343940; border-radius: 10px; }
+.fb-report .report-counts strong { display: block; font-size: 24px; color: #f3f4f6; }
+.fb-report .report-filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; align-items: end; margin: 20px 0; }
+.fb-report .report-filters label, .fb-report .report-filters input, .fb-report .report-filters select { min-width: 0; width: 100%; }
+.fb-report table { width: 100%; min-width: 0; table-layout: fixed; }
+.fb-report th:first-child { width: 50%; }
+.fb-report td, .fb-report a { white-space: normal; overflow-wrap: anywhere; }
+.fb-report .attempt-content { white-space: pre-wrap; }
+@media (max-width: 700px) {
+  .fb-report .report-counts { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .fb-report .section-title { display: block; }
+  .fb-report thead { display: none; }
+  .fb-report table, .fb-report tbody, .fb-report tr, .fb-report td { display: block; width: 100%; }
+  .fb-report tr { border-top: 1px solid #343940; padding: 16px 0; }
+  .fb-report td { padding: 8px 0; border: 0; }
+  .fb-report td::before { content: attr(data-label); display: block; color: #a6b3c2; font-size: 12px; margin-bottom: 6px; }
+}

@@ -77,8 +77,13 @@ test("refactored companion bootstraps its window, IPC, storage and job coordinat
       event = { sender: ctx.window.webContents };
     assert.equal((await command(event, "state")).linked, false);
     assert.equal((await command(event, "state")).update.enabled, false);
-    assert.equal((await command(event, "stop")).paused, true);
-    assert.equal((await command(event, "resume")).paused, false);
+    assert.equal((await command(event, "stop")).receivingEnabled, false);
+    await assert.rejects(command(event, "resume"), /Liên kết máy tính/);
+    ctx.credentials.connection = { token: "fixture", workspaceId: "fixture" };
+    ctx.credentials.auth = { cookies: [{ name: "c_user", value: "fixture" }] };
+    ctx.lastSeen = Date.now();
+    ctx.tick = async () => {};
+    assert.equal((await command(event, "resume")).receivingEnabled, true);
     await assert.rejects(command({ sender: {} }, "state"), /quyền/);
     assert.equal(
       ctx.validateServer("https://bot.salesora.space"),

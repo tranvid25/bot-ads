@@ -21,7 +21,7 @@ module.exports = (ctx) => {
       browserMode: ctx.browserMode || "bundled",
       update: ctx.updates?.state(),
       linked: !!ctx.credentials.connection && !ctx.credentials.connection.invalid,
-      facebookReady: !!ctx.credentials.auth?.cookies?.some(
+      facebookReady: !ctx.credentials.facebookAuthInvalid && !!ctx.credentials.auth?.cookies?.some(
         (c) => c.name === "c_user",
       ),
       socialAccounts: Object.fromEntries(
@@ -32,15 +32,18 @@ module.exports = (ctx) => {
           ],
         ),
       ),
-      busy: !!ctx.child || !!ctx.facebookLogin,
+      busy: !!ctx.child || !!ctx.facebookLogin || !!ctx.rechecking,
       facebookLogin: !!ctx.facebookLogin,
       currentJob: ctx.current?.job?.id || null,
+      currentCampaign: ctx.current?.job?.campaign?.name || "",
+      syncingResults: !!ctx.current?.finished,
       currentSocial: ctx.social?.info(),
       online: !!ctx.credentials.connection && !ctx.credentials.connection.invalid && Date.now() - ctx.lastSeen < 120000,
       error: ctx.error,
       logs: ctx.logs,
       startup: ctx.startup,
       paused: ctx.stoppedByUser,
+      receivingEnabled: !!ctx.credentials.connection && !!ctx.credentials.auth && !ctx.stoppedByUser && ctx.credentials.facebookReceiving !== false,
     };
   }
   function notify() {

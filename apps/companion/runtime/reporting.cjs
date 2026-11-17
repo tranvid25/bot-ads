@@ -1,5 +1,5 @@
 module.exports = (ctx) => {
-  function reportAttempts() {
+  function reportAttempts(ids) {
     const state = ctx.read(
       ctx.path.join(ctx.dataDir(), "automation_state.json"),
       {
@@ -25,10 +25,11 @@ module.exports = (ctx) => {
       state.version ||= 2;
       ctx.atom(ctx.path.join(ctx.dataDir(), "automation_state.json"), state);
     }
-    return ctx
+    const attempts = ctx
       .mergeReservations(state, reservations)
       .attempts.filter((a) => a.cloudJobId)
-      .slice(-200)
+      .filter(a => !ids || ids.includes(a.id));
+    return (ids ? attempts : attempts.slice(-200))
       .map((a) => ({
         id: a.id,
         status: a.status,
@@ -36,6 +37,9 @@ module.exports = (ctx) => {
         timestamp: a.timestamp,
         postUrl: a.postUrl,
         error: a.error,
+        submittedContent: a.submittedContent,
+        reconciledAt: a.reconciledAt,
+        reconcileCheckedAt: a.reconcileCheckedAt,
         comment: a.comment
           ? {
               status: a.comment.status,
@@ -47,14 +51,23 @@ module.exports = (ctx) => {
   async function report() {
     if (!ctx.current) return;
     const outgoing = ctx.current.events.slice(-50);
-    await ctx.request("/report", "POST", {
+    const payload = {
       jobId: ctx.current.job.id,
-      attempts: ctx.reportAttempts(),
       events: outgoing,
       finished: !!ctx.current.finished,
       error: ctx.current.error,
       summary: ctx.current.summary,
-    });
+    };
+    let batch = [], bytes = 0;
+    for (const attempt of ctx.reportAttempts()) {
+      const size = Buffer.byteLength(JSON.stringify(attempt));
+      if (batch.length && bytes + size > 650000) {
+        await ctx.request("/report", "POST", { jobId: payload.jobId, attempts: batch, finished: false });
+        batch = []; bytes = 0;
+      }
+      batch.push(attempt); bytes += size;
+    }
+    await ctx.request("/report", "POST", { ...payload, attempts: batch });
     const sent = new Set(outgoing.map((e) => e.id));
     ctx.current.events = ctx.current.events.filter((e) => !sent.has(e.id));
     if (ctx.current.finished) {

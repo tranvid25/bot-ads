@@ -33,6 +33,7 @@ export default function useAppState() {
     [showConnectChannelModal, setShowConnectChannelModal] = useState(false),
     [marketingData, setMarketingData] = useState(null),
     [marketingNavigation, setMarketingNavigation] = useState(null);
+  const [reportSelection, setReportSelection] = useState(null);
   const [campaignSeed, setCampaignSeed] = useState(null);
   return {
     meta,
@@ -65,6 +66,8 @@ export default function useAppState() {
     setMarketingData,
     marketingNavigation,
     setMarketingNavigation,
+    reportSelection,
+    setReportSelection,
     campaignSeed,
     setCampaignSeed,
   };

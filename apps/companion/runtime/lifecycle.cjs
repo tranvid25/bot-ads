@@ -50,6 +50,7 @@ module.exports = (ctx) => {
             ctx.credentials.connection?.server !== server
           ) {
             ctx.credentials.auth = null;
+            ctx.credentials.facebookReceiving = false;
             ctx.credentials.social = {};
           }
           ctx.credentials.connection = {
@@ -75,24 +76,8 @@ module.exports = (ctx) => {
           return require("./facebook-login.cjs")(ctx, {
             changeAccount: command === "facebook-change",
           });
-        if (command === "stop") {
-          ctx.stoppedByUser = true;
-          if (ctx.child)
-            ctx.child.send({
-              type: "stop",
-            });
-          ctx.log("Đã yêu cầu dừng. Ứng dụng tạm ngưng nhận việc mới.");
-          return ctx.state();
-        }
-        if (command === "resume") {
-          if (ctx.facebookLogin)
-            throw new Error(
-              "Bấm Hoàn tất kết nối Facebook trước khi nhận việc.",
-            );
-          ctx.stoppedByUser = false;
-          await ctx.tick();
-          return ctx.state();
-        }
+        if (command === "stop" || command === "resume")
+          return require("./receiving.cjs")(ctx, command === "resume");
         if (command === "startup") {
           ctx.startup = Boolean(payload.enabled);
           ctx.app.setLoginItemSettings({

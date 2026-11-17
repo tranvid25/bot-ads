@@ -53,6 +53,7 @@ module.exports = (ctx) => {
                 "Workspace này đã gắn với một tài khoản Facebook khác. Đăng nhập lại đúng tài khoản.",
               );
             ctx.credentials.auth = event.state;
+            ctx.credentials.facebookAuthInvalid = false;
             ctx.saveCredentials();
             processChild.send({
               type: "reply",
@@ -102,6 +103,12 @@ module.exports = (ctx) => {
           }
         }
         if (event.type === "done") {
+          if (event.authInvalid) {
+            ctx.credentials.facebookAuthInvalid = true;
+            ctx.credentials.facebookReceiving = false;
+            try { ctx.saveCredentials(); }
+            catch (error) { ctx.error = error.message; ctx.log("Chưa lưu được trạng thái phiên Facebook: " + error.message); }
+          }
           done = true;
           resolve(event);
         }

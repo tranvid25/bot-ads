@@ -1,10 +1,18 @@
 const $ = (id) => document.getElementById(id);
 let busy = false;
 let latestState;
+let commandError = "";
 function show(state) {
   $("login-finish-panel").hidden = !state.facebookLogin;
   $("finish-login").disabled = !state.facebookLogin || !state.facebookReady;
   latestState = state;
+  const receiving = window.receivingState(state);
+  $("resume").disabled = busy || !receiving.canStart;
+  $("resume").textContent = receiving.label;
+  $("receiving-status").textContent = receiving.message;
+  $("stop").disabled = busy || (!state.receivingEnabled && !state.currentJob);
+  for (const [id, done] of [["step-pair", state.linked], ["step-login", state.facebookReady && !state.facebookLogin], ["step-receive", state.receivingEnabled && state.online]])
+    $(id).textContent = done ? "Đã hoàn tất" : "Chưa hoàn tất";
   $("pairing").hidden = state.linked;
   $("connected").hidden = !state.linked;
   $("status").textContent = state.facebookLogin
@@ -34,7 +42,7 @@ function show(state) {
   }
   $("facebook-status").textContent = state.facebookReady
     ? "Đã lưu phiên đăng nhập trên máy"
-    : "Chưa đăng nhập trên trình duyệt BotAds";
+    : "Chưa đăng nhập hoặc phiên đã hết hạn. Kết nối Facebook để tiếp tục.";
   $("login").textContent = state.facebookReady
     ? "Đăng nhập lại"
     : "Kết nối Facebook";
@@ -46,7 +54,7 @@ function show(state) {
     : state.currentSocial
       ? `${state.currentSocial.kind === "connect" ? "Đăng nhập" : "Đăng bài"} ${state.currentSocial.provider}`
       : state.currentJob
-        ? "Đang xử lý lượt " + state.currentJob.slice(0, 8)
+        ? `${state.syncingResults ? "Đang đồng bộ" : "Đang xử lý"}: ${state.currentCampaign || state.currentJob.slice(0, 8)}`
         : "Chưa có lượt chạy";
   $("logs").textContent = state.logs.length
     ? state.logs
@@ -56,23 +64,26 @@ function show(state) {
         .join("\n")
     : "Sẵn sàng kết nối…";
   $("logs").scrollTop = $("logs").scrollHeight;
-  $("error").hidden = !state.error;
-  $("error").textContent = state.error;
+  $("error").hidden = !(state.error || commandError);
+  $("error").textContent = state.error || commandError;
 }
 async function command(name, payload) {
+  commandError = "";
   busy = true;
   $("login").disabled = true;
   $("facebook-change").disabled = true;
   try {
     show(await window.botads.command(name, payload));
   } catch (e) {
-    $("error").textContent = e.message.replace(
+    commandError = e.message.replace(
       /^Error invoking remote method[^:]*: Error: /,
       "",
     );
+    $("error").textContent = commandError;
     $("error").hidden = false;
   } finally {
     busy = false;
+    if (latestState) show(latestState);
     for (const id of ["login", "facebook-change"])
       $(id).disabled = !!latestState?.busy || !!latestState?.currentJob;
   }

@@ -1,3 +1,4 @@
+import { rechecks } from "./device/rechecks.mjs";
 import { identity, error } from "../middleware/security.mjs";
 import { facebookDeviceRoute } from "./facebook-device.controller.mjs";
 import { heartbeat } from "./device/heartbeat.mjs";
@@ -11,7 +12,7 @@ export async function deviceRoute(request, env, path) {
   const context = await identity(request, env, true);
   if (path.startsWith("/api/device/discovery/"))
     return facebookDeviceRoute(request, env, context, path.split("/").at(-1));
-  for (const handler of [social, heartbeat, claim, prepare, reserve, report, asset]) {
+  for (const handler of [rechecks, social, heartbeat, claim, prepare, reserve, report, asset]) {
     const response = await handler(request, env, path, context);
     if (response) return response;
   }

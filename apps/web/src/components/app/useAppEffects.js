@@ -11,6 +11,7 @@ export default function useAppEffects({
   setNotice,
   setError,
   refresh,
+  reportSelection,
 }) {
   const refreshRef = useRef(refresh);
   refreshRef.current = refresh;
@@ -61,7 +62,7 @@ export default function useAppEffects({
     ["queued", "running"].includes(job.status),
   );
   useEffect(() => {
-    if (!data || page === "marketing" || page === "settings") return;
+    if (!data || page === "marketing" || page === "settings" || (page === "results" && reportSelection)) return;
     // Device pairing needs liveness; other pages only poll while work is active.
     if (page !== "devices" && !activeJob) return;
     const timer = setInterval(() => {
@@ -69,5 +70,5 @@ export default function useAppEffects({
         refreshRef.current({ dashboardOnly: true });
     }, ACTIVE_REFRESH_MS);
     return () => clearInterval(timer);
-  }, [!!data, page, activeJob]);
+  }, [!!data, page, activeJob, reportSelection]);
 }

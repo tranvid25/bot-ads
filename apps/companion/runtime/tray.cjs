@@ -12,14 +12,7 @@ module.exports = (ctx) => {
       },
       {
         label: "Dừng lượt hiện tại",
-        click: () => {
-          ctx.stoppedByUser = true;
-          if (ctx.child)
-            ctx.child.send({
-              type: "stop",
-            });
-          ctx.notify();
-        },
+        click: () => require("./receiving.cjs")(ctx, false).catch(e => { ctx.error = e.message; ctx.notify(); }),
       },
       {
         type: "separator",

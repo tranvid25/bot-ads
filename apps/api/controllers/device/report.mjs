@@ -27,8 +27,8 @@ export async function report(request, env, path, { workspaceId, device }) {
       )
         continue;
       const data = {
-        title: String(a.title || "").slice(0, 120),
-        postUrl: validPostUrl(a.postUrl),
+        title: a.title === undefined ? undefined : String(a.title || "").slice(0, 120),
+        postUrl: validPostUrl(a.postUrl) || undefined,
         error: String(a.error || "").slice(0, 600),
         comment: a.comment
           ? {
@@ -37,18 +37,21 @@ export async function report(request, env, path, { workspaceId, device }) {
             }
           : null,
         timestamp: a.timestamp,
+        submittedContent: a.submittedContent === undefined ? undefined : String(a.submittedContent || "").slice(0, 20000),
+        reconciledAt: a.reconciledAt ? String(a.reconciledAt).slice(0, 50) : undefined,
+        reconcileCheckedAt: a.reconcileCheckedAt ? String(a.reconcileCheckedAt).slice(0, 50) : undefined,
       };
       // An agent may reconcile an earlier job's attempt, but only in its own workspace.
       statements.push(
         env.DB.prepare(
-          "UPDATE attempts SET status=?,data=?,updated_at=CASE WHEN status!=? THEN ? ELSE updated_at END WHERE id=? AND workspace_id=? AND (status!='success' OR ?='success')",
+          "UPDATE attempts SET status=?,data=json_patch(data,?),updated_at=? WHERE id=? AND workspace_id=? AND job_id IN (SELECT id FROM jobs WHERE device_id=?) AND (status!='success' OR ?='success')",
         ).bind(
           a.status,
           JSON.stringify(data),
-          a.status,
           Date.now(),
           a.id,
           workspaceId,
+          device.id,
           a.status,
         ),
       );
@@ -70,6 +73,10 @@ export async function report(request, env, path, { workspaceId, device }) {
       );
     }
     if (statements.length) await env.DB.batch(statements);
+    await run(env, `UPDATE jobs SET status='completed',updated_at=?,lease_until=NULL
+      WHERE workspace_id=? AND device_id=? AND status='needs_review'
+      AND EXISTS(SELECT 1 FROM attempts a WHERE a.job_id=jobs.id)
+      AND NOT EXISTS(SELECT 1 FROM attempts a WHERE a.job_id=jobs.id AND a.status IN ('submitting','unknown'))`, Date.now(), workspaceId, device.id);
     if (input.finished) {
       const status = job.cancel_requested
         ? "canceled"

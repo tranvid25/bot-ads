@@ -126,6 +126,7 @@ module.exports = (ctx) => {
         ctx.saveCurrent();
       }
       if (ctx.current) await ctx.report();
+      if (!ctx.child && !ctx.current && ctx.tickRechecks && await ctx.tickRechecks()) return;
       if (
         !ctx.child &&
         !ctx.current &&
@@ -137,6 +138,7 @@ module.exports = (ctx) => {
         !ctx.child &&
         !ctx.current &&
         !ctx.stoppedByUser &&
+        ctx.credentials.facebookReceiving !== false &&
         ctx.state().facebookReady
       ) {
         if (await ctx.discovery.tick()) return;

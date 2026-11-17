@@ -30,6 +30,8 @@ jobs:
       - run: npm run web:build
       - run: npm run test:marketing:ui
       - run: npm run test:facebook:ui
+      - run: npm run test:campaign:ui
+      - run: npm run test:companion:ui
       - run: npm run test:social:ui
       - run: npm run web:check
       - run: npm run cloud:build:production

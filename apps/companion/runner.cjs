@@ -89,6 +89,12 @@ process.once("message", async (message) => {
         { allowStopped: true },
       );
       send({ type: "done", login: true });
+    } else if (message.action === "recheck") {
+      if (fs.existsSync(file("STOP"))) fs.unlinkSync(file("STOP"));
+      const attempt = require(path.join(root, "history")).loadState().attempts.find(a => a.id === message.attemptId);
+      if (!attempt?.submittedContent) throw new Error("Máy này không còn bằng chứng gốc của lần gửi. Hãy mở Facebook để kiểm tra thủ công.");
+      await runtime.runExclusive(() => require(path.join(root, "reconcile_posts")).main({ attemptIds: [message.attemptId], verifyOnly: true }));
+      send({ type: "done" });
     } else if (message.action === "discover") {
       leaseUntil = message.leaseUntil;
       if (fs.existsSync(file("STOP"))) fs.unlinkSync(file("STOP"));
@@ -172,7 +178,7 @@ process.once("message", async (message) => {
       send({ type: "done", summary });
     }
   } catch (e) {
-    send({ type: "done", error: e.message });
+    send({ type: "done", error: e.message, authInvalid: e.code === "FACEBOOK_AUTH_REQUIRED" });
   } finally {
     setTimeout(() => process.exit(), 100);
   }

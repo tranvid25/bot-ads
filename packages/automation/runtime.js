@@ -55,9 +55,9 @@ async function runExclusive(work, { allowStopped = false } = {}) {
 }
 async function assertAccountReady(page) {
   checkStop();
-  if (/\/(login|checkpoint|challenge|recover|two_step_verification)(\/|\?|$)/i.test(new URL(page.url()).pathname)) throw new HaltError('Facebook yêu cầu đăng nhập hoặc xác minh. Chạy npm run login.');
+  if (/\/(login|checkpoint|challenge|recover|two_step_verification)(\/|\?|$)/i.test(new URL(page.url()).pathname)) throw Object.assign(new HaltError('Facebook yêu cầu đăng nhập hoặc xác minh. Kết nối lại Facebook trong app BotAds.'), { code: 'FACEBOOK_AUTH_REQUIRED' });
   const login = page.locator('input[name="email"], input[name="pass"]');
-  if (await login.first().isVisible().catch(() => false)) throw new HaltError('Phiên Facebook hết hạn. Chạy npm run login.');
+  if (await login.first().isVisible().catch(() => false)) throw Object.assign(new HaltError('Phiên Facebook hết hạn. Kết nối lại Facebook trong app BotAds.'), { code: 'FACEBOOK_AUTH_REQUIRED' });
   const blocked = page.getByText(/you(?:'re| are) temporarily blocked|we limit how often|tài khoản.*bị hạn chế|bạn tạm thời bị chặn|chúng tôi giới hạn tần suất/i).first();
   if (await blocked.isVisible().catch(() => false)) throw new HaltError('Facebook đang hạn chế thao tác. Bot đã dừng.');
 }

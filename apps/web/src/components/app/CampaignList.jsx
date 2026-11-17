@@ -5,7 +5,7 @@ import { api } from "../../lib/api";
 import { Icon, Empty } from "../ui";
 import { useApp } from "./AppContext";
 export default function CampaignList() {
-  const { data, setEditor, busy, action, setPage } = useApp();
+  const { data, setEditor, busy, action, setPage, setReportSelection } = useApp();
   return (
     <div className="campaign-list">
       {data.campaigns.length ? (
@@ -39,6 +39,7 @@ export default function CampaignList() {
               {data.jobs.filter(j => j.campaign_id === c.id && ["queued", "running", "needs_review"].includes(j.status)).slice(0,1).map(job => <JobWaitNotice key={job.id} job={job} data={data} onNavigate={setPage} />)}
             </div>
             <div className="campaign-actions">
+              <button className="secondary" onClick={() => { setReportSelection({ campaignId: c.id }); setPage("results"); }}>Nhật ký chiến dịch</button>
               <button
                 className="secondary danger"
                 disabled={busy}

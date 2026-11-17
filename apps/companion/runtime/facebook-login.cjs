@@ -9,6 +9,7 @@ module.exports = async (ctx, { changeAccount = false } = {}) => {
     if (changeAccount) {
       // Pause claims before clearing credentials; old campaigns keep their account checks.
       ctx.stoppedByUser = true;
+      ctx.credentials.facebookReceiving = false;
       const previous = ctx.credentials.auth;
       ctx.credentials.auth = null;
       try { ctx.saveCredentials(); }

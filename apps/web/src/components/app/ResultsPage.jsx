@@ -1,3 +1,4 @@
+import CampaignReport from "../facebook/CampaignReport";
 import React, { useEffect } from "react";
 import ReportExport from "../facebook/ReportExport";
 import JobWaitNotice from "../facebook/JobWaitNotice";
@@ -5,7 +6,7 @@ import { api } from "../../lib/api";
 import { Badge, Empty, date } from "../ui";
 import { useApp } from "./AppContext";
 export default function ResultsPage() {
-  const { data, events, setEvents, action, setPage, refresh } = useApp();
+  const { data, events, setEvents, action, setPage, refresh, reportSelection, setReportSelection } = useApp();
   useEffect(() => {
     refresh({ dashboardOnly: true });
     const frame = requestAnimationFrame(() => {
@@ -15,6 +16,7 @@ export default function ResultsPage() {
     });
     return () => cancelAnimationFrame(frame);
   }, []);
+  if (reportSelection) return <CampaignReport key={`${reportSelection.campaignId}:${reportSelection.jobId || ""}`} selection={reportSelection} onClose={() => setReportSelection(null)} />;
   return (
     <>
       <section className="panel">
@@ -60,13 +62,7 @@ export default function ResultsPage() {
                     <td>
                       <button
                         className="link"
-                        onClick={() =>
-                          action(async () =>
-                            setEvents(
-                              (await api(`/jobs/${j.id}/events`)).events,
-                            ),
-                          )
-                        }
+                        onClick={() => setReportSelection({ campaignId: j.campaign_id, jobId: j.id })}
                       >
                         Nhật ký
                       </button>

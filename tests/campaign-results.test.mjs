@@ -1,0 +1,45 @@
+import { test } from "node:test";
+import assert from "node:assert/strict";
+import { randomUUID } from "node:crypto";
+import { facebookWorker } from "./helpers/facebook-worker.mjs";
+test("campaign counts cover full history; pagination, customer isolation and recheck retries", async () => {
+  const w = await facebookWorker();
+  try {
+    const a = await w.owner("report-owner"), b = await w.owner("report-other");
+    const campaignId = randomUUID(), jobId = randomUUID();
+    await w.db.prepare("INSERT INTO campaigns VALUES (?,?,?,'{}',0,?)").bind(campaignId, a.workspaceId, "Website campaign", Date.now()).run();
+    await w.db.prepare("INSERT INTO jobs(id,workspace_id,campaign_id,slot,snapshot,status,device_id,created_at,updated_at) VALUES (?,?,?,?,'{}','completed',?,?,?)").bind(jobId, a.workspaceId, campaignId, randomUUID(), a.deviceId, Date.now(), Date.now()).run();
+    const ids = Array.from({ length: 125 }, () => randomUUID());
+    for (let offset = 0; offset < ids.length; offset += 25) await w.db.batch(ids.slice(offset, offset+25).map((id, index) => w.db.prepare("INSERT INTO attempts VALUES (?,?,?,?,?,?,?,?)").bind(id, a.workspaceId, jobId, "https://www.facebook.com/groups/website", offset + index < 120 ? "success" : "unknown", "2026-11-17", JSON.stringify({ title: "Service " + (offset + index) }), offset + index)));
+    const call = (path, opts = {}) => w.request(path, { cookie: a.cookie, ...opts });
+    const url = `/campaigns/${campaignId}/results`;
+    const report = await call(url);
+    assert.equal(report.status, 200, JSON.stringify(report.data));
+    assert.equal(report.data.total, 125);
+    assert.equal(report.data.counts.success, 120);
+    assert.equal(report.data.attempts.length, 20);
+    assert.equal((await call(url + "?page=7")).data.attempts.length, 5);
+    const filtered = (await call(url + "?status=unknown")).data;
+    assert.equal(filtered.total, 5);
+    assert.equal(filtered.counts.success, 120, "totals do not shrink with filter");
+    assert.equal((await call(url, { cookie: b.cookie })).status, 404);
+    const recheck = `/attempts/${ids[124]}/recheck`;
+    assert.equal((await call(recheck, { method: "POST", data: {} })).status, 200);
+    await call(recheck, { method: "POST", data: {} });
+    assert.equal((await w.db.prepare("SELECT count(*) AS n FROM facebook_rechecks").first()).n, 1);
+    assert.equal((await call(recheck, { cookie: b.cookie, method: "POST", data: {} })).status, 404);
+    const task = await w.request("/device/rechecks/claim", { method: "POST", token: a.token, data: {} });
+    assert.equal(task.data.task.attempt_id, ids[124]);
+    assert.equal(task.data.task.job_id, jobId);
+    assert.equal((await w.request("/device/rechecks/claim", { method: "POST", token: a.token, data: {} })).data.task, null);
+    await w.request("/device/report", { method: "POST", token: a.token, data: { jobId, attempts: [{ id: ids[124], status: "success", postUrl: "https://www.facebook.com/groups/website/posts/123/", submittedContent: "Owner content" }] } });
+    assert.equal((await call(url)).data.counts.success, 121);
+    await w.request("/device/report", { method: "POST", token: a.token, data: { jobId, attempts: [{ id: ids[124], status: "unknown" }] } });
+    assert.equal((await call(url)).data.counts.success, 121, "stale reports cannot downgrade success");
+    const complete = () => w.request("/device/rechecks/complete", { method: "POST", token: a.token, data: { attemptId: ids[124] } });
+    assert.equal((await complete()).status, 200);
+    assert.equal((await complete()).status, 200, "completion acknowledgements can be retried safely");
+    assert.equal((await call(`/jobs/${jobId}/events`)).data.events.length, 1);
+    assert.equal((await call(`/attempts/${ids[0]}/recheck`, { method: "POST", data: {} })).status, 409);
+  } finally { await w.mf.dispose(); }
+});
