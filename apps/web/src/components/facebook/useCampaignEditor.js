@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { api } from "../../lib/api";
 const newCampaign = () => ({
   workflowVersion: 2,
@@ -34,6 +34,7 @@ const newCampaign = () => ({
   enabled: false,
 });
 export default function useCampaignEditor({ value, onSaved, onClose }) {
+  const requestId = useRef(crypto.randomUUID());
   const [form, setForm] = useState(() =>
     structuredClone({
       ...newCampaign(),
@@ -54,13 +55,24 @@ export default function useCampaignEditor({ value, onSaved, onClose }) {
     }));
   async function save(e) {
     e.preventDefault();
+    if (
+      form.publishMode === "now" &&
+      !confirm(
+        `Đăng chiến dịch “${form.name}” ngay?\n${form.groupIds.length} nhóm · ${form.posts.filter((p) => p.selected && p.content).length} bài · tối đa ${form.dailyLimit} lượt/ngày.\n${form.groupUrls.slice(0, 10).join("\n")}\nMáy phải online; bài có thể chờ quản trị viên duyệt.`,
+      )
+    )
+      return;
     setBusy(true);
     setError("");
     try {
-      await api(
+      const saved = await api(
         form.id ? `/campaigns/${form.id}` : "/campaigns",
         form.id ? "PUT" : "POST",
-        form,
+        {
+          ...form,
+          enabled: form.publishMode === "now" ? false : form.enabled,
+          requestId: requestId.current,
+        },
       );
       await onSaved();
       onClose();

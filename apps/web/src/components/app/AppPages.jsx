@@ -3,6 +3,7 @@ import { Icon } from "../ui";
 import MarketingWorkspace from "../MarketingWorkspace";
 import LegalLinks from "../LegalLinks";
 import FacebookWorkspace from "../facebook/FacebookWorkspace";
+import AttentionPanel from "../facebook/AttentionPanel";
 import { useApp } from "./AppContext";
 import CampaignList from "./CampaignList";
 import OverviewPage from "./OverviewPage";
@@ -93,6 +94,7 @@ export default function AppPages() {
           onConnectChannel={() => setShowConnectChannelModal(true)}
         />
       )}
+      {["facebook", "campaigns", "devices", "results"].includes(page) && <AttentionPanel data={data} onNavigate={setPage} />}
       {page === "overview" && <OverviewPage />}
       {page === "facebook" && (
         <FacebookWorkspace

@@ -1,4 +1,6 @@
 import { all, one, run } from "../models/database.mjs";
+import { bulkReview } from "./facebook-bulk.mjs";
+import { importGroups } from "./facebook-import.mjs";
 import { body, error, rate } from "../middleware/security.mjs";
 import { id, json } from "../lib/http.mjs";
 import {
@@ -60,6 +62,10 @@ export async function facebookRoute(request, env, { workspaceId }) {
     }
     return json({ id: taskId, status: "queued" });
   }
+  if (parts[3] === "groups" && parts[4] === "review" && request.method === "POST")
+    return bulkReview(request, env, workspaceId);
+  if (parts[3] === "groups" && parts[4] === "import" && request.method === "POST")
+    return importGroups(request, env, workspaceId);
   const input = await body(request, 10000);
   if (parts[3] === "groups" && parts.length === 5 && request.method === "PUT") {
     if (!["approved", "rejected", "unreviewed"].includes(input.eligibility))

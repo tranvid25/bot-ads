@@ -1,4 +1,5 @@
 import GroupLibraryRow from "./GroupLibraryRow";
+import GroupImport from "./GroupImport";
 import GroupFilters from "./GroupFilters";
 import React, { useState } from "react";
 
@@ -60,6 +61,7 @@ export default function GroupLibrary({ groups, busy, act, onCompose }) {
           setPage(0);
         }}
       />
+      <GroupImport act={act} busy={busy} />
       <GroupFilters
         value={filters}
         onChange={(value) => {
@@ -67,6 +69,36 @@ export default function GroupLibrary({ groups, busy, act, onCompose }) {
           setPage(0);
         }}
       />
+      <div className="mk-actions">
+        <button className="secondary" disabled={busy || !filtered.length} onClick={() => setSelected(filtered.slice(page * 20, page * 20 + 20).map(g => g.id))}>Chọn trang này</button>
+        <button
+          className="secondary"
+          disabled={busy || !filtered.length}
+          onClick={() => setSelected(filtered.map((g) => g.id))}
+        >
+          Chọn tất cả {filtered.length} nhóm đang lọc
+        </button>
+        <button
+          className="secondary"
+          disabled={busy || !selected.length}
+          onClick={() => {
+            if (
+              confirm(
+                `Bạn đã kiểm tra nội quy và quyền đăng của ${selected.length} nhóm? Nhóm bị loại/có cảnh báo cấm cần xử lý riêng.`,
+              )
+            )
+              act("groups/review", "POST", { ids: selected, confirmed: true });
+          }}
+        >
+          Duyệt nhóm đã chọn
+        </button>
+        <button className="link" onClick={() => setSelected([])}>
+          Bỏ chọn
+        </button>
+        <span>
+          Đã chọn {selected.length} nhóm · {chosen.length} đủ điều kiện đăng
+        </span>
+      </div>
       {!groups.length && (
         <p>
           Chưa có nhóm. Tìm nhóm ở bước trên hoặc nhập link. Tạo nháp nội dung

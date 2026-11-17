@@ -4,6 +4,14 @@
   min-width: 0;
   gap: 24px;
 }
+.fb-toast {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 4000;
+  max-width: min(520px, calc(100vw - 32px));
+  box-shadow: 0 8px 32px #0006;
+}
 .fb-workspace .panel {
   min-width: 0;
   max-width: 100%;

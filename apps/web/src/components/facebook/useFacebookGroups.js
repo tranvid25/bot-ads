@@ -1,28 +1,61 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { api } from "../../lib/api";
 
 export default function useFacebookGroups() {
   const [data, setData] = useState({ groups: [], tasks: [] });
+  const tasksRef = useRef(null),
+    pending = useRef(false);
   const [error, setError] = useState(""),
+    [notice, setNotice] = useState(""),
     [busy, setBusy] = useState(false);
   async function load() {
+    if (pending.current || document.visibilityState !== "visible") return;
+    pending.current = true;
     try {
-      setData(await api("/facebook"));
+      const next = await api("/facebook");
+      if (tasksRef.current) {
+        for (const task of next.tasks) {
+          if (
+            task.status === "completed" &&
+            tasksRef.current.get(task.id) !== "completed"
+          )
+            setNotice(
+              `Đã hoàn tất lượt tìm: ${task.groups_seen} nhóm được ghi nhận. Mở thư viện để kiểm tra và duyệt.`,
+            );
+        }
+      }
+      tasksRef.current = new Map(
+        next.tasks.map((task) => [task.id, task.status]),
+      );
+      setData(next);
       setError("");
     } catch (e) {
       setError(e.message);
+    } finally {
+      pending.current = false;
     }
   }
   useEffect(() => {
     load();
+  }, []);
+  const active = data.tasks.some((task) =>
+    ["queued", "running"].includes(task.status),
+  );
+  useEffect(() => {
+    if (!active) return;
     const timer = setInterval(load, 10000);
     return () => clearInterval(timer);
-  }, []);
+  }, [active]);
   async function act(path, method, input) {
     setBusy(true);
     setError("");
     try {
-      await api(`/facebook/${path}`, method, input);
+      const result = await api(`/facebook/${path}`, method, input);
+      if (path === "groups/import") setNotice(`Đã thêm ${result.added} nhóm; ${result.duplicate} nhóm đã có.`);
+      if (path === "groups/review")
+        setNotice(
+          `Đã duyệt ${result.approved} nhóm; ${result.skipped} nhóm cần kiểm tra riêng.`,
+        );
       await load();
       return true;
     } catch (e) {
@@ -32,5 +65,5 @@ export default function useFacebookGroups() {
       setBusy(false);
     }
   }
-  return { ...data, error, busy, act, reload: load };
+  return { ...data, error, notice, setNotice, busy, act, reload: load };
 }

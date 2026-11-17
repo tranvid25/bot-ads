@@ -19,9 +19,18 @@ export default function FacebookWorkspace({
   onCompose,
   onResults,
 }) {
-  const { groups, tasks, error, busy, act } = useFacebookGroups();
+  const { groups, tasks, error, notice, setNotice, busy, act } =
+    useFacebookGroups();
   return (
     <div className="fb-workspace">
+      {notice && (
+        <div className="alert success fb-toast" role="status">
+          {notice}
+          <button aria-label="Đóng thông báo" onClick={() => setNotice("")}>
+            ×
+          </button>
+        </div>
+      )}
       <FacebookGuide
         device={device}
         groupCount={

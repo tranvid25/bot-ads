@@ -30,7 +30,7 @@ export async function enqueue(env, row, slot) {
   // Insert before network generation: repeated cron cannot create another side effect.
   await run(
     env,
-    "INSERT OR IGNORE INTO jobs(id,workspace_id,campaign_id,slot,snapshot,status,created_at,updated_at) VALUES (?,?,?,?,?,'queued',?,?)",
+    "INSERT OR IGNORE INTO jobs(id,workspace_id,campaign_id,slot,snapshot,status,created_at,updated_at) SELECT ?,?,?,?,?,'queued',?,? WHERE EXISTS(SELECT 1 FROM campaigns WHERE id=? AND workspace_id=? AND json_extract(data,'$.deletedAt') IS NULL)",
     jobId,
     row.workspace_id,
     row.id,
@@ -38,6 +38,8 @@ export async function enqueue(env, row, slot) {
     JSON.stringify(snapshot),
     now,
     now,
+    row.id,
+    row.workspace_id,
   );
   return await one(env, "SELECT id,status FROM jobs WHERE slot=?", slot);
 }

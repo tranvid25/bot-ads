@@ -61,7 +61,8 @@ try {
     exact: true,
   });
   await choose.waitFor();
-  assert.equal(await choose.isDisabled(), true);
+  assert.equal(await choose.isDisabled(), false, "Unreviewed groups can be selected for bulk review");
+  assert.equal(await page.getByRole("button", { name: "Soạn bài cho 0 nhóm đã chọn", exact: true }).isDisabled(), true);
   await page.getByRole("button", { name: "Duyệt nhóm", exact: true }).click();
   await choose.check();
   await mkdir("test-results", { recursive: true });
@@ -95,6 +96,14 @@ try {
     .fill("XayWebsite Facebook pilot");
   const content = "Dịch vụ thiết kế website tại https://xaywebsite.com";
   await dialog.getByLabel("Nội dung bài 1", { exact: true }).fill(content);
+  await dialog.locator('summary').filter({ hasText: 'Thư viện bài viết dùng lại' }).click();
+  await dialog.getByRole('button', { name: 'Lưu các bài đã chọn vào thư viện', exact: true }).click();
+  await dialog.getByText('Đã lưu 1 bài vào thư viện.', { exact: true }).waitFor();
+  await dialog.getByRole('button', { name: 'Dùng bài này', exact: true }).click();
+  assert.equal(await dialog.getByLabel('Nội dung bài 2', { exact: true }).inputValue(), content);
+  await dialog.locator('.post-editor').filter({ has: page.getByLabel('Nội dung bài 2', { exact: true }) }).getByRole('button', { name: 'Xóa bài', exact: true }).click();
+  await dialog.getByRole('button', { name: 'Xóa khỏi thư viện', exact: true }).click();
+  await dialog.getByText('Đã xóa khỏi thư viện.', { exact: true }).waitFor();
   await dialog.getByRole("button", { name: /Nhóm mục tiêu/ }).click();
   await dialog
     .getByLabel("Từ khóa chủ đề, mỗi dòng một từ khóa")
@@ -119,6 +128,19 @@ try {
   assert.equal(fixture.savedCampaign().autoDiscover, false);
   assert.equal(fixture.savedCampaign().autoJoin, false);
   assert.equal(fixture.savedCampaign().dailyLimit, 3);
+  const campaignCard = page.locator('.campaign-card').filter({ hasText: 'XayWebsite Facebook pilot' });
+  const cardColors = await campaignCard.evaluate(element => ({
+    background: getComputedStyle(element).backgroundColor,
+    title: getComputedStyle(element.querySelector('h3')).color,
+  }));
+  assert.equal(cardColors.background, 'rgb(24, 27, 32)', 'Campaign cards must use the dark theme surface');
+  assert.equal(cardColors.title, 'rgb(243, 244, 246)', 'Campaign card titles must remain readable');
+  await page.screenshot({ path: 'test-results/facebook-campaign-list-desktop.png', fullPage: true });
+  await page.setViewportSize({ width: 390, height: 844 });
+  const cardBounds = await campaignCard.boundingBox();
+  assert.ok(cardBounds.x >= 0 && cardBounds.x + cardBounds.width <= 390, 'Campaign card must fit mobile');
+  await page.screenshot({ path: 'test-results/facebook-campaign-list-mobile.png', fullPage: true });
+  await page.setViewportSize({ width: 1440, height: 1000 });
   await page
     .getByRole("button", { name: "Facebook Groups", exact: true })
     .click();

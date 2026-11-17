@@ -42,11 +42,8 @@ async function postToGroup(page, groupUrl, postData, imagePath, config) {
 
     await closeAnyPopups(page);
 
-    // Older configurations may still contain search results that were never joined.
-    const membership = page.getByRole('button', { name: /^(Joined|Đã tham gia)$/i }).first();
-    await membership.waitFor({ state: 'visible', timeout: 10000 }).catch(() => {
-      throw new Error('Chưa xác nhận bạn là thành viên nhóm. Chạy đồng bộ nhóm đã tham gia trước.');
-    });
+    // Membership is not posting permission: some public groups allow visitors.
+    // The composer below must open successfully before any content is submitted.
 
     await page.mouse.wheel(0, 200);
     await sleep(1500);
@@ -82,7 +79,10 @@ async function postToGroup(page, groupUrl, postData, imagePath, config) {
     }
 
     if (!triggerFound) {
-      throw new Error('Không thể mở ô tạo bài viết (Nhóm có thể đang tải chậm hoặc chưa mở quyền đăng).');
+      const join = page.getByRole('button', { name: /^(Join group|Tham gia nhóm)$/i }).first();
+      if (await join.isVisible().catch(() => false))
+        throw new Error('Nhóm chưa mở quyền tạo bài cho tài khoản này. Mở nhóm để kiểm tra yêu cầu tham gia hoặc duyệt người tham gia.');
+      throw new Error('Chưa xác định được quyền tạo bài: không mở được composer. Kiểm tra quyền nhóm hoặc thử lại khi Facebook tải xong.');
     }
 
     // Tự động bấm xác nhận "Tạo bài viết ẩn danh" nếu có

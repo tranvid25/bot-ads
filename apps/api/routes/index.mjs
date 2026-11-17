@@ -1,5 +1,6 @@
 import { identity, checkOrigin, error } from "../middleware/security.mjs";
 import { facebookRoute } from "../controllers/facebook.controller.mjs";
+import { templateRoute } from "../controllers/facebook-templates.mjs";
 import { desktopSocialRoute } from "../controllers/desktop-social.controller.mjs";
 import { authenticate } from "../controllers/auth.controller.mjs";
 import { deviceRoute } from "../controllers/device.controller.mjs";
@@ -14,6 +15,7 @@ import { revokeDevice } from "../controllers/pairing.controller.mjs";
 import { generateDrafts } from "../controllers/campaign.controller.mjs";
 import { saveCampaign } from "../controllers/campaign.controller.mjs";
 import { runCampaign } from "../controllers/campaign.controller.mjs";
+import { deleteCampaign } from "../controllers/campaign-delete.mjs";
 import { cancelJob } from "../controllers/jobs.controller.mjs";
 import { jobEvents } from "../controllers/jobs.controller.mjs";
 import { uploadAsset } from "../controllers/assets.controller.mjs";
@@ -76,6 +78,7 @@ export async function route(request, env, execution) {
     return authenticate(request, env, "login");
   if (path.startsWith("/api/device/")) return deviceRoute(request, env, path);
   const context = await identity(request, env);
+  if (path === "/api/facebook/templates" || path.startsWith("/api/facebook/templates/")) return templateRoute(request, env, context);
   if (path.startsWith("/api/marketing/desktop")) return desktopSocialRoute(request, env, context);
   if (path === "/api/facebook" || path.startsWith("/api/facebook/")) return facebookRoute(request, env, context);
   if (path === "/api/auth/google/account" && ["GET", "DELETE"].includes(method))
@@ -96,6 +99,8 @@ export async function route(request, env, execution) {
     return revokeDevice(request, env, path, method, context);
   if (path === "/api/generate" && method === "POST")
     return generateDrafts(request, env, path, method, context);
+  if (/^\/api\/campaigns\/[^/]+$/.test(path) && method === "DELETE")
+    return deleteCampaign(request, env, path, method, context);
   if (
     (path === "/api/campaigns" && method === "POST") ||
     (/^\/api\/campaigns\/[^/]+$/.test(path) && method === "PUT")

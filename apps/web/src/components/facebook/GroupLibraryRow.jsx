@@ -13,7 +13,7 @@ export default function GroupLibraryRow({
         <input
           type="checkbox"
           aria-label={`Chọn nhóm ${g.name}`}
-          disabled={!approved(g)}
+          disabled={busy}
           checked={selected.includes(g.id)}
           onChange={(e) =>
             setSelected((old) =>

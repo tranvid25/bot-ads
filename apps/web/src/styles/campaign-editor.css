@@ -63,6 +63,28 @@
   background: var(--buffer-editor-bg);
   border-color: var(--buffer-line);
 }
+.publishing-shell .editor .mk-form label.check {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: left;
+  gap: 10px;
+  margin: 0;
+  padding: 10px;
+  border-bottom: 1px solid var(--buffer-line);
+}
+.approved-group-scroll {
+  max-height: 320px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+.publishing-shell .editor input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  flex: 0 0 18px;
+  margin: 0;
+}
 .publishing-shell .editor .soft-panel,
 .publishing-shell .editor .notice {
   background: var(--buffer-surface-elevated);

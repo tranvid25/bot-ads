@@ -1,3 +1,4 @@
+import { scheduleFields, onceDue } from "./facebook-schedule.mjs";
 export function fail(message) {
   throw Object.assign(new Error(message), { status: 400 });
 }
@@ -84,6 +85,7 @@ export function validateCampaign(input, maxDaily = 100) {
   }
   return {
     name,
+    ...scheduleFields(input),
     workflowVersion: input.workflowVersion === 2 ? 2 : 1,
     groupIds: [
       ...new Set(
@@ -138,6 +140,7 @@ export function localClock(now, timezone) {
   };
 }
 export function isDue(campaign, now = new Date()) {
+  if (campaign.scheduleType === "once") return onceDue(campaign, now);
   const clock = localClock(now, campaign.timezone);
   // Only catch up within two hours; never accumulate several missed days.
   const minutes = (v) => Number(v.slice(0, 2)) * 60 + Number(v.slice(3));

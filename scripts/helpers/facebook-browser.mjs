@@ -16,6 +16,7 @@ export async function setupFacebookBrowser(page) {
     attempts: [],
   };
   const library = { groups: [], tasks: [] };
+  const templates = [];
   const marketing = { brands: [], channels: [], posts: [], publications: [], attempts: [], capabilities: { encryption: true, manual: true, cadenceMinutes: 5 } };
   const social = { device: null, tasks: [] };
   let pairingCalls = 0,
@@ -52,6 +53,15 @@ export async function setupFacebookBrowser(page) {
       else if (url.pathname === "/api/pairings") {
         pairingCalls++;
         data = { code: "abcd-1234-ef56-7890", expiresIn: 600 };
+      } else if (url.pathname === "/api/facebook/templates") {
+        if (request.method() === "POST") {
+          const input = request.postDataJSON();
+          templates.push({ ...input, id: "template", asset_id: input.assetId });
+          data = { id: "template" };
+        } else data = { templates };
+      } else if (url.pathname === "/api/facebook/templates/template" && request.method() === "DELETE") {
+        templates.length = 0;
+        data = { deleted: true };
       } else if (url.pathname === "/api/facebook") data = library;
       else if (
         url.pathname === "/api/facebook/groups" &&

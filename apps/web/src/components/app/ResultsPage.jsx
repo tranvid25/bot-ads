@@ -1,4 +1,5 @@
 import React from "react";
+import ReportExport from "../facebook/ReportExport";
 import { api } from "../../lib/api";
 import { Badge, Empty, date } from "../ui";
 import { useApp } from "./AppContext";
@@ -98,6 +99,7 @@ export default function ResultsPage() {
       )}
       <section className="panel">
         <h2>Kết quả từng bài</h2>
+        <ReportExport attempts={data.attempts} />
         {!data.attempts.length ? (
           <p className="hint">
             Chưa có lượt gửi. Chỉ khi xác nhận được bài, hệ thống mới ghi “Đã

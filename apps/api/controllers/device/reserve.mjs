@@ -56,7 +56,7 @@ export async function reserve(request, env, path, { workspaceId, device }) {
     const result = await run(
       env,
       `INSERT INTO attempts(id,workspace_id,job_id,group_url,status,day,data,updated_at)
-      SELECT ?,?,?,?,'submitting',?,?,? WHERE
+      SELECT ?,?,?,?,'submitting',?,?,? WHERE EXISTS(SELECT 1 FROM jobs j JOIN campaigns c ON c.id=j.campaign_id WHERE j.id=? AND j.cancel_requested=0 AND j.status='running' AND json_extract(c.data,'$.deletedAt') IS NULL) AND
       (SELECT count(*) FROM attempts WHERE workspace_id=? AND day=? AND status IN ('submitting','unknown','success','pending_approval')) < ?
       AND (SELECT count(*) FROM attempts a JOIN jobs j ON j.id=a.job_id WHERE a.workspace_id=? AND a.day=? AND j.campaign_id=? AND a.status IN ('submitting','unknown','success','pending_approval')) < ?
       AND NOT EXISTS (SELECT 1 FROM attempts WHERE workspace_id=? AND group_url=? AND (status IN ('submitting','unknown','pending_approval') OR (status='success' AND updated_at>?)))`,
@@ -70,6 +70,7 @@ export async function reserve(request, env, path, { workspaceId, device }) {
         timestamp: new Date(now).toISOString(),
       }),
       now,
+      job.id,
       workspaceId,
       day,
       Math.min(workspace.daily_limit, maxDaily(env)),

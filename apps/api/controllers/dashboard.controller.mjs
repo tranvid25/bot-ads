@@ -19,7 +19,7 @@ export async function dashboard(request, env, path, method, context = {}) {
   const [campaigns, devices, jobs, assets, attempts] = await Promise.all([
     all(
       env,
-      "SELECT * FROM campaigns WHERE workspace_id=? ORDER BY updated_at DESC",
+      "SELECT * FROM campaigns WHERE workspace_id=? AND json_extract(data,'$.deletedAt') IS NULL ORDER BY updated_at DESC",
       workspaceId,
     ),
     all(

@@ -1,0 +1,33 @@
+.publishing-shell .campaign-card {
+  background: var(--buffer-surface);
+  border-color: var(--buffer-line);
+  color: var(--buffer-text);
+}
+.publishing-shell .campaign-card .campaign-main {
+  min-width: 0;
+}
+.publishing-shell .campaign-card h3 {
+  color: var(--buffer-text);
+  overflow-wrap: anywhere;
+}
+.publishing-shell .campaign-card .campaign-main p,
+.publishing-shell .campaign-card .campaign-main small {
+  color: var(--buffer-text-secondary);
+}
+.publishing-shell .campaign-card .campaign-main p.danger {
+  color: #ff8c91;
+}
+.publishing-shell .campaign-card .campaign-emblem {
+  background: var(--buffer-lime-subtle);
+  color: var(--buffer-lime);
+}
+.publishing-shell .campaign-card .badge {
+  background: var(--buffer-surface-elevated);
+  color: var(--buffer-text-secondary);
+  border: 1px solid var(--buffer-line);
+}
+.publishing-shell .campaign-card .badge.success {
+  background: var(--buffer-lime-subtle);
+  color: var(--buffer-lime);
+  border-color: var(--buffer-lime-border);
+}

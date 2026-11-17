@@ -1,4 +1,5 @@
 import React from "react";
+import "../../styles/campaign-list.css";
 import { api } from "../../lib/api";
 import { Icon, Empty } from "../ui";
 import { useApp } from "./AppContext";
@@ -26,7 +27,7 @@ export default function CampaignList() {
               </p>
               <small>
                 {c.enabled
-                  ? `${c.time} · ${c.weekdays.map((d) => (d === 0 ? "CN" : `T${d + 1}`)).join(", ")}`
+                  ? c.scheduleType === "once" ? new Date(c.scheduledAt).toLocaleString("vi-VN") : `${c.time} · ${c.weekdays.map((d) => (d === 0 ? "CN" : `T${d + 1}`)).join(", ")}`
                   : "Chưa bật lịch tự động"}
               </small>
               {c.blockedReason && (
@@ -36,6 +37,23 @@ export default function CampaignList() {
               )}
             </div>
             <div className="campaign-actions">
+              <button
+                className="secondary danger"
+                disabled={busy}
+                onClick={() => {
+                  if (
+                    confirm(
+                      `Xóa chiến dịch “${c.name}” và dừng các lượt chưa gửi? Bài đã gửi lên Facebook không bị xóa.`,
+                    )
+                  )
+                    action(
+                      () => api(`/campaigns/${c.id}`, "DELETE"),
+                      "Đã xóa chiến dịch, tắt lịch và yêu cầu dừng lượt đang chạy.",
+                    );
+                }}
+              >
+                Xóa
+              </button>
               <button className="secondary" onClick={() => setEditor(c.id)}>
                 Chỉnh sửa
               </button>
