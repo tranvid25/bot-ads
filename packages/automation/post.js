@@ -4,6 +4,7 @@ const { beginAttempt, updateAttempt, recordPostResult } = require('./history');
 const { readEvidence, waitForPostResult } = require('./post_verification');
 const { sleep, assertAccountReady, HaltError, authorizeSubmission } = require('./runtime');
 const { dropCommentLink, commentOnAttempt } = require('./comments');
+const { waitForSubmitReady } = require('./post_submit.cjs');
 
 async function closeAnyPopups(page) {
   const closeSelectors = [
@@ -96,7 +97,7 @@ async function postToGroup(page, groupUrl, postData, imagePath, config) {
 
     // 2. Chờ modal soạn bài xuất hiện (Bắt buộc là dialog có chứa ô nhập văn bản)
     console.log('📝 Đang chờ modal soạn bài xuất hiện...');
-    const dialog = page.locator('div[role="dialog"]:has(div[role="textbox"]), div[role="dialog"]:has([contenteditable="true"])').first();
+    const dialog = page.locator('div[role="dialog"]:visible:has(div[role="textbox"]), div[role="dialog"]:visible:has([contenteditable="true"])').first();
     await dialog.waitFor({ state: 'visible', timeout: 15000 });
     await sleep(1500);
 
@@ -125,20 +126,13 @@ async function postToGroup(page, groupUrl, postData, imagePath, config) {
         await fileInput.setInputFiles(imagePath);
         console.log('⏳ Đang chờ ảnh tải lên hoàn tất...');
         await sleep(5000);
-        console.log('✅ Đã đính kèm ảnh thành công mà không mở folder!');
+        console.log('Đã chọn ảnh từ máy. Sẽ kiểm tra Facebook cho phép bấm Đăng trước khi gửi.');
       } else { throw new Error('Không tìm thấy ô tải ảnh trong hộp soạn bài.'); }
     }
 
     // 5. Tìm nút Đăng
     console.log('🚀 Đang chuẩn bị bấm nút ĐĂNG...');
-    const postBtn = dialog.getByRole('button', { name: /^(Post|Đăng|Submit|Gửi)$/i });
-    await postBtn.waitFor({ state: 'visible', timeout: 10000 });
-
-    for (let check = 0; check < 10; check++) {
-      const disabled = await postBtn.getAttribute('aria-disabled');
-      if (disabled !== 'true') break;
-      await sleep(1000);
-    }
+    const postBtn = await waitForSubmitReady(page, dialog, finalContent);
 
     const before = await readEvidence(page);
     await assertAccountReady(page);
@@ -146,8 +140,10 @@ async function postToGroup(page, groupUrl, postData, imagePath, config) {
     attemptId = beginAttempt(groupUrl, postData, finalContent, reservation?.id);
     updateAttempt(attemptId, { beforeLinks: before.articles.flatMap(article => article.links),
       ...(config.cloudJobId ? { cloudJobId: config.cloudJobId, commentConfig: { commentLinkUnderPost: config.commentLinkUnderPost, commentWebsiteUrl: config.commentWebsiteUrl, commentContent: config.commentContent } } : {}) });
+    // Recheck after the reservation round trip; it is still safe to fail before a real click.
+    await waitForSubmitReady(page, dialog, finalContent, { timeout: 15000 });
     submissionStarted = true;
-    await postBtn.click();
+    await postBtn.click({ timeout: 15000 });
     console.log('📤 Đã bấm nút ĐĂNG! Đang chờ Facebook xử lý...');
 
     const result = await waitForPostResult(page, dialog, finalContent, before);
@@ -169,9 +165,12 @@ async function postToGroup(page, groupUrl, postData, imagePath, config) {
     return result.status;
   } catch (error) {
     console.error(`❌ Thất bại tại nhóm ${groupUrl}:`, error.message);
+    const message = submissionStarted && /locator\.click: Timeout/i.test(error.message)
+      ? 'Không hoàn tất được thao tác bấm Đăng trong thời gian chờ. Chưa xác nhận Facebook đã nhận bài; hãy kiểm tra lại kết quả trước khi gửi lại để tránh đăng trùng.'
+      : error.message;
     const status = submissionStarted ? 'unknown' : 'failed';
-    if (attemptId && !confirmed) updateAttempt(attemptId, { status, error: error.message });
-    else if (!attemptId && !(error instanceof HaltError)) recordPostResult(groupUrl, status, error.message, { title: postData.title, content: postData.content });
+    if (attemptId && !confirmed) updateAttempt(attemptId, { status, error: message });
+    else if (!attemptId && !(error instanceof HaltError)) recordPostResult(groupUrl, status, message, { title: postData.title, content: postData.content });
     if (error instanceof HaltError || confirmed) throw error;
     return status;
   }
