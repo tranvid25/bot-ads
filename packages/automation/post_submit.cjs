@@ -1,4 +1,5 @@
 const { assertAccountReady, checkStop, sleep } = require('./runtime');
+const { dismissPostSuggestions } = require('./post_suggestions.cjs');
 const postName = /^(Post|Đăng|Submit|Gửi)$/i;
 const normalize = value => String(value || '').replace(/\s+/g, ' ').trim();
 
@@ -24,16 +25,15 @@ async function waitForSubmitReady(page, dialog, content, { timeout = 45000 } = {
     await assertAccountReady(page);
     const editor = dialog.locator('[role="textbox"], [contenteditable="true"]').filter({ visible: true }).first();
     const actual = await editor.innerText({ timeout: Math.min(1000, timeout) }).catch(() => '');
-    if (!normalize(content) || !normalize(actual).includes(normalize(content)))
+    if (!normalize(content) || normalize(actual) !== normalize(content))
       throw new Error('Nội dung chưa được nhập đầy đủ vào hộp soạn Facebook. Chưa bấm Đăng; mở nhật ký và kiểm tra hộp soạn.');
     try {
       diagnostic = await buttonDiagnostics(button);
       if (diagnostic?.suggestion && !blurredSuggestion) {
-        // A hashtag suggestion can cover Post even when Post is enabled. Tab only
-        // moves focus: it neither chooses the suggestion nor submits the composer.
-        console.log('Bảng gợi ý số bài đang che nút Đăng. Chuyển focus để đóng gợi ý, giữ nguyên nội dung.');
-        await editor.press('Tab', { timeout: 1000 });
+        console.log('Đóng bảng gợi ý hashtag đang che nút Đăng; giữ nguyên nội dung bài viết.');
+        await dismissPostSuggestions(dialog, editor);
         blurredSuggestion = true;
+        continue;
       }
       // Trial performs scroll/actionability checks without submitting or bypassing overlays.
       await button.click({ trial: true, timeout: Math.max(1, Math.min(2000, deadline - Date.now())) });
@@ -42,7 +42,7 @@ async function waitForSubmitReady(page, dialog, content, { timeout = 45000 } = {
       lastError = String(error.message || '');
       diagnostic = await buttonDiagnostics(button);
       if (diagnostic?.suggestion && !blurredSuggestion) {
-        await editor.press('Tab', { timeout: 1000 });
+        await dismissPostSuggestions(dialog, editor);
         blurredSuggestion = true;
       }
       checkStop();

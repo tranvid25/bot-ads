@@ -105,6 +105,7 @@ module.exports = (ctx) => {
         throw new Error("Lệnh không hợp lệ.");
       });
       ctx.windowOpen();
+      ctx.log(`BotAds ${ctx.app.getVersion()} · Đã nạp bộ điều khiển Facebook của bản cài này.`);
       ctx.updates.start();
       ctx.timer = setInterval(ctx.tick, 20000);
       ctx.tick();

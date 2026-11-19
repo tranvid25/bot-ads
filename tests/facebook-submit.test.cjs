@@ -53,6 +53,27 @@ test('submit waits for disabled controls and overlays without clicking before au
       await page.setContent(html);
       await assert.rejects(waitForSubmitReady(page, dialog, 'Missing content', { timeout: 300 }), /chưa được nhập đầy đủ/);
     });
+    await t.test('screenshot layout: clicking Create post dismisses hashtag dropdown without Tab or changing content', async () => {
+      await page.setContent(`<div role="dialog" style="position:relative;width:500px;height:400px">
+        <h2>Create post</h2><div role="textbox" contenteditable="true">${content} #BusinessGrowth</div>
+        <div role="button" aria-label="Post" style="position:absolute;top:300px;width:400px;height:40px" onclick="window.submits++">Post</div>
+        <div id="suggestion" style="position:absolute;top:200px;width:400px;height:200px;z-index:2"><span style="display:block;height:200px">10K posts</span></div>
+      </div>`);
+      await page.evaluate(() => {
+        window.submits = 0;
+        const editor = document.querySelector('[role="textbox"]');
+        editor.focus();
+        editor.onblur = () => document.querySelector('#suggestion')?.remove();
+        editor.onkeydown = e => { if (e.key === 'Tab') editor.textContent += 'UNWANTED AUTOCOMPLETE'; };
+      });
+      const body = content + ' #BusinessGrowth';
+      const button = await waitForSubmitReady(page, dialog, body, { timeout: 3000 });
+      assert.equal(await dialog.getByRole('textbox').innerText(), body);
+      assert.equal(await page.locator('#suggestion').count(), 0);
+      assert.equal(await page.evaluate(() => window.submits), 0);
+      await button.click();
+      assert.equal(await page.evaluate(() => window.submits), 1);
+    });
     await t.test('permanent overlays are reported as blocked, not as a successful submission', async () => {
       await page.setContent(html + '<div style="position:fixed;inset:0;z-index:99"></div>');
       await assert.rejects(waitForSubmitReady(page, dialog, content, { timeout: 500 }), /bị một lớp giao diện che/);
