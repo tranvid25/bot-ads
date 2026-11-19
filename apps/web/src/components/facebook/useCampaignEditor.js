@@ -1,3 +1,4 @@
+import { prepareFacebookDevice } from "../../lib/facebook-device";
 import { useState, useRef } from "react";
 import { api } from "../../lib/api";
 const newCampaign = () => ({
@@ -65,6 +66,8 @@ export default function useCampaignEditor({ value, onSaved, onClose }) {
     setBusy(true);
     setError("");
     try {
+      const device = form.publishMode === "now" ? await prepareFacebookDevice() : {};
+      if (device.canceled) return;
       const saved = await api(
         form.id ? `/campaigns/${form.id}` : "/campaigns",
         form.id ? "PUT" : "POST",
@@ -74,6 +77,7 @@ export default function useCampaignEditor({ value, onSaved, onClose }) {
           requestId: requestId.current,
         },
       );
+      await device.apply?.();
       await onSaved();
       onClose();
     } catch (e) {

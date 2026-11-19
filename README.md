@@ -1,5 +1,7 @@
 # BotAds — tự động đăng bài nhóm Facebook
 
+**Luồng Facebook Groups trên web và desktop (1.1.14):** [hướng dẫn tìm nhóm → xin tham gia → duyệt → chạy chiến dịch](docs/FACEBOOK_GROUPS_GUIDE.md). [Ghi chú triển khai và migration](docs/FACEBOOK_MEMBERSHIP_IMPLEMENTATION.md).
+
 **Marketing đa kênh:** đã có module bài tự soạn, duyệt phiên bản, lịch chạy cloud, DEV API, LinkedIn OAuth và kênh thủ công. Đọc [hướng dẫn cấu hình và nghiệm thu marketing](docs/MARKETING_SETUP.md). Frontend production dùng `https://bot.salesora.space`; LinkedIn cần Developer App được cấp quyền trước khi dùng thật. Phần Facebook bên dưới tiếp tục dùng ứng dụng Windows.
 
 **Web React + API MVC + ứng dụng Windows:** đọc [hướng dẫn sử dụng bản mới](docs/HUONG_DAN_SU_DUNG.md). Kế hoạch sản phẩm ở [SAAS_PLAN.md](SAAS_PLAN.md). Phần hướng dẫn bên dưới dành cho bot CLI trong `packages/automation`; cấu hình và lịch sử CLI hiện nằm trong thư mục đó.

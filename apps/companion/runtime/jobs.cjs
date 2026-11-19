@@ -54,6 +54,7 @@ module.exports = (ctx) => {
         leaseUntil: Date.now() + 45000,
       });
       ctx.current.finished = true;
+      ctx.current.authRequired = result.authInvalid === true && !result.accountChanged;
       ctx.current.error = result.error || "";
       ctx.current.summary = result.summary || null;
       ctx.saveCurrent();
@@ -69,7 +70,9 @@ module.exports = (ctx) => {
       ctx.log(e.message);
     }
     try {
+      const reconnect = ctx.current?.authRequired;
       await ctx.report();
+      if (reconnect && !ctx.current) require('./automatic-login.cjs')(ctx);
     } catch (e) {
       ctx.error =
         "Đang giữ kết quả trên máy để đồng bộ khi có mạng: " + e.message;
@@ -88,11 +91,13 @@ module.exports = (ctx) => {
     try {
       const heartbeat = await ctx.request("/heartbeat", "POST", {
         facebookReady: ctx.state().facebookReady,
+        runtime: { phase: ctx.state().phase, error: ctx.error },
         discoverySupported: true,
         socialSupported: true,
         jobId: ctx.current?.job?.id,
       });
       ctx.error = "";
+      await require("./device-command.cjs")(ctx, heartbeat.command);
       if (ctx.facebookLogin) return;
       if (ctx.social.busy()) {
         await ctx.social.tick();
@@ -125,7 +130,9 @@ module.exports = (ctx) => {
           "Ứng dụng đã khởi động lại giữa lượt. Bài chưa rõ kết quả được giữ để đối soát.";
         ctx.saveCurrent();
       }
+      const reconnect = ctx.current?.authRequired;
       if (ctx.current) await ctx.report();
+      if (reconnect && !ctx.current) { require('./automatic-login.cjs')(ctx); return; }
       if (!ctx.child && !ctx.current && ctx.tickRechecks && await ctx.tickRechecks()) return;
       if (
         !ctx.child &&
@@ -148,7 +155,7 @@ module.exports = (ctx) => {
           ctx.current.starting = true;
           ctx.saveCurrent();
           promise.finally(() => {
-            if (ctx.current) {
+            if (ctx.current?.job?.id === job.id) {
               ctx.current.starting = false;
               ctx.saveCurrent();
             }

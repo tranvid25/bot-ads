@@ -20,6 +20,7 @@ export default function GroupFilters({ value, onChange }) {
             ["joined", "Đã tham gia"],
             ["requested", "Đang chờ"],
             ["not_joined", "Chưa tham gia"],
+            ['manual_required', 'Cần bạn hoàn tất'],
             ["unknown", "Chưa xác minh"],
           ],
         ],

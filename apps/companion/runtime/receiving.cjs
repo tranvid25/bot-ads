@@ -6,11 +6,14 @@ module.exports = async (ctx, enabled) => {
     if (!readiness.canStart) throw new Error(readiness.reason);
   }
   const previous = ctx.credentials.facebookReceiving;
+  const previousPaused = ctx.credentials.facebookPausedByUser;
   ctx.credentials.facebookReceiving = enabled;
+  ctx.credentials.facebookPausedByUser = !enabled;
   try {
     ctx.saveCredentials();
   } catch (error) {
     ctx.credentials.facebookReceiving = previous;
+    ctx.credentials.facebookPausedByUser = previousPaused;
     throw error;
   }
   // Facebook controls must not pause connected Threads/Instagram jobs.

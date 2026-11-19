@@ -2,6 +2,7 @@ import { all, one, run } from "../models/database.mjs";
 import { body, error } from "../middleware/security.mjs";
 import { id, json } from "../lib/http.mjs";
 import { discoveredGroup } from "../../../packages/contracts/facebook.mjs";
+import { membershipReport } from './facebook-membership-report.mjs';
 
 export async function facebookDeviceRoute(
   request,
@@ -28,13 +29,15 @@ export async function facebookDeviceRoute(
     );
     const task = await one(
       env,
-      "UPDATE facebook_discovery_jobs SET status='running',device_id=?,account_key=?,lease_until=?,updated_at=? WHERE id=(SELECT id FROM facebook_discovery_jobs WHERE workspace_id=? AND status='queued' AND cancel_requested=0 AND deadline>? ORDER BY created_at LIMIT 1) AND status='queued' AND NOT EXISTS(SELECT 1 FROM desktop_social_tasks WHERE workspace_id=facebook_discovery_jobs.workspace_id AND status='running') AND NOT EXISTS(SELECT 1 FROM jobs WHERE workspace_id=? AND status IN ('running','needs_review')) RETURNING *",
+      "UPDATE facebook_discovery_jobs SET status='running',device_id=?,account_key=?,lease_until=?,updated_at=? WHERE id=(SELECT id FROM facebook_discovery_jobs WHERE workspace_id=? AND status='queued' AND cancel_requested=0 AND deadline>? AND (kind='discover' OR (?=1 AND kind='membership' AND (json_extract(config,'$.accountKey')='' OR json_extract(config,'$.accountKey')=?))) ORDER BY created_at LIMIT 1) AND status='queued' AND NOT EXISTS(SELECT 1 FROM desktop_social_tasks WHERE workspace_id=facebook_discovery_jobs.workspace_id AND status='running') AND NOT EXISTS(SELECT 1 FROM jobs WHERE workspace_id=? AND status IN ('running','needs_review')) RETURNING *",
       device.id,
       input.accountKey,
       now + 90000,
       now,
       workspaceId,
       now,
+      input.membershipSupported === true ? 1 : 0,
+      input.accountKey,
       workspaceId,
     );
     return json({
@@ -78,6 +81,7 @@ export async function facebookDeviceRoute(
     )
       throw error(400, "Sequence không hợp lệ.");
     if (input.sequence <= task.report_seq) return json({ ok: true });
+    if (task.kind === 'membership') return membershipReport(env, task, input, now);
     if (!Array.isArray(input.groups) || input.groups.length > 50)
       throw error(400, "Mỗi batch tối đa 50 nhóm.");
     if (task.groups_seen + input.groups.length > JSON.parse(task.config).limit)
@@ -87,7 +91,7 @@ export async function facebookDeviceRoute(
     for (const group of groups)
       statements.push(
         env.DB.prepare(
-          "INSERT INTO facebook_groups(id,workspace_id,account_key,url,name,source,membership,reason,checked_at,created_at) SELECT ?,?,?,?,?,?,?,?,?,? WHERE EXISTS(SELECT 1 FROM facebook_discovery_jobs WHERE id=? AND status='running' AND lease_until>=? AND report_seq<?) ON CONFLICT(workspace_id,account_key,url) DO UPDATE SET eligibility=CASE WHEN facebook_groups.membership!=excluded.membership OR facebook_groups.reason!=excluded.reason THEN 'unreviewed' ELSE facebook_groups.eligibility END,reviewed_at=CASE WHEN facebook_groups.membership!=excluded.membership OR facebook_groups.reason!=excluded.reason THEN NULL ELSE facebook_groups.reviewed_at END,name=excluded.name,membership=excluded.membership,reason=excluded.reason,checked_at=excluded.checked_at WHERE facebook_groups.checked_at<=excluded.checked_at",
+          "INSERT INTO facebook_groups(id,workspace_id,account_key,url,name,source,membership,reason,checked_at,created_at) SELECT ?,?,?,?,?,?,?,?,?,? WHERE EXISTS(SELECT 1 FROM facebook_discovery_jobs WHERE id=? AND status='running' AND lease_until>=? AND report_seq<?) ON CONFLICT(workspace_id,account_key,url) DO UPDATE SET eligibility=CASE WHEN facebook_groups.membership!=excluded.membership OR facebook_groups.reason!=excluded.reason THEN 'unreviewed' ELSE facebook_groups.eligibility END,reviewed_at=CASE WHEN facebook_groups.membership!=excluded.membership OR facebook_groups.reason!=excluded.reason THEN NULL ELSE facebook_groups.reviewed_at END,name=excluded.name,membership_note=CASE WHEN facebook_groups.membership!=excluded.membership THEN '' ELSE facebook_groups.membership_note END,membership=excluded.membership,reason=excluded.reason,checked_at=excluded.checked_at WHERE facebook_groups.checked_at<=excluded.checked_at",
         ).bind(
           id(),
           workspaceId,

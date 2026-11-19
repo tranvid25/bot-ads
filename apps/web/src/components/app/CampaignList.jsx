@@ -1,3 +1,4 @@
+import RunFacebookButton from "../facebook/RunFacebookButton";
 import React from "react";
 import "../../styles/campaign-list.css";
 import JobWaitNotice from "../facebook/JobWaitNotice";
@@ -60,19 +61,7 @@ export default function CampaignList() {
               <button className="secondary" onClick={() => setEditor(c.id)}>
                 Chỉnh sửa
               </button>
-              <button
-                className="primary small"
-                disabled={busy || !!c.blockedReason || data.jobs.some(j => j.campaign_id === c.id && ["queued", "running", "needs_review"].includes(j.status))}
-                onClick={() =>
-                  action(
-                    () => api(`/campaigns/${c.id}/run`, "POST", {}),
-                    "Đã xếp lượt chạy. Ứng dụng sẽ nhận khi kết nối và đã đăng nhập Facebook.",
-                  )
-                }
-              >
-                <Icon name="play" size={16} />
-                Chạy
-              </button>
+              <RunFacebookButton campaign={c} />
             </div>
           </article>
         ))

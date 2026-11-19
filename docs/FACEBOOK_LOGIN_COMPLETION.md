@@ -1,5 +1,7 @@
 # Hoàn tất kết nối Facebook — bản 1.1.9
 
+> Tài liệu lịch sử cho bản cũ. Từ **1.1.13**, BotAds tự hoàn tất và nhận chiến dịch sau khi đăng nhập, không yêu cầu đóng Chrome hoặc bấm Hoàn tất. Xem [luồng hiện tại](FACEBOOK_SIMPLE_RUN_IMPLEMENTATION.md).
+
 Đã lưu phiên là bước lưu cookie mã hóa, chưa kết thúc tác vụ đăng nhập. App không nhận tác vụ tìm nhóm/đăng bài khi cửa sổ đăng nhập còn đang được người dùng thao tác.
 
 Sau khi app báo lưu phiên, bấm **Hoàn tất kết nối Facebook** ngay bên dưới phần Facebook. App kiểm tra phiên hiện tại, lưu lại và đóng cửa sổ do BotAds mở để giải phóng lượt làm việc. Vẫn có thể tự đóng toàn bộ tab/cửa sổ BotAds thay cho nút này.

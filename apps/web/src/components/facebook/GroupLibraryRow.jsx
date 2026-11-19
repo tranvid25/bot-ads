@@ -1,4 +1,5 @@
 import React from "react";
+import GroupMembershipActions from './GroupMembershipActions';
 export default function GroupLibraryRow({
   g,
   busy,
@@ -7,6 +8,7 @@ export default function GroupLibraryRow({
   setSelected,
   approved,
 }) {
+  const accountKey = g.membership_account_key || (g.account_key === 'import' ? '' : g.account_key);
   return (
     <article key={g.id} className="fb-group-row">
       <label className="mk-check">
@@ -32,7 +34,9 @@ export default function GroupLibraryRow({
           ? "Đã tham gia"
           : g.membership === "requested"
             ? "Đang chờ tham gia"
-            : "Cần kiểm tra quyền tham gia"}{" "}
+            : g.membership === 'manual_required'
+              ? 'Cần bạn hoàn tất câu hỏi'
+              : g.membership === 'not_joined' ? 'Chưa tham gia' : "Cần kiểm tra quyền tham gia"}{" "}
         ·{" "}
         {g.eligibility === "approved"
           ? "Bạn đã duyệt"
@@ -53,11 +57,13 @@ export default function GroupLibraryRow({
             ? "nhóm đã tham gia"
             : "tìm theo từ khóa"}
         .{" "}
-        {g.account_key && g.account_key !== "import"
-          ? `Tài khoản ${g.account_key.slice(0, 8)}`
+        {accountKey
+          ? `Tài khoản ${accountKey.slice(0, 8)}`
           : "Quyền tài khoản sẽ được kiểm tra trên máy khi chạy."}
       </small>
       <p>{g.reason}</p>
+      {g.membership_note && <p role="status">{g.membership_note}</p>}
+      <GroupMembershipActions ids={[g.id]} busy={busy} act={act} compact />
       <div className="mk-actions">
         <button
           className="secondary small"

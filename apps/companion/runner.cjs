@@ -64,8 +64,12 @@ function rpc(type, data) {
     send({ type, id, ...data });
   });
 }
-process.once("message", async (message) => {
+let processing = false;
+process.on("message", async (message) => {
   if (message.type !== "start") return;
+  if (processing) return;
+  processing = true; stopped = false; finishLogin = false;
+  runtime.startDeadline(45);
   let auth = message.auth;
   setManagedAuth({
     load: () => auth,
@@ -85,7 +89,7 @@ process.once("message", async (message) => {
   try {
     if (message.action === "login") {
       await runtime.runExclusive(
-        () => require(path.join(root, "login")).main({ finish: () => finishLogin }),
+        () => require(path.join(root, "login")).main({ autoFinish: true, keepOpen: true }),
         { allowStopped: true },
       );
       send({ type: "done", login: true });
@@ -95,6 +99,14 @@ process.once("message", async (message) => {
       if (!attempt?.submittedContent) throw new Error("Máy này không còn bằng chứng gốc của lần gửi. Hãy mở Facebook để kiểm tra thủ công.");
       await runtime.runExclusive(() => require(path.join(root, "reconcile_posts")).main({ attemptIds: [message.attemptId], verifyOnly: true }));
       send({ type: "done" });
+    } else if (message.action === 'membership') {
+      leaseUntil = message.leaseUntil;
+      if (fs.existsSync(file('STOP'))) fs.unlinkSync(file('STOP'));
+      const expectedUid = auth?.cookies?.find(c => c.name === 'c_user')?.value;
+      if (!expectedUid) throw new Error('Kết nối Facebook trên BotAds trước khi xử lý nhóm.');
+      const membership = await runtime.runExclusive(() =>
+        require(path.join(root, 'membership_only.cjs')).main({ group: message.group, operation: message.operation, expectedUid }));
+      send({ type: 'done', membership });
     } else if (message.action === "discover") {
       leaseUntil = message.leaseUntil;
       if (fs.existsSync(file("STOP"))) fs.unlinkSync(file("STOP"));
@@ -104,86 +116,17 @@ process.once("message", async (message) => {
       send({ type: "done", groups });
     } else {
       leaseUntil = message.leaseUntil;
-      const { job, campaign, workspace, assets } = message;
-      if (campaign.facebookAccountKey) {
-        const uid = auth?.cookies?.find((c) => c.name === "c_user")?.value;
-        const accountKey = crypto
-          .createHash("sha256")
-          .update("facebook:" + uid)
-          .digest("hex");
-        if (!uid || accountKey !== campaign.facebookAccountKey)
-          throw new Error(
-            "Tài khoản Facebook đang mở khác tài khoản đã duyệt nhóm. Hãy kết nối đúng tài khoản rồi chạy lại.",
-          );
-      }
-      const { defaults } = require(path.join(root, "settings"));
-      const previous = read("config.json", {});
-      const state = mergeReservations(
-        require(path.join(root, "history")).loadState(),
-        read("reservations.json", []),
-      );
-      // Group relevance is campaign-specific even though the account history is shared.
-      if (previous.cloudCampaignId !== job.campaignId)
-        for (const group of Object.values(state.groups)) {
-          if (group.approvalSource === "automatic") {
-            group.advertisingAllowed = false;
-            group.selection = null;
-          }
-        }
-      write("automation_state.json", state);
-      if (campaign.workflowVersion === 2) {
-        for (const url of campaign.groupUrls)
-          state.groups[url] = {
-            ...state.groups[url],
-            advertisingAllowed: true,
-            approvalSource: "user",
-            blocked: false,
-          };
-        write("automation_state.json", state);
-      }
-      const config = campaignConfig(
-        campaign,
-        workspace,
-        job,
-        assets,
-        defaults,
-        previous,
-      );
-      write("config.json", config);
-      if (fs.existsSync(file("STOP"))) fs.unlinkSync(file("STOP"));
-      runtime.setSubmissionGuard(async ({ groupUrl, postData }) => {
-        const attemptId = crypto.randomUUID();
-        // Persist before requesting a cloud reservation; interrupted requests must be reconciled.
-        const reservation = {
-          id: attemptId,
-          groupUrl,
-          status: "submitting",
-          timestamp: new Date().toISOString(),
-          title: postData.title,
-          cloudJobId: job.id,
-        };
-        const local = read("reservations.json", []);
-        local.push(reservation);
-        write("reservations.json", local);
-        const result = await rpc("reserve", {
-          attemptId,
-          groupUrl,
-          title: postData.title,
-        });
-        return result;
-      });
-      const summary = await runtime.runExclusive(() =>
-        require(path.join(root, "automation")).main(),
-      );
+      const summary = await require("./runner_campaign.cjs")(message, { auth, rpc });
       send({ type: "done", summary });
     }
   } catch (e) {
-    send({ type: "done", error: e.message, authInvalid: e.code === "FACEBOOK_AUTH_REQUIRED" });
+    send({ type: "done", error: e.message, halted: e instanceof runtime.HaltError, authInvalid: ['FACEBOOK_AUTH_REQUIRED','FACEBOOK_ACCOUNT_CHANGED'].includes(e.code), accountChanged: e.code === 'FACEBOOK_ACCOUNT_CHANGED' });
   } finally {
-    setTimeout(() => process.exit(), 100);
+    processing = false;
   }
 });
 process.on("disconnect", () => {
   stopped = true;
-  setTimeout(() => process.exit(1), 1000);
+  require(path.join(root, 'managed_session.cjs')).close().finally(() => process.exit());
+  setTimeout(() => process.exit(1), 3000).unref();
 });

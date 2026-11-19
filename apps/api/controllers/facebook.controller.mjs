@@ -1,6 +1,7 @@
 import { all, one, run } from "../models/database.mjs";
 import { bulkReview } from "./facebook-bulk.mjs";
 import { importGroups } from "./facebook-import.mjs";
+import { queueMembership } from "./facebook-membership.mjs";
 import { body, error, rate } from "../middleware/security.mjs";
 import { id, json } from "../lib/http.mjs";
 import {
@@ -13,6 +14,7 @@ export async function facebookRoute(request, env, { workspaceId }) {
     parts = url.pathname.split("/"),
     now = Date.now();
   if (request.method === "GET" && parts.length === 3) {
+    await run(env, "UPDATE facebook_discovery_jobs SET status='failed',error='Lượt đã hết hạn hoặc máy mất kết nối. Kiểm tra trạng thái các nhóm trước khi tạo lượt mới.',updated_at=? WHERE workspace_id=? AND ((status='queued' AND deadline<?) OR (status='running' AND lease_until<?))", now, workspaceId, now, now);
     const groups = await all(
       env,
       "SELECT * FROM facebook_groups WHERE workspace_id=? ORDER BY checked_at DESC LIMIT 500",
@@ -23,12 +25,15 @@ export async function facebookRoute(request, env, { workspaceId }) {
       "SELECT * FROM facebook_discovery_jobs WHERE workspace_id=? ORDER BY created_at DESC LIMIT 20",
       workspaceId,
     );
+    const results = await all(env, 'SELECT r.* FROM facebook_membership_results r JOIN facebook_discovery_jobs t ON t.id=r.task_id WHERE t.workspace_id=? ORDER BY r.updated_at DESC LIMIT 1000', workspaceId);
     return json({
       groups,
-      tasks: tasks.map((t) => ({ ...t, config: JSON.parse(t.config) })),
+      tasks: tasks.map((t) => ({ ...t, config: JSON.parse(t.config), results: results.filter(r => r.task_id === t.id) })),
     });
   }
   await rate(env, `facebook:${workspaceId}`, 100, 3600);
+  if (parts[3] === 'groups' && parts[4] === 'membership' && parts.length === 5 && request.method === 'POST')
+    return queueMembership(request, env, workspaceId);
   if (
     request.method === "POST" &&
     parts[3] === "discover" &&

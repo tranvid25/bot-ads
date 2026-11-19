@@ -49,6 +49,7 @@ module.exports = (ctx) => {
             ctx.credentials.connection?.workspaceId !== result.workspaceId ||
             ctx.credentials.connection?.server !== server
           ) {
+            await ctx.closeFacebookSession?.();
             ctx.credentials.auth = null;
             ctx.credentials.facebookReceiving = false;
             ctx.credentials.social = {};
@@ -88,12 +89,13 @@ module.exports = (ctx) => {
         }
         if (command === "website") {
           if (ctx.credentials.connection)
-            await ctx.shell.openExternal(ctx.credentials.connection.server);
+            await ctx.shell.openExternal(ctx.credentials.connection.server + '/?page=campaigns');
           return ctx.state();
         }
         if (command === "disconnect") {
           if (ctx.hasWork())
             throw new Error("Dừng và đồng bộ lượt hiện tại trước khi ngắt.");
+          await ctx.closeFacebookSession?.();
           ctx.credentials = {};
           ctx.saveCredentials();
           ctx.lastSeen = 0;
@@ -114,7 +116,8 @@ module.exports = (ctx) => {
       ctx.quitting = true;
       clearInterval(ctx.timer);
       ctx.updates.stop();
-      if (ctx.child) ctx.child.kill();
+      if (ctx.child && ctx.child !== ctx.facebookWorker) ctx.child.kill();
+      if (ctx.facebookWorker?.connected) ctx.facebookWorker.disconnect();
     });
     ctx.app.on("window-all-closed", () => {});
   }

@@ -78,8 +78,10 @@ export async function report(request, env, path, { workspaceId, device }) {
       AND EXISTS(SELECT 1 FROM attempts a WHERE a.job_id=jobs.id)
       AND NOT EXISTS(SELECT 1 FROM attempts a WHERE a.job_id=jobs.id AND a.status IN ('submitting','unknown'))`, Date.now(), workspaceId, device.id);
     if (input.finished) {
+      const uncertain = input.authRequired ? await one(env, "SELECT count(*) AS n FROM attempts WHERE job_id=? AND status IN ('submitting','unknown')", job.id) : null;
       const status = job.cancel_requested
         ? "canceled"
+        : input.authRequired ? uncertain.n ? 'needs_review' : 'queued'
         : input.error
           ? "failed"
           : JSON.parse(job.snapshot).workflowVersion === 2 &&

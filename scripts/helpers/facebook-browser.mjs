@@ -22,7 +22,7 @@ export async function setupFacebookBrowser(page) {
   let pairingCalls = 0,
     savedCampaign;
 
-  page.setDefaultTimeout(12000);
+  page.setDefaultTimeout(30000);
   const errors = [];
   page.on("pageerror", (e) => errors.push(e.message));
   page.on("dialog", (dialog) => dialog.accept());
@@ -39,6 +39,7 @@ export async function setupFacebookBrowser(page) {
           downloadAvailable: true,
         };
       else if (url.pathname === "/api/dashboard") data = dashboard;
+      else if (url.pathname === "/api/devices/runtime") data = { devices: dashboard.devices.map(d => ({ ...d, phase: d.facebook_ready ? 'ready' : 'login_required' })) };
       else if (url.pathname === "/api/marketing") data = marketing;
       else if (url.pathname === "/api/marketing/desktop/status") data = social;
       else if (url.pathname === "/api/marketing/desktop/start") {
@@ -129,6 +130,7 @@ export async function setupFacebookBrowser(page) {
   });
 
   return {
+    library,
     marketing,
     social,
     base,

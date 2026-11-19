@@ -1,3 +1,4 @@
+import { runtimeHeartbeat } from "../desktop-runtime.mjs";
 import { json } from "../../lib/http.mjs";
 import { one, run } from "../../models/database.mjs";
 import { body } from "../../middleware/security.mjs";
@@ -31,7 +32,9 @@ export async function heartbeat(request, env, path, { workspaceId, device }) {
           input.jobId,
         );
     }
+    const command = await runtimeHeartbeat(env, workspaceId, device, input.runtime);
     return json({
+      command,
       ok: true,
       stop: Boolean(
         input.jobId &&

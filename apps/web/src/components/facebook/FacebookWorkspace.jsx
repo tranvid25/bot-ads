@@ -3,15 +3,9 @@ import useFacebookGroups from "./useFacebookGroups";
 import FacebookGuide from "./FacebookGuide";
 import DiscoveryForm from "./DiscoveryForm";
 import GroupLibrary from "./GroupLibrary";
+import GroupTasks from './GroupTasks';
 import "./facebook.css";
 
-const taskStates = {
-  queued: "Chờ máy nhận việc",
-  running: "Đang tìm và đánh giá",
-  completed: "Đã tìm xong",
-  failed: "Cần thử lại",
-  canceled: "Đã hủy",
-};
 export default function FacebookWorkspace({
   device,
   campaigns,
@@ -61,29 +55,7 @@ export default function FacebookWorkspace({
           onSubmit={(config) => act("discover", "POST", config)}
         />
       </div>
-      {!!tasks.length && (
-        <section className="panel mk-form">
-          <h2>Tiến độ tìm nhóm</h2>
-          {tasks.map((task) => (
-            <article key={task.id}>
-              <strong>{taskStates[task.status]}</strong>
-              <p>
-                {task.config.keywords.join(", ")} · {task.groups_seen} kết quả
-              </p>
-              {task.error && <p className="danger">{task.error}</p>}
-              {["queued", "running"].includes(task.status) && (
-                <button
-                  className="link"
-                  disabled={busy}
-                  onClick={() => act(`tasks/${task.id}`, "POST", {})}
-                >
-                  Hủy lượt tìm
-                </button>
-              )}
-            </article>
-          ))}
-        </section>
-      )}
+      <GroupTasks tasks={tasks} busy={busy} act={act} />
       <GroupLibrary
         groups={groups}
         busy={busy}

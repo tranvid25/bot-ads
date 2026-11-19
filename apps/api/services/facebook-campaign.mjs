@@ -19,7 +19,7 @@ export async function reviewedCampaign(
   }
   const groups = await all(
     env,
-    "SELECT id,url,account_key,eligibility,reviewed_at FROM facebook_groups WHERE workspace_id=?",
+    "SELECT id,url,account_key,membership_account_key,eligibility,reviewed_at FROM facebook_groups WHERE workspace_id=?",
     workspaceId,
   );
   const selected = campaign.groupIds.map((id) =>
@@ -40,7 +40,7 @@ export async function reviewedCampaign(
     );
   const accounts = [
     ...new Set(
-      selected.map((g) => g.account_key).filter((key) => key !== "import"),
+      selected.map((g) => g.membership_account_key || g.account_key).filter((key) => key !== "import"),
     ),
   ];
   if (accounts.length > 1)

@@ -10,6 +10,7 @@ async function buttonDiagnostics(button) {
     return {
       disabled: el.matches(':disabled') || !!el.closest('[aria-disabled="true"], [inert]'),
       busy: !!el.closest('[aria-busy="true"]'),
+      blocked: !!hit && !el.contains(hit),
       suggestion: !!hit && !el.contains(hit) && /^\d[\d.,]*\s*[KMB]?\s*(posts?|bài viết)$/i.test(hit.textContent.trim()),
     };
   }, undefined, { timeout: 1000 }).catch(() => null);
@@ -51,7 +52,7 @@ async function waitForSubmitReady(page, dialog, content, { timeout = 45000 } = {
   } while (Date.now() < deadline);
   const reason = diagnostic?.disabled ? 'Facebook chưa bật nút Đăng (có thể đang xử lý nội dung/ảnh hoặc thiếu yêu cầu của nhóm).'
     : diagnostic?.busy ? 'Facebook vẫn đang xử lý hộp soạn bài.'
-    : /intercepts pointer events/i.test(lastError) ? 'Nút Đăng đang bị một lớp giao diện che, chưa nhận được thao tác bấm.'
+    : diagnostic?.blocked || /intercepts pointer events/i.test(lastError) ? 'Nút Đăng đang bị một lớp giao diện che, chưa nhận được thao tác bấm.'
     : /not stable|outside of the viewport/i.test(lastError) ? 'Hộp soạn đang thay đổi vị trí hoặc nút Đăng chưa nằm trong vùng bấm.'
     : 'Nút Đăng chưa sẵn sàng hoặc hộp soạn đã thay đổi.';
   throw new Error(`${reason} Đã chờ ${Math.round(timeout / 1000)} giây; chưa bấm Đăng. Kiểm tra cửa sổ Facebook, yêu cầu của nhóm và ảnh tải lên rồi thử lại.`);

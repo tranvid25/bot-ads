@@ -19,7 +19,9 @@ module.exports = (ctx) => {
         );
         env.BOTADS_BROWSER_MODE = ctx.browserMode || "bundled";
       }
-      const processChild = ctx.fork(
+      const persistent = message.action !== "social";
+      const reused = persistent && ctx.facebookWorker?.connected;
+      const processChild = reused ? ctx.facebookWorker : ctx.fork(
         ctx.path.join(
           ctx.baseDir,
           message.action === "social" ? "social-runner.cjs" : "runner.cjs",
@@ -32,11 +34,15 @@ module.exports = (ctx) => {
           windowsHide: true,
         },
       );
+      if (persistent && !reused) {
+        ctx.facebookWorker = processChild;
+        processChild.once("exit", () => { if (ctx.facebookWorker === processChild) ctx.facebookWorker = null; });
+      }
       ctx.child = processChild;
       let done = false;
-      processChild.stdout.on("data", (chunk) => ctx.log(chunk.toString()));
-      processChild.stderr.on("data", (chunk) => ctx.log(chunk.toString()));
-      processChild.on("message", async (event) => {
+      if (!reused) processChild.stdout.on("data", (chunk) => ctx.log(chunk.toString()));
+      if (!reused) processChild.stderr.on("data", (chunk) => ctx.log(chunk.toString()));
+      const handleMessage = async (event) => {
         if (await ctx.socialEvent(event, processChild, message)) return;
         if (event.type === "log") ctx.log(event.text);
         if (event.type === "auth") {
@@ -110,18 +116,27 @@ module.exports = (ctx) => {
             catch (error) { ctx.error = error.message; ctx.log("Chưa lưu được trạng thái phiên Facebook: " + error.message); }
           }
           done = true;
+          if (persistent) {
+            processChild.removeListener("message", handleMessage);
+            processChild.removeListener("exit", handleExit);
+            processChild.removeListener("error", reject);
+            if (ctx.child === processChild) ctx.child = null;
+            ctx.notify();
+          }
           resolve(event);
         }
-      });
+      };
+      processChild.on("message", handleMessage);
       processChild.on("error", reject);
-      processChild.on("exit", (code) => {
-        ctx.child = null;
+      const handleExit = (code) => {
+        if (ctx.child === processChild) ctx.child = null;
         if (!done)
           resolve({
             error: `Tiến trình kết thúc giữa lượt (${code}). Cần kiểm tra kết quả trước khi gửi lại.`,
           });
         ctx.notify();
-      });
+      };
+      processChild.once("exit", handleExit);
       processChild.send({
         type: "start",
         ...message,

@@ -1,6 +1,7 @@
 import GroupLibraryRow from "./GroupLibraryRow";
 import GroupImport from "./GroupImport";
 import GroupFilters from "./GroupFilters";
+import GroupMembershipActions from './GroupMembershipActions';
 import React, { useState } from "react";
 
 export default function GroupLibrary({ groups, busy, act, onCompose }) {
@@ -99,6 +100,8 @@ export default function GroupLibrary({ groups, busy, act, onCompose }) {
           Đã chọn {selected.length} nhóm · {chosen.length} đủ điều kiện đăng
         </span>
       </div>
+      <GroupMembershipActions ids={selected.filter(id => groups.some(g => g.id === id))} busy={busy} act={act} />
+      <p>Chọn nhóm → xin tham gia nếu cần → kiểm tra trạng thái → duyệt nhóm → soạn chiến dịch. Nhóm cho đăng khi chưa tham gia vẫn dùng được; tham gia nhóm không tự duyệt quyền quảng cáo.</p>
       {!groups.length && (
         <p>
           Chưa có nhóm. Tìm nhóm ở bước trên hoặc nhập link. Tạo nháp nội dung

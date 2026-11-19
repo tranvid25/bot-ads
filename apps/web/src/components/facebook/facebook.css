@@ -86,6 +86,8 @@
 .fb-group-row a {
   color: var(--buffer-lime, var(--green));
 }
+.fb-task { padding: 16px 0; border-bottom: 1px solid var(--line); }
+.fb-task-result { display: grid; gap: 6px; padding: 12px 0; overflow-wrap: anywhere; }
 @media (max-width: 800px) {
   .facebook-guide ol {
     grid-template-columns: 1fr;

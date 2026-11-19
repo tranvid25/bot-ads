@@ -1,4 +1,5 @@
 module.exports = (ctx) => {
+  let reporting = null;
   function reportAttempts(ids) {
     const state = ctx.read(
       ctx.path.join(ctx.dataDir(), "automation_state.json"),
@@ -48,7 +49,7 @@ module.exports = (ctx) => {
           : null,
       }));
   }
-  async function report() {
+  async function reportOnce() {
     if (!ctx.current) return;
     const outgoing = ctx.current.events.slice(-50);
     const payload = {
@@ -57,6 +58,7 @@ module.exports = (ctx) => {
       finished: !!ctx.current.finished,
       error: ctx.current.error,
       summary: ctx.current.summary,
+      authRequired: !!ctx.current.authRequired,
     };
     let batch = [], bytes = 0;
     for (const attempt of ctx.reportAttempts()) {
@@ -74,6 +76,10 @@ module.exports = (ctx) => {
       ctx.fs.unlinkSync(ctx.activeFile());
       ctx.current = null;
     } else ctx.saveCurrent();
+  }
+  function report() {
+    if (!reporting) reporting = reportOnce().finally(() => { reporting = null; });
+    return reporting;
   }
   return { reportAttempts, report };
 };

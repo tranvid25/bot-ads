@@ -64,6 +64,7 @@ Object.assign(ctx, require("./runtime/status.cjs")(ctx));
 Object.assign(ctx, require("./runtime/http.cjs")(ctx));
 Object.assign(ctx, require("./runtime/reporting.cjs")(ctx));
 Object.assign(ctx, require("./runtime/runner.cjs")(ctx));
+ctx.closeFacebookSession = require("./runtime/facebook-session.cjs")(ctx);
 Object.assign(ctx, require("./runtime/jobs.cjs")(ctx));
 Object.assign(ctx, require("./runtime/window.cjs")(ctx));
 ctx.tickRechecks = require("./runtime/rechecks.cjs")(ctx);

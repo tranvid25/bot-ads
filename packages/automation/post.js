@@ -136,12 +136,13 @@ async function postToGroup(page, groupUrl, postData, imagePath, config) {
 
     const before = await readEvidence(page);
     await assertAccountReady(page);
-    const reservation = await authorizeSubmission({ groupUrl, postData, finalContent });
+    const reservation = await authorizeSubmission({ groupUrl, postData, finalContent, page });
     attemptId = beginAttempt(groupUrl, postData, finalContent, reservation?.id);
     updateAttempt(attemptId, { beforeLinks: before.articles.flatMap(article => article.links),
       ...(config.cloudJobId ? { cloudJobId: config.cloudJobId, commentConfig: { commentLinkUnderPost: config.commentLinkUnderPost, commentWebsiteUrl: config.commentWebsiteUrl, commentContent: config.commentContent } } : {}) });
     // Recheck after the reservation round trip; it is still safe to fail before a real click.
     await waitForSubmitReady(page, dialog, finalContent, { timeout: 15000 });
+    await require('./account_guard.cjs').assertFacebookIdentity(page, reservation?.facebookUserId);
     submissionStarted = true;
     await postBtn.click({ timeout: 15000 });
     console.log('📤 Đã bấm nút ĐĂNG! Đang chờ Facebook xử lý...');

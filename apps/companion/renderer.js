@@ -3,20 +3,25 @@ let busy = false;
 let latestState;
 let commandError = "";
 function show(state) {
-  $("login-finish-panel").hidden = !state.facebookLogin;
+  $("login-finish-panel").hidden = true;
   $("finish-login").disabled = !state.facebookLogin || !state.facebookReady;
   latestState = state;
+  const loginHome = state.facebookReady && !state.facebookLogin ? 'advanced-login' : 'facebook-connect-actions';
+  if ($('login').parentElement.id !== loginHome) $(loginHome).append($('login'));
   const receiving = window.receivingState(state);
   $("resume").disabled = busy || !receiving.canStart;
   $("resume").textContent = receiving.label;
   $("receiving-status").textContent = receiving.message;
+  if (state.phase === 'ready' && state.online) $("receiving-status").textContent = 'Sẵn sàng. Vào chiến dịch trên website và bấm Chạy. Không cần đóng cửa sổ Facebook.';
+  if (state.facebookLogin) $("receiving-status").textContent = 'Đăng nhập/xác minh trong cửa sổ Facebook. BotAds sẽ tự chuyển sang sẵn sàng.';
+  if (state.phase === 'paused') $("receiving-status").textContent = 'Facebook đang tạm dừng. Trên website, bấm Chạy và chọn Tiếp tục; không cần ghép lại kết nối.';
   $("stop").disabled = busy || (!state.receivingEnabled && !state.currentJob);
   for (const [id, done] of [["step-pair", state.linked], ["step-login", state.facebookReady && !state.facebookLogin], ["step-receive", state.receivingEnabled && state.online]])
     $(id).textContent = done ? "Đã hoàn tất" : "Chưa hoàn tất";
   $("pairing").hidden = state.linked;
   $("connected").hidden = !state.linked;
   $("status").textContent = state.facebookLogin
-    ? "Chờ hoàn tất kết nối Facebook"
+    ? "Đang kết nối Facebook"
     : state.paused
       ? "Đang tạm nghỉ"
       : state.busy
@@ -41,16 +46,16 @@ function show(state) {
       busy || state.busy || !!state.currentJob || !account;
   }
   $("facebook-status").textContent = state.facebookReady
-    ? "Đã lưu phiên đăng nhập trên máy"
+    ? state.facebookLogin ? "Đang xác minh và lưu phiên…" : "Facebook đã kết nối"
     : "Chưa đăng nhập hoặc phiên đã hết hạn. Kết nối Facebook để tiếp tục.";
-  $("login").textContent = state.facebookReady
+  $("login").textContent = state.facebookLogin ? 'Đang kết nối…' : state.facebookReady
     ? "Đăng nhập lại"
     : "Kết nối Facebook";
   $("login").disabled = busy || state.busy || !!state.currentJob;
   $("facebook-change").disabled = busy || state.busy || !!state.currentJob;
   $("startup").checked = state.startup;
   $("job").textContent = state.facebookLogin
-    ? "Bấm Hoàn tất kết nối Facebook để nhận việc"
+    ? "Đang kết nối · Tự hoàn tất sau khi đăng nhập hợp lệ"
     : state.currentSocial
       ? `${state.currentSocial.kind === "connect" ? "Đăng nhập" : "Đăng bài"} ${state.currentSocial.provider}`
       : state.currentJob

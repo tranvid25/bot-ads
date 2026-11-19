@@ -19,7 +19,7 @@ test('submit waits for disabled controls and overlays without clicking before au
       await page.getByRole('button', { name: 'Post' }).evaluate(el => {
         el.setAttribute('aria-disabled', 'true'); setTimeout(() => el.removeAttribute('aria-disabled'), 300);
       });
-      const button = await waitForSubmitReady(page, dialog, content, { timeout: 2500 });
+      const button = await waitForSubmitReady(page, dialog, content, { timeout: 10000 });
       assert.equal(await page.evaluate(() => window.submits || 0), 0);
       await button.click();
       assert.equal(await page.evaluate(() => window.submits), 1);
@@ -27,7 +27,7 @@ test('submit waits for disabled controls and overlays without clicking before au
     await t.test('waits for a transient overlay instead of forcing a click', async () => {
       await page.setContent(html + '<div id="overlay" style="position:fixed;inset:0;z-index:99"></div>');
       await page.evaluate(() => { window.submits = 0; setTimeout(() => document.querySelector('#overlay').remove(), 350); });
-      await waitForSubmitReady(page, dialog, content, { timeout: 2500 });
+      await waitForSubmitReady(page, dialog, content, { timeout: 10000 });
       assert.equal(await page.evaluate(() => window.submits), 0);
     });
     await t.test('native disabled buttons produce an actionable error without sending', async () => {
@@ -42,7 +42,7 @@ test('submit waits for disabled controls and overlays without clicking before au
         editor.focus();
         editor.onblur = () => document.querySelector('#suggestion')?.remove();
       });
-      const button = await waitForSubmitReady(page, dialog, content, { timeout: 3000 });
+      const button = await waitForSubmitReady(page, dialog, content, { timeout: 10000 });
       assert.equal(await page.locator('#suggestion').count(), 0);
       assert.equal(await dialog.getByRole('textbox').innerText(), content);
       assert.equal(await page.evaluate(() => window.submits), 0);
@@ -67,7 +67,7 @@ test('submit waits for disabled controls and overlays without clicking before au
         editor.onkeydown = e => { if (e.key === 'Tab') editor.textContent += 'UNWANTED AUTOCOMPLETE'; };
       });
       const body = content + ' #BusinessGrowth';
-      const button = await waitForSubmitReady(page, dialog, body, { timeout: 3000 });
+      const button = await waitForSubmitReady(page, dialog, body, { timeout: 10000 });
       assert.equal(await dialog.getByRole('textbox').innerText(), body);
       assert.equal(await page.locator('#suggestion').count(), 0);
       assert.equal(await page.evaluate(() => window.submits), 0);

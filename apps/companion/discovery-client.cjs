@@ -22,6 +22,15 @@ module.exports = function discoveryClient({
   }
   async function run(task) {
     running = true;
+    if (task.kind === 'membership') {
+      try {
+        await require('./membership-client.cjs')(task, {
+          request, spawnRunner, stopped, log,
+          persist: (next) => { active = next; persist(); },
+        });
+      } finally { running = false; }
+      return;
+    }
     active = { taskId: task.id, sequence: 1, groups: [], finished: false };
     persist();
     try {
@@ -49,8 +58,14 @@ module.exports = function discoveryClient({
         active = JSON.parse(fs.readFileSync(file(), "utf8"));
       if (active && !active.finished) {
         active.finished = true;
+        if (active.kind === 'membership') {
+          active.sequence++;
+          if (active.membership?.status === 'checking') active.membership = {
+            ...active.membership, status: 'unknown', note: 'Máy khởi động lại giữa lượt. Kiểm tra trạng thái trước khi gửi yêu cầu mới.',
+          };
+        }
         active.error =
-          "Máy khởi động lại khi đang tìm nhóm. Hãy tạo lượt tìm mới.";
+          "Máy khởi động lại giữa lượt xử lý nhóm. Kết quả đã có được giữ lại; hãy kiểm tra lại trạng thái.";
         persist();
       }
     }
@@ -82,7 +97,7 @@ module.exports = function discoveryClient({
       .createHash("sha256")
       .update("facebook:" + uid)
       .digest("hex");
-    const { task } = await request("/discovery/claim", "POST", { accountKey });
+    const { task } = await request("/discovery/claim", "POST", { accountKey, membershipSupported: true });
     if (!task) return false;
     void run(task).catch((e) => {
       running = false;

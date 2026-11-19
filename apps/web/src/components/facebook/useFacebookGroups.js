@@ -4,12 +4,14 @@ import { api } from "../../lib/api";
 export default function useFacebookGroups() {
   const [data, setData] = useState({ groups: [], tasks: [] });
   const tasksRef = useRef(null),
-    pending = useRef(false);
+    pending = useRef(false),
+    refreshQueued = useRef(false);
   const [error, setError] = useState(""),
     [notice, setNotice] = useState(""),
     [busy, setBusy] = useState(false);
   async function load() {
-    if (pending.current || document.visibilityState !== "visible") return;
+    if (document.visibilityState !== "visible") return;
+    if (pending.current) { refreshQueued.current = true; return; }
     pending.current = true;
     try {
       const next = await api("/facebook");
@@ -20,7 +22,9 @@ export default function useFacebookGroups() {
             tasksRef.current.get(task.id) !== "completed"
           )
             setNotice(
-              `Đã hoàn tất lượt tìm: ${task.groups_seen} nhóm được ghi nhận. Mở thư viện để kiểm tra và duyệt.`,
+              task.kind === 'membership'
+                ? `Đã xử lý ${task.groups_seen} nhóm. Xem chi tiết: đã tham gia, chờ duyệt hoặc cần bạn hoàn tất.`
+                : `Đã hoàn tất lượt tìm: ${task.groups_seen} nhóm được ghi nhận. Mở thư viện để kiểm tra và duyệt.`,
             );
         }
       }
@@ -33,10 +37,13 @@ export default function useFacebookGroups() {
       setError(e.message);
     } finally {
       pending.current = false;
+      if (refreshQueued.current) { refreshQueued.current = false; void load(); }
     }
   }
   useEffect(() => {
     load();
+    document.addEventListener('visibilitychange', load);
+    return () => document.removeEventListener('visibilitychange', load);
   }, []);
   const active = data.tasks.some((task) =>
     ["queued", "running"].includes(task.status),
@@ -51,6 +58,7 @@ export default function useFacebookGroups() {
     setError("");
     try {
       const result = await api(`/facebook/${path}`, method, input);
+      if (path === 'groups/membership') setNotice(`Đã xếp lượt xử lý ${result.count} nhóm. Máy BotAds từ bản 1.1.14 sẽ nhận khi online và sẵn sàng; xem Tiến độ tìm và tham gia nhóm.`);
       if (path === "groups/import") setNotice(`Đã thêm ${result.added} nhóm; ${result.duplicate} nhóm đã có.`);
       if (path === "groups/review")
         setNotice(

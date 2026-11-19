@@ -35,7 +35,7 @@ export function discoveredGroup(input) {
   return {
     url,
     name: String(input.name || url).slice(0, 200),
-    membership: ["joined", "requested", "not_joined"].includes(input.membership)
+    membership: ["joined", "requested", "not_joined", "manual_required"].includes(input.membership)
       ? input.membership
       : "unknown",
     reason: String(

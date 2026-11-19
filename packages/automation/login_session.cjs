@@ -1,12 +1,12 @@
 // Keep the interactive browser open after authentication. Persist before it closes.
-async function waitForLogin(session, { save, sleep, now = Date.now, log = console.log, finish = () => false }) {
-  let closed = false, saved = false, valid = false;
+async function waitForLogin(session, { save, sleep, now = Date.now, log = console.log, finish = () => false, autoFinish = false }) {
+  let closed = false, saved = false, valid = false, stable = 0;
   const deadline = now() + 6 * 60000;
   const onClose = () => { closed = true; };
   session.browser.on('disconnected', onClose);
   session.context.on('close', onClose);
   try {
-    log('Đăng nhập trong cửa sổ Facebook. Sau khi thấy thông báo đã lưu phiên, bạn tự đóng cửa sổ khi hoàn tất.');
+    log(autoFinish ? 'Đăng nhập trong cửa sổ Facebook. BotAds tự hoàn tất kết nối, không cần đóng cửa sổ.' : 'Đăng nhập trong cửa sổ Facebook. Sau khi thấy thông báo đã lưu phiên, bạn tự đóng cửa sổ khi hoàn tất.');
     while (!closed) {
       try {
         const pages = session.context.pages().filter(page => !page.isClosed());
@@ -22,11 +22,14 @@ async function waitForLogin(session, { save, sleep, now = Date.now, log = consol
         });
         const cookies = await session.context.cookies(['https://www.facebook.com']);
         const blocked = !page || /login|checkpoint|challenge|two_step_verification/.test(new URL(page.url()).pathname);
-        valid = !!cookies.find(cookie => cookie.name === 'c_user' && cookie.value) && !blocked;
+        const loginForm = page?.locator ? await page.locator('input[name="email"], input[name="pass"]').first().isVisible().catch(() => false) : false;
+        valid = !!cookies.find(cookie => cookie.name === 'c_user' && cookie.value) && !blocked && !loginForm;
+        stable = valid ? stable + 1 : 0;
         if (valid) {
           await save(session.context);
-          if (!saved) log('Đã lưu phiên Facebook. Cửa sổ vẫn mở để bạn kiểm tra; hãy tự đóng khi hoàn tất.');
+          if (!saved) log(autoFinish ? 'Đã lưu phiên Facebook, đang xác minh kết nối…' : 'Đã lưu phiên Facebook. Cửa sổ vẫn mở để bạn kiểm tra; hãy tự đóng khi hoàn tất.');
           saved = true;
+          if (autoFinish && stable >= 2) { log('Kết nối Facebook thành công. Bạn có thể chạy chiến dịch trên website, không cần đóng cửa sổ này.'); return; }
         }
         if (finish()) {
           if (!saved || !valid) throw new Error('Chưa xác minh được phiên Facebook hiện tại. Hãy đăng nhập và hoàn tất xác minh trước.');

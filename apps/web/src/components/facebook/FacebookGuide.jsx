@@ -16,13 +16,13 @@ export default function FacebookGuide({
       "Kết nối máy và Facebook",
       ready
         ? "Máy đã online và có phiên Facebook."
-        : "Cài app → tạo mã liên kết → đăng nhập Facebook trong app → bật nhận việc.",
+        : "Cài app → ghép máy một lần → đăng nhập Facebook. App tự sẵn sàng nhận việc.",
       ready,
       onDevices,
     ],
     [
-      "Tìm và duyệt nhóm",
-      `${groupCount} nhóm đã duyệt. Tìm theo từ khóa dịch vụ hoặc nhập link nhóm bạn được phép đăng.`,
+      "Tìm, tham gia và duyệt nhóm",
+      `${groupCount} nhóm đã duyệt. Tìm hoặc nhập link → chọn nhóm → xin tham gia nếu cần → kiểm tra và duyệt quyền đăng.`,
       groupCount > 0,
       onGroups,
     ],

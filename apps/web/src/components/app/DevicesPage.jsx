@@ -36,10 +36,10 @@ export default function DevicesPage() {
         </div>
         <p>
           Tạo mã liên kết bên dưới, nhập mã vào app BotAds trên máy tính, rồi
-          đăng nhập Facebook trong cửa sổ app mở → bấm Hoàn tất kết nối
-          Facebook → Bật nhận việc Facebook. Sau đó trở lại website để duyệt
+          đăng nhập Facebook trong cửa sổ app mở. BotAds tự hoàn tất kết nối.
+          Sau đó trở lại website để duyệt
           nhóm, tạo chiến dịch và chọn Đăng ngay hoặc Đặt lịch. Máy phải bật
-          và có mạng. Lần sau chỉ cần mở app, kiểm tra trạng thái nhận việc;
+          và có mạng. Lần sau chỉ cần mở app và bấm Chạy trên website;
           chỉ đăng nhập lại khi phiên hết hạn.
         </p>
       </section>

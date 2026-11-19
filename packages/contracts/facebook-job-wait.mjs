@@ -6,9 +6,9 @@ export function jobWait(job, data, now = Date.now()) {
   const devices = (data.devices || []).filter(device => !device.revoked_at);
   if (!devices.length) return { text: "Chờ ghép máy: chưa có thiết bị đang liên kết với tài khoản BotAds này.", target: "devices" };
   const online = devices.filter(device => now - device.last_seen < 120000);
-  if (!online.length) return { text: "Chờ máy online: máy chủ chưa nhận heartbeat trong 2 phút. Mở app, kiểm tra lỗi kết nối và bấm Nhận việc từ website.", target: "devices" };
-  if (!online.some(device => device.facebook_ready)) return { text: "Máy online nhưng chưa báo Facebook sẵn sàng. Đăng nhập và bấm Hoàn tất kết nối Facebook trong app.", target: "devices" };
+  if (!online.length) return { text: "Chờ máy online: mở BotAds trên máy đã ghép. App tự nối lại; không cần ngắt hoặc ghép lại kết nối.", target: "devices" };
+  if (!online.some(device => device.facebook_ready)) return { text: "Máy online nhưng Facebook cần đăng nhập hoặc xác minh. Bấm kiểm tra lượt chờ ở chiến dịch để mở đăng nhập; BotAds tự hoàn tất.", target: "devices" };
   const blocked = (data.jobs || []).find(other => other.id !== job.id && ["running", "needs_review"].includes(other.status));
   if (blocked) return { text: `Chờ lượt ${blocked.id.slice(0,8)} ${blocked.status === "needs_review" ? "được kiểm tra kết quả" : "kết thúc"}.`, target: "results" };
-  return { text: "Máy online, Facebook đã lưu phiên. Chờ app nhận lượt kế tiếp; nếu vẫn chờ, hoàn tất cửa sổ đăng nhập, kiểm tra tác vụ tìm nhóm và bật Nhận việc trong app.", target: "devices" };
+  return { text: "Máy online. BotAds tự nhận lượt kế tiếp; nếu máy đang tạm dừng, bấm Kiểm tra lượt chờ ở chiến dịch để tiếp tục ngay trên website.", target: "results" };
 }

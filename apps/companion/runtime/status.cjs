@@ -16,14 +16,17 @@ module.exports = (ctx) => {
     ctx.notify();
   }
   function state() {
+    const ready = !ctx.credentials.facebookAuthInvalid && !!ctx.credentials.auth?.cookies?.some(c => c.name === 'c_user' && c.value);
+    const phase = ctx.facebookLogin ? 'connecting' : ctx.current?.finished ? 'syncing'
+      : ctx.current || ctx.rechecking || ctx.discovery?.busy() ? 'working'
+      : ctx.credentials.facebookPausedByUser ? 'paused' : !ready ? 'login_required' : ctx.stoppedByUser || ctx.credentials.facebookReceiving === false ? 'paused' : 'ready';
     return {
+      phase,
       server: ctx.credentials.connection?.server || "",
       browserMode: ctx.browserMode || "bundled",
       update: ctx.updates?.state(),
       linked: !!ctx.credentials.connection && !ctx.credentials.connection.invalid,
-      facebookReady: !ctx.credentials.facebookAuthInvalid && !!ctx.credentials.auth?.cookies?.some(
-        (c) => c.name === "c_user",
-      ),
+      facebookReady: ready,
       socialAccounts: Object.fromEntries(
         Object.entries(ctx.credentials.social || {}).map(
           ([provider, session]) => [
@@ -43,7 +46,7 @@ module.exports = (ctx) => {
       logs: ctx.logs,
       startup: ctx.startup,
       paused: ctx.stoppedByUser,
-      receivingEnabled: !!ctx.credentials.connection && !!ctx.credentials.auth && !ctx.stoppedByUser && ctx.credentials.facebookReceiving !== false,
+      receivingEnabled: !!ctx.credentials.connection && ready && !ctx.stoppedByUser && ctx.credentials.facebookReceiving !== false,
     };
   }
   function notify() {

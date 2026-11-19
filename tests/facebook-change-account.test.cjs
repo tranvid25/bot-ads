@@ -9,12 +9,13 @@ function fixture() {
     hasWork: () => false, notify() {}, log() {}, saveCredentials() {},
     state: () => ({ facebookReady: !!ctx.credentials.auth }),
     request: async () => {},
+    tick: async () => {},
     spawnRunner: async () => ({ error: '' }),
   };
   return ctx;
 }
 
-test('changing Facebook persists a clean session, preserves pairing and other channels, and pauses claims', async () => {
+test('changing Facebook pauses only during authentication then becomes ready automatically', async () => {
   const ctx = fixture(), connection = ctx.credentials.connection, social = ctx.credentials.social;
   let persisted = false;
   ctx.saveCredentials = () => { persisted = ctx.credentials.auth === null; };
@@ -25,7 +26,8 @@ test('changing Facebook persists a clean session, preserves pairing and other ch
   ctx.spawnRunner = async message => {
     assert.equal(persisted, true);
     assert.equal(ctx.credentials.auth, null);
-    assert.equal(ctx.stoppedByUser, true);
+    assert.equal(ctx.credentials.facebookReceiving, false);
+    assert.notEqual(ctx.stoppedByUser, true);
     assert.equal(message.action, 'login');
     ctx.credentials.auth = auth('new');
     return {};
@@ -35,7 +37,8 @@ test('changing Facebook persists a clean session, preserves pairing and other ch
   assert.equal(ctx.credentials.social, social);
   assert.equal(ctx.credentials.auth.cookies[0].value, 'new');
   assert.equal(ctx.facebookLogin, false);
-  assert.equal(ctx.stoppedByUser, true);
+  assert.equal(ctx.stoppedByUser, false);
+  assert.equal(ctx.credentials.facebookReceiving, true);
 });
 
 test('regular login retains the existing Facebook session', async () => {
@@ -43,7 +46,15 @@ test('regular login retains the existing Facebook session', async () => {
   ctx.spawnRunner = async () => { assert.equal(ctx.credentials.auth, previous); return {}; };
   await change(ctx);
   assert.equal(ctx.credentials.auth, previous);
-  assert.equal(ctx.stoppedByUser, undefined);
+  assert.equal(ctx.stoppedByUser, false);
+});
+
+test('pause requested while authenticating is not overwritten by automatic completion', async () => {
+  const ctx = fixture();
+  ctx.spawnRunner = async () => { ctx.credentials.facebookPausedByUser = true; return {}; };
+  await change(ctx);
+  assert.equal(ctx.credentials.facebookReceiving, false);
+  assert.equal(ctx.credentials.facebookPausedByUser, true);
 });
 
 test('changing account is blocked during work or an in-flight heartbeat', async () => {

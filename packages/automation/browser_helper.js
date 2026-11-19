@@ -27,6 +27,9 @@ async function saveAuth(context, { interactive = false } = {}) {
  * "Failed to create a ProcessSingleton: Lock file can not be created (0x20)"
  */
 async function launchBrowser({ headless = false, startMaximized = true } = {}) {
+  const expectedUid = managedAuth?.load()?.cookies?.find(c => c.name === 'c_user')?.value;
+  const leased = await require('./managed_session.cjs').lease(expectedUid);
+  if (leased) return leased;
   lastInteractiveState = null;
   const args = [
     '--disable-blink-features=AutomationControlled',

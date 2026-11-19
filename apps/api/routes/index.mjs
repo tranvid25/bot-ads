@@ -1,3 +1,4 @@
+import { desktopRuntime } from "../controllers/desktop-runtime.mjs";
 import { campaignResults } from "../controllers/campaign-results.mjs";
 import { requestRecheck } from "../controllers/facebook-rechecks.mjs";
 import { identity, checkOrigin, error } from "../middleware/security.mjs";
@@ -93,6 +94,10 @@ export async function route(request, env, execution) {
     return campaignResults(request, env, path.split("/")[3], context);
   if (/^\/api\/attempts\/[^/]+\/recheck$/.test(path) && method === "POST")
     return requestRecheck(request, env, path.split("/")[3], context);
+  if (path === "/api/devices/runtime" || path === "/api/devices/commands") {
+    const response = await desktopRuntime(request, env, path, context);
+    if (response) return response;
+  }
   if (path === "/api/auth/logout" && method === "POST")
     return logout(request, env, path, method, context);
   if (path === "/api/dashboard" && method === "GET")

@@ -32,6 +32,8 @@ jobs:
       - run: npm run test:facebook:ui
       - run: npm run test:campaign:ui
       - run: npm run test:companion:ui
+      - run: npm run test:facebook:simple:ui
+      - run: npm run test:facebook:membership:ui
       - run: npm run test:social:ui
       - run: npm run web:check
       - run: npm run cloud:build:production

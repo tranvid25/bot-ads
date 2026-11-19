@@ -1,0 +1,35 @@
+import { chromium } from 'playwright';
+import assert from 'node:assert/strict';
+import { setupFacebookBrowser } from './helpers/facebook-browser.mjs';
+const browser = await chromium.launch({ headless:true });
+try {
+  const page = await browser.newPage();
+  const { base,dashboard,errors } = await setupFacebookBrowser(page);
+  dashboard.campaigns = [{ id:'simple',name:'Simple campaign',posts:[{selected:true}],dailyLimit:3 }];
+  let phase = 'ready', runs = 0, seen = Date.now(), denied = false;
+  const commands = [];
+  await page.route(`${base}/api/devices/runtime`, route => route.fulfill({json:{devices:[{id:'pc',last_seen:seen,facebook_ready:1,phase}]}}));
+  await page.route(`${base}/api/devices/commands`, route => { commands.push(route.request().postDataJSON().action); return route.fulfill({json:{command:{id:'command'}}}); });
+  await page.route(`${base}/api/campaigns/simple/run`, route => { runs++; return denied ? route.fulfill({status:409,json:{error:'Fixture: chiến dịch chưa được phép chạy.'}}) : route.fulfill({json:{id:'same-job'}}); });
+  await page.goto(`${base}/?page=campaigns`);
+  const run = page.getByRole('button',{name:'Chạy',exact:true});
+  await run.click();
+  await page.getByRole('status').filter({hasText:'Đã gửi chiến dịch tới máy'}).waitFor();
+  assert.equal(runs,1); assert.deepEqual(commands,[]);
+  phase = 'paused'; await run.click();
+  await page.getByRole('status').filter({hasText:'Đã gửi yêu cầu tiếp tục'}).waitFor();
+  assert.equal(runs,2); assert.deepEqual(commands,['resume']);
+  phase = 'login_required'; await run.click();
+  await page.getByRole('status').filter({hasText:'Đăng nhập trong cửa sổ Facebook'}).waitFor();
+  assert.equal(runs,3); assert.deepEqual(commands,['resume','connect']);
+  seen = 0; await run.click();
+  await page.getByRole('status').filter({hasText:'Mở BotAds trên máy đã kết nối'}).waitFor();
+  assert.equal(runs,4); assert.deepEqual(commands,['resume','connect']);
+  seen = Date.now(); phase = 'paused'; denied = true;
+  await run.click();
+  await page.getByRole('alert').filter({hasText:'Fixture: chiến dịch chưa được phép chạy.'}).waitFor();
+  assert.deepEqual(commands,['resume','connect'],'a rejected campaign must not resume the device');
+  assert.equal(new URL(page.url()).searchParams.get('page'),'campaigns');
+  assert.deepEqual(errors,[]);
+  console.log('PASS: ready Run needs no desktop action; paused/connect/offline handled on campaign page.');
+} finally { await browser.close(); }

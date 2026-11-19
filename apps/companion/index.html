@@ -18,7 +18,7 @@
     <main>
       <div class="heading">
         <div>
-          <h1>Máy tính của bạn, đã sẵn sàng.</h1>
+          <h1>BotAds trên máy tính của bạn.</h1>
           <p>Kết nối với website và để BotAds thực hiện lịch bạn chọn.</p>
         </div>
         <span id="status" class="pill">Chưa liên kết</span>
@@ -27,11 +27,10 @@
         <h2>Bắt đầu đăng bài Facebook</h2>
         <ol>
           <li>Đăng nhập website BotAds → Thiết bị → tạo mã và liên kết app. <strong id="step-pair"></strong></li>
-          <li>Bấm Kết nối Facebook → đăng nhập → Hoàn tất kết nối Facebook. <strong id="step-login"></strong></li>
-          <li>Bật nhận việc Facebook. <strong id="step-receive"></strong></li>
-          <li>Trên website: duyệt nhóm → tạo chiến dịch → Đăng ngay hoặc Đặt lịch → xem Nhật ký chiến dịch.</li>
+          <li>Kết nối Facebook → đăng nhập. BotAds tự hoàn tất. <strong id="step-login"></strong></li>
+          <li>Trên website: duyệt nhóm → tạo chiến dịch → Chạy hoặc Đặt lịch. <strong id="step-receive"></strong></li>
         </ol>
-        <p>Bạn có thể soạn chiến dịch trước. Đến lúc chạy, máy phải bật nhận việc và có mạng. Lần sau mở app và kiểm tra trạng thái; chỉ đăng nhập lại khi phiên hết hạn.</p>
+        <p>Kết nối một lần, sau đó chỉ cần bấm Chạy trên website. Giữ app mở và máy có mạng; không cần đóng cửa sổ Facebook hoặc kết nối lại mỗi lần.</p>
       </section>
       <div id="error" role="alert" hidden></div>
       <section id="pairing">
@@ -65,23 +64,18 @@
             <h2>Website đã liên kết</h2>
             <p id="server-name"></p>
           </div>
-          <button id="website">Mở website ↗</button>
+          <button id="website" class="primary">Mở chiến dịch Facebook ↗</button>
         </div>
         <div class="facebook">
           <div>
             <h3>Facebook</h3>
             <p id="facebook-status">Chưa kết nối</p>
           </div>
-          <div class="facebook-actions">
+          <div class="facebook-actions" id="facebook-connect-actions">
             <button id="login" class="primary">Kết nối Facebook</button>
-            <button id="facebook-change">Đổi tài khoản Facebook</button>
           </div>
         </div>
         <div id="login-finish-panel" hidden>
-          <p>
-            Đã lưu phiên chưa đồng nghĩa kết thúc bước đăng nhập. Khi kiểm tra
-            xong tài khoản, bấm Hoàn tất bên dưới để app nhận việc.
-          </p>
           <button id="finish-login" class="primary">
             Hoàn tất kết nối Facebook
           </button>
@@ -106,12 +100,17 @@
             <button id="forget-instagram">Xóa phiên Instagram</button>
           </div>
         </div>
+        <p id="receiving-status" role="status" aria-live="polite"></p>
+        <details>
+          <summary>Nâng cao · tạm dừng, đổi tài khoản và ngắt kết nối</summary>
+          <div id="advanced-login"></div>
         <div class="controls">
+          <button id="facebook-change">Đổi tài khoản Facebook</button>
           <button id="resume" class="primary">Nhận việc từ website</button
           ><button id="stop">Tạm dừng nhận việc Facebook</button
           ><button id="disconnect" class="danger">Xóa liên kết trên máy</button>
         </div>
-        <p id="receiving-status" role="status" aria-live="polite"></p>
+        </details>
         <label class="checkbox"
           ><input id="startup" type="checkbox" />Khởi động cùng máy tính</label
         >

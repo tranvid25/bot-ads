@@ -1,5 +1,7 @@
 # Facebook: nhận việc và nhật ký chiến dịch — 1.1.10
 
+> Hướng dẫn lịch sử cho 1.1.10–1.1.12. Từ **1.1.13**, đăng nhập xong tự sẵn sàng; không cần Hoàn tất/Bật nhận việc. Dùng [luồng mới](FACEBOOK_SIMPLE_RUN_IMPLEMENTATION.md).
+
 ## Người dùng bắt đầu như thế nào?
 
 1. Đăng nhập website BotAds → Thiết bị → tạo mã liên kết.
