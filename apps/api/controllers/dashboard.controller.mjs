@@ -66,7 +66,9 @@ export async function dashboard(request, env, path, method, context = {}) {
     workspaceId,
     day,
   );
+  const groupTasks = await all(env, "SELECT * FROM facebook_discovery_jobs WHERE workspace_id=? AND status='running' AND lease_until>?", workspaceId, Date.now());
   return json({
+    groupTasks: groupTasks.map(task => ({ id: task.id, kind: task.kind, status: task.status, groups_seen: task.groups_seen, limit: JSON.parse(task.config).limit })),
     user: publicUser(user),
     settings: { dailyLimit: user.daily_limit, timezone: user.timezone },
     usage: usage.count,

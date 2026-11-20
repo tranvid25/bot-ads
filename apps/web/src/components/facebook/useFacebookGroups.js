@@ -1,5 +1,6 @@
 import { useEffect, useState, useRef } from "react";
 import { api } from "../../lib/api";
+import { prepareFacebookDevice } from '../../lib/facebook-device';
 
 export default function useFacebookGroups() {
   const [data, setData] = useState({ groups: [], tasks: [] });
@@ -57,7 +58,13 @@ export default function useFacebookGroups() {
     setBusy(true);
     setError("");
     try {
+      const device = path === 'discover' ? await prepareFacebookDevice('lượt tìm nhóm') : null;
+      if (device?.canceled) return false;
       const result = await api(`/facebook/${path}`, method, input);
+      if (path === 'discover') {
+        setNotice('Đã xếp lượt tìm nhóm riêng. Máy BotAds sẽ mở trình duyệt để tìm và lưu nhóm; chưa đăng bài.');
+        await device?.apply?.();
+      }
       if (path === 'groups/membership') setNotice(`Đã xếp lượt xử lý ${result.count} nhóm. Máy BotAds từ bản 1.1.14 sẽ nhận khi online và sẵn sàng; xem Tiến độ tìm và tham gia nhóm.`);
       if (path === "groups/import") setNotice(`Đã thêm ${result.added} nhóm; ${result.duplicate} nhóm đã có.`);
       if (path === "groups/review")

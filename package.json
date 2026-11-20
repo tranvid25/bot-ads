@@ -1,9 +1,10 @@
 {
   "name": "botads",
-  "version": "1.1.14",
+  "version": "1.1.15",
   "description": "Facebook Group Auto Post Bot for app.pronunreview.com",
   "main": "index.js",
   "scripts": {
+    "test:facebook:draft:ui": "node scripts/smoke-facebook-draft-groups.mjs",
     "test:facebook:membership:ui": "node scripts/smoke-facebook-membership.mjs",
     "test:facebook:simple:ui": "node scripts/smoke-facebook-simple-run.mjs",
     "test:campaign:ui": "node scripts/smoke-campaign-report.mjs",

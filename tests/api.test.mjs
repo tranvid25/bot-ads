@@ -46,6 +46,7 @@ const input = {
   name: "Chiến dịch test",
   mode: "manual",
   keywords: ["english"],
+  groupUrls: ['alpha', 'beta', 'gamma', 'delta'].map(name => `https://www.facebook.com/groups/${name}`),
   posts: [
     {
       id: "p1",
@@ -80,6 +81,8 @@ before(async () => {
       .filter(Boolean)
       .map((s) => db.prepare(s)),
   );
+  const extra = await readFile('apps/api/migrations/0013_facebook_membership.sql', 'utf8');
+  await db.batch(extra.split(';').map(s => s.trim()).filter(Boolean).map(s => db.prepare(s)));
   a = await request("/auth/register", {
     method: "POST",
     data: {
@@ -96,6 +99,10 @@ before(async () => {
       password: "another password 1234",
     },
   });
+  const owners = (await db.prepare('SELECT id FROM workspaces').all()).results;
+  for (const owner of owners) for (const url of input.groupUrls)
+    await db.prepare("INSERT INTO facebook_groups(id,workspace_id,account_key,url,name,source,eligibility,reason,checked_at,reviewed_at,created_at) VALUES (?,?,'import',?,?,'import','approved','Explicit fixture approval',?,?,?)")
+      .bind(crypto.randomUUID(), owner.id, url, url, Date.now(), Date.now(), Date.now()).run();
 });
 after(async () => {
   await mf?.dispose();

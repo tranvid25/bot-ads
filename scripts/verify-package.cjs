@@ -15,6 +15,7 @@ for (const required of [
   "/apps/companion/membership-client.cjs",
   "/packages/automation/membership_browser.cjs",
   "/packages/automation/membership_only.cjs",
+  "/packages/automation/publish_only.cjs",
   "/apps/companion/runtime/jobs.cjs",
   "/apps/companion/runtime/facebook-login.cjs",
   "/packages/automation/discover_only.cjs",

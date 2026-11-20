@@ -29,7 +29,7 @@ export async function facebookDeviceRoute(
     );
     const task = await one(
       env,
-      "UPDATE facebook_discovery_jobs SET status='running',device_id=?,account_key=?,lease_until=?,updated_at=? WHERE id=(SELECT id FROM facebook_discovery_jobs WHERE workspace_id=? AND status='queued' AND cancel_requested=0 AND deadline>? AND (kind='discover' OR (?=1 AND kind='membership' AND (json_extract(config,'$.accountKey')='' OR json_extract(config,'$.accountKey')=?))) ORDER BY created_at LIMIT 1) AND status='queued' AND NOT EXISTS(SELECT 1 FROM desktop_social_tasks WHERE workspace_id=facebook_discovery_jobs.workspace_id AND status='running') AND NOT EXISTS(SELECT 1 FROM jobs WHERE workspace_id=? AND status IN ('running','needs_review')) RETURNING *",
+      "UPDATE facebook_discovery_jobs SET status='running',device_id=?,account_key=?,lease_until=?,updated_at=? WHERE id=(SELECT id FROM facebook_discovery_jobs WHERE workspace_id=? AND status='queued' AND cancel_requested=0 AND deadline>? AND (kind='discover' OR (?=1 AND kind='membership' AND (json_extract(config,'$.accountKey')='' OR json_extract(config,'$.accountKey')=?))) ORDER BY created_at LIMIT 1) AND status='queued' AND NOT EXISTS(SELECT 1 FROM desktop_social_tasks WHERE workspace_id=facebook_discovery_jobs.workspace_id AND status='running') AND NOT EXISTS(SELECT 1 FROM jobs WHERE workspace_id=? AND (status IN ('running','needs_review') OR (status='queued' AND cancel_requested=0 AND created_at>?))) RETURNING *",
       device.id,
       input.accountKey,
       now + 90000,
@@ -39,6 +39,7 @@ export async function facebookDeviceRoute(
       input.membershipSupported === true ? 1 : 0,
       input.accountKey,
       workspaceId,
+      now - 7200000,
     );
     return json({
       task: task ? { ...task, config: JSON.parse(task.config) } : null,

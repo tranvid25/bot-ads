@@ -9,6 +9,8 @@ export function jobWait(job, data, now = Date.now()) {
   if (!online.length) return { text: "Chờ máy online: mở BotAds trên máy đã ghép. App tự nối lại; không cần ngắt hoặc ghép lại kết nối.", target: "devices" };
   if (!online.some(device => device.facebook_ready)) return { text: "Máy online nhưng Facebook cần đăng nhập hoặc xác minh. Bấm kiểm tra lượt chờ ở chiến dịch để mở đăng nhập; BotAds tự hoàn tất.", target: "devices" };
   const blocked = (data.jobs || []).find(other => other.id !== job.id && ["running", "needs_review"].includes(other.status));
+  const groupTask = (data.groupTasks || []).find(task => task.status === 'running');
+  if (groupTask) return { text: `Máy đang ${groupTask.kind === 'membership' ? 'xử lý tham gia nhóm' : 'tìm nhóm'} (${groupTask.groups_seen}/${groupTask.limit}). Chiến dịch đăng đang chờ lượt này kết thúc; xem hoặc hủy lượt ở Facebook Groups.`, target: 'facebook' };
   if (blocked) return { text: `Chờ lượt ${blocked.id.slice(0,8)} ${blocked.status === "needs_review" ? "được kiểm tra kết quả" : "kết thúc"}.`, target: "results" };
   return { text: "Máy online. BotAds tự nhận lượt kế tiếp; nếu máy đang tạm dừng, bấm Kiểm tra lượt chờ ở chiến dịch để tiếp tục ngay trên website.", target: "results" };
 }

@@ -1,5 +1,6 @@
 import { all } from "../models/database.mjs";
 import { error } from "../middleware/security.mjs";
+import { legacyTargets } from './legacy-facebook-campaign.mjs';
 
 export async function reviewedCampaign(
   env,
@@ -8,7 +9,10 @@ export async function reviewedCampaign(
   requireTargets = false,
   snapshot = false,
 ) {
-  if (campaign.workflowVersion !== 2) return campaign;
+  if (campaign.workflowVersion !== 2) {
+    if (!requireTargets && !campaign.enabled) return { ...campaign, autoDiscover: false, autoJoin: false };
+    campaign = await legacyTargets(env, workspaceId, campaign, snapshot);
+  }
   if (!campaign.groupIds.length) {
     if (requireTargets || campaign.enabled)
       throw error(

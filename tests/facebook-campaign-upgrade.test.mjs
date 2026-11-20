@@ -51,10 +51,14 @@ test("retrying a create/save-and-run request produces one campaign and one job",
   const w = await facebookWorker();
   try {
     const a = await w.owner("retry-campaign");
+    const groupUrl = 'https://www.facebook.com/groups/retry';
+    await w.db.prepare("INSERT INTO facebook_groups(id,workspace_id,account_key,url,name,source,eligibility,reviewed_at,checked_at,created_at) VALUES (?,?,'import',?,'Retry group','import','approved',?,?,?)")
+      .bind(randomUUID(), a.workspaceId, groupUrl, Date.now(), Date.now(), Date.now()).run();
     const data = {
       requestId: randomUUID(),
       publishMode: "now",
       name: "Retry pilot",
+      groupUrls: [groupUrl],
       mode: "manual",
       keywords: ["website"],
       dailyLimit: 3,

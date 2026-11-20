@@ -5,8 +5,8 @@ export default function CampaignAudience({ form, set }) {
   return (
     <>
       <p className="notice">
-        Bước 2/3: chọn nhóm bạn đã kiểm tra. Tìm nhóm chạy riêng trong Facebook
-        Groups, không tự gửi bài trong lúc tìm.
+        Chọn nhóm trong thư viện để đăng. Thiếu nhóm thì bấm Tìm thêm nhóm,
+        chạy lượt tìm riêng rồi quay lại chọn. Chiến dịch này chỉ đăng vào nhóm bạn chọn.
       </p>
       <label>
         Từ khóa chủ đề, mỗi dòng một từ khóa

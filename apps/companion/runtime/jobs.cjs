@@ -148,7 +148,6 @@ module.exports = (ctx) => {
         ctx.credentials.facebookReceiving !== false &&
         ctx.state().facebookReady
       ) {
-        if (await ctx.discovery.tick()) return;
         const { job, blocked } = await ctx.request("/claim");
         if (job) {
           const promise = ctx.startJob(job);
@@ -163,6 +162,7 @@ module.exports = (ctx) => {
         } else if (blocked)
           ctx.error =
             "Có lượt cần đối soát. Mở Kết quả trên web hoặc dùng đúng máy đã chạy để đồng bộ lại.";
+        else await ctx.discovery.tick();
       }
     } catch (e) {
       ctx.error = e.message;

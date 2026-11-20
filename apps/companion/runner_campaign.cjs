@@ -10,6 +10,7 @@ const {
 } = require("../../packages/desktop-state.cjs");
 module.exports = async (message, { auth, rpc }) => {
   const { job, campaign, workspace, assets } = message;
+  if (!campaign.groupUrls?.length) throw new Error('Chưa chọn nhóm để đăng. Tìm nhóm ở Facebook Groups rồi chọn nhóm trong chiến dịch.');
   if (campaign.facebookAccountKey) {
     const uid = auth?.cookies?.find((c) => c.name === "c_user")?.value;
     const accountKey = crypto
@@ -80,6 +81,6 @@ module.exports = async (message, { auth, rpc }) => {
     return { ...result, facebookUserId };
   });
   return await runtime.runExclusive(() =>
-    require(path.join(root, "automation")).main(),
+    require(path.join(root, 'publish_only.cjs')).main(config),
   );
 };

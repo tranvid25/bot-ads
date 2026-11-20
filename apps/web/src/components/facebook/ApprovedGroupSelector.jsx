@@ -15,6 +15,8 @@ export default function ApprovedGroupSelector({ form, set, onOpenGroups }) {
       .catch((e) => setError(e.message));
   useEffect(() => {
     load();
+    window.addEventListener('focus', load);
+    return () => window.removeEventListener('focus', load);
   }, []);
   const approved = groups.filter(
     (g) =>
@@ -26,8 +28,11 @@ export default function ApprovedGroupSelector({ form, set, onOpenGroups }) {
   return (
     <section className="mk-form">
       <h3>Chọn nhóm đã kiểm tra và duyệt</h3>
+      <button type="button" className="secondary" onClick={onOpenGroups || (() => window.open('/?page=facebook', '_blank', 'noopener,noreferrer'))}>
+        Tìm thêm nhóm (giữ bản đang soạn)
+      </button>
       <input
-        aria-label="L?c nh?m ?? duy?t"
+        aria-label="Lọc nhóm đã duyệt"
         value={search}
         onChange={(e) => {
           setSearch(e.target.value);
@@ -98,7 +103,7 @@ export default function ApprovedGroupSelector({ form, set, onOpenGroups }) {
           disabled={!page}
           onClick={() => setPage((p) => p - 1)}
         >
-          Tr??c
+          Trước
         </button>
         <span>Trang {page + 1}</span>
         <button
@@ -109,23 +114,12 @@ export default function ApprovedGroupSelector({ form, set, onOpenGroups }) {
           Sau
         </button>
       </div>
-      <button
-        type="button"
-        className="secondary"
-        onClick={
-          onOpenGroups ||
-          (() =>
-            window.open("/?page=facebook", "_blank", "noopener,noreferrer"))
-        }
-      >
-        Mở thư viện và hướng dẫn tìm nhóm
-      </button>
       <button type="button" className="link" onClick={load}>
         Tải lại danh sách nhóm đã duyệt
       </button>
       <small>
         Thư viện mở ở tab riêng để giữ nội dung bạn đang soạn. Duyệt nhóm xong,
-        quay lại và tải lại danh sách.
+        quay lại danh sách sẽ tự tải lại. Bản đang soạn vẫn được giữ.
       </small>
       <small>
         Danh sách này được chụp lại khi tạo lượt chạy. Nhóm cần duyệt thành viên

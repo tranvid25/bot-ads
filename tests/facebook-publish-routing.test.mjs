@@ -1,0 +1,42 @@
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+import { facebookWorker } from './helpers/facebook-worker.mjs';
+test('legacy gets reviewed targets; publishing wins queued discovery; active discovery stays independent', async () => {
+  const w = await facebookWorker();
+  try {
+    const owner = await w.owner('publish-routing');
+    const call = (path, data, method = 'POST') => w.request(path, { method, data, ...(path.startsWith('/device/') ? { token: owner.token } : { cookie: owner.cookie }) });
+    const campaign = { name: 'Legacy posting', mode: 'manual', keywords: ['website'], posts: [{ content: 'Original text', selected: true }], dailyLimit: 3, autoDiscover: true, autoJoin: true };
+    const draft = await call('/campaigns', campaign);
+    assert.equal(draft.status, 200);
+    assert.equal((await call(`/campaigns/${draft.data.id}/run`, {})).status, 409);
+    const groupUrl = 'https://www.facebook.com/groups/website';
+    await call('/facebook/groups', { url: groupUrl });
+    const group = (await call('/facebook', undefined, 'GET')).data.groups[0];
+    const saved = await call(`/campaigns/${draft.data.id}`, { ...campaign, groupUrls: [groupUrl] }, 'PUT');
+    assert.equal(saved.status, 200);
+    assert.equal((await call(`/campaigns/${draft.data.id}/run`, {})).status, 409, 'must not auto approve legacy URLs');
+    await call(`/facebook/groups/${group.id}`, { eligibility: 'approved', confirmed: true }, 'PUT');
+    const find = await call('/facebook/discover', { keywords: ['website'], limit: 2 });
+    assert.equal(find.status, 200);
+    const queued = await call(`/campaigns/${draft.data.id}/run`, {});
+    assert.equal(queued.status, 200, JSON.stringify(queued.data));
+    const accountKey = 'a'.repeat(64);
+    assert.equal((await call('/device/discovery/claim', { accountKey })).data.task, null, 'queued publishing must win even if discovery calls first');
+    const job = (await call('/device/claim', {})).data.job;
+    assert.equal(job.id, queued.data.id);
+    const prepared = await call('/device/prepare', { jobId: job.id });
+    assert.equal(prepared.status, 200, JSON.stringify(prepared.data));
+    assert.equal(prepared.data.campaign.workflowVersion, 2);
+    assert.equal(prepared.data.campaign.autoDiscover, false);
+    assert.equal(prepared.data.campaign.autoJoin, false);
+    assert.deepEqual(prepared.data.campaign.groupUrls, [groupUrl]);
+    await call('/device/report', { jobId: job.id, finished: true, summary: { status: 'no_targets', sent: 0 } });
+    const claimed = (await call('/device/discovery/claim', { accountKey })).data.task;
+    assert.equal(claimed.id, find.data.id);
+    assert.equal((await call('/device/claim', {})).data.job, null);
+    const dashboard = (await call('/dashboard', undefined, 'GET')).data;
+    assert.equal(dashboard.groupTasks[0].id, find.data.id);
+    await call(`/facebook/tasks/${find.data.id}`, {});
+  } finally { await w.mf.dispose(); }
+});

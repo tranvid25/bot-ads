@@ -1,0 +1,37 @@
+import { chromium } from 'playwright';
+import assert from 'node:assert/strict';
+import { setupFacebookBrowser } from './helpers/facebook-browser.mjs';
+const browser = await chromium.launch({ headless: true });
+try {
+  const page = await browser.newPage();
+  const fixture = await setupFacebookBrowser(page);
+  const { base, library, errors } = fixture;
+  let finds = 0;
+  page.on('request', request => { if (request.url().endsWith('/api/facebook/discover')) finds++; });
+  await page.goto(`${base}/?page=campaigns`);
+  await page.getByRole('button', { name: 'Tạo chiến dịch', exact: true }).click();
+  const editor = page.getByRole('dialog', { name: 'Một chiến dịch mới' });
+  await editor.getByLabel('Tên chiến dịch', { exact: true }).fill('Draft must survive');
+  const original = 'Nội dung đang soạn https://xaywebsite.com';
+  await editor.getByLabel('Nội dung bài 1', { exact: true }).fill(original);
+  await editor.getByRole('button', { name: /Nhóm mục tiêu/ }).click();
+  await editor.getByLabel('Từ khóa chủ đề, mỗi dòng một từ khóa').fill('website');
+  await page.evaluate(() => { window.open = (...args) => { window.__groupTab = args; return null; }; });
+  await editor.getByRole('button', { name: 'Tìm thêm nhóm (giữ bản đang soạn)', exact: true }).click();
+  assert.deepEqual(await page.evaluate(() => window.__groupTab), ['/?page=facebook', '_blank', 'noopener,noreferrer']);
+  assert.equal(finds, 0, 'opening the finder must not enqueue a search implicitly');
+  library.groups.push({ id: 'new-group', name: 'Found group', url: 'https://www.facebook.com/groups/found', eligibility: 'approved', reviewed_at: Date.now(), source: 'search' });
+  await page.evaluate(() => window.dispatchEvent(new Event('focus')));
+  await editor.getByRole('checkbox', { name: 'Found group', exact: true }).check();
+  await editor.getByRole('button', { name: /Nội dung/ }).click();
+  assert.equal(await editor.getByLabel('Nội dung bài 1', { exact: true }).inputValue(), original);
+  assert.equal(await editor.getByLabel('Tên chiến dịch', { exact: true }).inputValue(), 'Draft must survive');
+  await editor.getByRole('button', { name: 'Lưu chiến dịch', exact: true }).click();
+  await editor.waitFor({ state: 'hidden' });
+  assert.deepEqual(fixture.savedCampaign().groupIds, ['new-group']);
+  assert.equal(fixture.savedCampaign().autoDiscover, false);
+  assert.equal(fixture.savedCampaign().autoJoin, false);
+  assert.equal(finds, 0);
+  assert.deepEqual(errors, []);
+  console.log('PASS: draft stays intact while opening finder; focus refreshes reviewed groups; saving a campaign never enqueues discovery.');
+} finally { await browser.close(); }
