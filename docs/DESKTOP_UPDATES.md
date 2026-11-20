@@ -33,6 +33,7 @@ Windows hiện theo cấu hình chứng chỉ cũ: bộ cài chưa ký Authentic
 ## Chủ BotAds phát hành bản mới
 
 1. Tăng version bằng `npm version <version> --no-git-tag-version`, commit cả package.json và package-lock.json. Không tái sử dụng version cho nội dung khác. Các nhánh thử dùng version prerelease không được phát hành vào feed stable.
+   Không thay thế chuỗi version trên toàn bộ `package-lock.json`: việc này có thể đổi nhầm version/URL/dependency range của thư viện. Trước khi phát hành, kiểm tra `npm ci` trên thư mục cài sạch; build bằng `node_modules` cũ không phát hiện được lockfile hỏng.
 2. Khi push lên `main`, workflow **Deploy production** chạy kiểm thử, gọi build Windows Lite/Full và tự publish release đầy đủ trước khi deploy backend. Release Windows dùng `GITHUB_TOKEN` của Actions, không cần thêm PAT. Với Mac vẫn dùng **Build BotAds for macOS**, `signed = true`, rồi phát hành sau nghiệm thu.
    Khi chạy riêng **Build BotAds for Windows**, tùy chọn `publish` mặc định tắt: chỉ tạo artifact. Bật `publish` để publish sau khi cả hai build và smoke test đạt. Release đã public không bị ghi đè khi deploy lại cùng version; thiếu asset thì chặn deploy để tránh link hỏng.
 3. Build script kiểm tra ASAR, đúng luồng Lite/Full và SHA-512 của từng artifact so với manifest. CI còn chạy thử GUI và trình duyệt của package. Trên Windows có kiểm tra updater thật tải bộ cài qua máy chủ loopback và từ chối checksum sai; bài này không cài ứng dụng.
